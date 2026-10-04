@@ -15,6 +15,8 @@ import os
 import networkx as nx
 import numpy as np
 import argparse
+import pwd
+
 ### text colors
 RED = "\033[31m"
 GREEN = "\033[32m"
