@@ -323,7 +323,7 @@ def main():
                         help="Method name for centrality or strength measures. Options: 'eigen', 'pagerank', 'degree', 'k-truss', 'k-core'")
     parser.add_argument('--integrate_with_Seed_Based', type=int, choices=[0, 1], default= 1, \
                         help="Set 1 to integrate Seed Based Graph Deanonymization, otherwise 0 for only centrality measures.")
-    parser.add_argument('--path', type=str, default= f'/home/{username}/PAC_Seed_Based_Free/Project_1', \
+    parser.add_argument('--path', type=str, default= f'/home/{username}/Graph-De-Anonymization/Project_1', \
                         help="Path to the validation dataset or project directory.")
     parser.add_argument('--number_of_top_index_pairs', type=int, default= 50, \
                         help="Before integrating Seed Based method how many top indices pairs you want to provide as given seed pairs")
@@ -335,7 +335,7 @@ def main():
     os.chdir(path)
     print(f"Current Working Directory: {path}")
     # file_path = path + r'\Graph Deanonymization2024\Seed_based'
-    file_path = os.path.join(path, 'Graph Deanonymization2024', 'validation_Dataset')
+    file_path = os.path.join(path, 'Graph1', 'validation_Dataset')
  
     train_portion = 0.20
     ecce_threshold = 0.5

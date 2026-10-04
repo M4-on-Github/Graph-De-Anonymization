@@ -32,8 +32,6 @@ print(f"CUDA version: {torch.version.cuda}")
 
 
 
-
-
 ### Index by index evaluation 
 
 def get_seed_pairs(dictionary_G1, dictionary_G2, validation_seed_pairs, top_k = 100):
@@ -389,7 +387,7 @@ def main():
                         help="Method name for centrality or strength measures. Options: 'eigen', 'pagerank', 'degree', 'k-truss', 'k-core'")
     parser.add_argument('--integrate_with_Seed_Based', type=int, choices=[0, 1], default= 1, \
                         help="Set 1 to integrate Seed Based Graph Deanonymization, otherwise 0 for only centrality measures.")
-    parser.add_argument('--path', type=str, default= f'/home/{username}/PAC_Seed_Based_Free/Project_1', \
+    parser.add_argument('--path', type=str, default= f'/home/{username}/Graph-De-Anonymization/Project_1', \
                         help="Path to the validation dataset or project directory.")
     parser.add_argument('--number_of_top_index_pairs', type=int, default= 50, \
                         help="Before integrating Seed Based method how many top indices pairs you want to provide as given seed pairs")
@@ -405,7 +403,7 @@ def main():
     os.chdir(path)
     path = os.getcwd()
     print(f"Current Working Directory: {path}")
-    file_path = os.path.join(path, 'Graph Deanonymization2024', 'validation_Dataset')
+    file_path = os.path.join(path, 'Graph1', 'validation_Dataset')
 
     # Process files and get initial data
     G1, G2, validation_seed_pairs = process_files_and_get_initial_data(file_path)
