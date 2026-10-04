@@ -379,13 +379,16 @@ def process_files_and_get_initial_data(file_path):
     
 
 def main():
+    # Get username for PATH default args 
+    username = pwd.getpwuid(os.getuid())[0]
+
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Seed Free Graph Deanonymization Script")
     parser.add_argument('--method_name', type=str, default='pagerank', \
                         help="Method name for centrality or strength measures. Options: 'eigen', 'pagerank', 'degree', 'k-truss', 'k-core'")
     parser.add_argument('--integrate_with_Seed_Based', type=int, choices=[0, 1], default= 1, \
                         help="Set 1 to integrate Seed Based Graph Deanonymization, otherwise 0 for only centrality measures.")
-    parser.add_argument('--path', type=str, default= '/home/thossain5/PAC_Seed_Based_Free/Project_1', \
+    parser.add_argument('--path', type=str, default= f'/home/{username}/PAC_Seed_Based_Free/Project_1', \
                         help="Path to the validation dataset or project directory.")
     parser.add_argument('--number_of_top_index_pairs', type=int, default= 50, \
                         help="Before integrating Seed Based method how many top indices pairs you want to provide as given seed pairs")
