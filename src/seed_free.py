@@ -16,7 +16,9 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import pwd
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 
@@ -349,7 +351,7 @@ def process_files_and_get_initial_data(file_path):
     G1 = None
     G2 = None 
     
-    if 'validation_Dataset' in file_path:
+    if 'labeled_dev' in str(file_path):
         ### Declare two graphs
         files = os.listdir(file_path)
  
@@ -378,8 +380,6 @@ def process_files_and_get_initial_data(file_path):
     
 
 def main():
-    # Get username for PATH default args 
-    username = pwd.getpwuid(os.getuid())[0]
 
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Seed Free Graph Deanonymization Script")
@@ -387,8 +387,10 @@ def main():
                         help="Method name for centrality or strength measures. Options: 'eigen', 'pagerank', 'degree', 'k-truss', 'k-core'")
     parser.add_argument('--integrate_with_Seed_Based', type=int, choices=[0, 1], default= 1, \
                         help="Set 1 to integrate Seed Based Graph Deanonymization, otherwise 0 for only centrality measures.")
-    parser.add_argument('--path', type=str, default= f'/home/{username}/Graph-De-Anonymization/Project_1', \
-                        help="Path to the validation dataset or project directory.")
+    parser.add_argument('--path', type=str, default= str(REPO_ROOT / 'data'), \
+                        help="Path to the data directory holding labeled_dev/.")
+    parser.add_argument('--out', type=str, default= str(REPO_ROOT / 'results'), \
+                        help="Directory for result and final-mapping output files.")
     parser.add_argument('--number_of_top_index_pairs', type=int, default= 50, \
                         help="Before integrating Seed Based method how many top indices pairs you want to provide as given seed pairs")
 
@@ -403,7 +405,9 @@ def main():
     os.chdir(path)
     path = os.getcwd()
     print(f"Current Working Directory: {path}")
-    file_path = os.path.join(path, 'Graph1', 'validation_Dataset')
+    file_path = os.path.join(path, 'labeled_dev')
+    out_dir = args.out
+    os.makedirs(out_dir, exist_ok=True)
 
     # Process files and get initial data
     G1, G2, validation_seed_pairs = process_files_and_get_initial_data(file_path)
@@ -459,13 +463,13 @@ def main():
 
     print(f"Accuracy: {accuracy}")
     
-    with open(path + '//' + 'result_'+str(number_of_top_index_pairs)+'_.txt', 'w') as result_file: 
+    with open(os.path.join(out_dir, 'result_'+str(number_of_top_index_pairs)+'_.txt'), 'w') as result_file: 
         result_file.write("Accuracy: "+str(accuracy)+"\n")
         result_file.write("# of Correct pairs: "+str(len(common))+"\n")
         result_file.write("Method Accuracy ({method_name}): "+str(method_accuracy)+"\n")
         result_file.close() 
     ### Write newly added seed pairs with given seed pairs in a new file
-    with open(path + '//'+'Tanvir_Project_1_final_mapping_seed_free_'+str(integrate_with_Seed_Based)+'.txt', 'w') as final_seed_file:
+    with open(os.path.join(out_dir, 'seed_free_final_mapping_'+str(integrate_with_Seed_Based)+'.txt'), 'w') as final_seed_file: 
         for u, v in list(total_extracted_pairs):
             final_seed_file.write(u+' '+ v +'\n')
         final_seed_file.close()

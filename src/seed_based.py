@@ -15,7 +15,9 @@ import os
 import networkx as nx
 import numpy as np
 import argparse
-import pwd
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 ### text colors
 RED = "\033[31m"
@@ -275,7 +277,7 @@ def process_files_and_get_initial_data(file_path, train_portion = 0.20):
     G1 = None
     G2 = None 
     
-    if 'validation_Dataset' in file_path:
+    if 'labeled_dev' in str(file_path):
         ### Declare two graphs
         files = os.listdir(file_path)
  
@@ -314,17 +316,17 @@ def process_files_and_get_initial_data(file_path, train_portion = 0.20):
 
 ### Now start the main operation 
 def main():
-    # Get username for PATH default args 
-    username = pwd.getpwuid(os.getuid())[0]
 
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="Seed Free Graph Deanonymization Script")
+    parser = argparse.ArgumentParser(description="Seed Based Graph Deanonymization Script")
     parser.add_argument('--method_name', type=str, default='pagerank', \
                         help="Method name for centrality or strength measures. Options: 'eigen', 'pagerank', 'degree', 'k-truss', 'k-core'")
     parser.add_argument('--integrate_with_Seed_Based', type=int, choices=[0, 1], default= 1, \
                         help="Set 1 to integrate Seed Based Graph Deanonymization, otherwise 0 for only centrality measures.")
-    parser.add_argument('--path', type=str, default= f'/home/{username}/Graph-De-Anonymization/Project_1', \
-                        help="Path to the validation dataset or project directory.")
+    parser.add_argument('--path', type=str, default= str(REPO_ROOT / 'data'), \
+                        help="Path to the data directory holding labeled_dev/.")
+    parser.add_argument('--out', type=str, default= str(REPO_ROOT / 'results'), \
+                        help="Directory for result and final-mapping output files.")
     parser.add_argument('--number_of_top_index_pairs', type=int, default= 50, \
                         help="Before integrating Seed Based method how many top indices pairs you want to provide as given seed pairs")
 
@@ -335,7 +337,9 @@ def main():
     os.chdir(path)
     print(f"Current Working Directory: {path}")
     # file_path = path + r'\Graph Deanonymization2024\Seed_based'
-    file_path = os.path.join(path, 'Graph1', 'validation_Dataset')
+    file_path = os.path.join(path, 'labeled_dev')
+    out_dir = args.out
+    os.makedirs(out_dir, exist_ok=True)
  
     train_portion = 0.20
     ecce_threshold = 0.5
@@ -357,12 +361,12 @@ def main():
     # print(f"Accuracy: {accuracy}\t Precision: {precision}")
     print(f"Accuracy: {accuracy}")
     
-    with open(path + '//' + 'result_'+ str(train_portion)+'_'+str(ecce_threshold)+'_.txt', 'w') as result_file: 
+    with open(os.path.join(out_dir, 'result_'+ str(train_portion)+'_'+str(ecce_threshold)+'_.txt'), 'w') as result_file: 
         result_file.write("Accuracy: "+str(accuracy)+"\n")
         # result_file.write("Precision: "+str(precision)+"\n")
         result_file.close() 
     ### Write newly added seed pairs with given seed pairs in a new file
-    with open(path + '//'+'Tanvir_project_1_final_mapping_seed_based.txt', 'w') as final_seed_file:
+    with open(os.path.join(out_dir, 'seed_based_final_mapping.txt'), 'w') as final_seed_file: 
         for key, value in seed_nodes_G1.items():
             final_seed_file.write(key+' '+seed_nodes_G1[key]+'\n')
         final_seed_file.close()

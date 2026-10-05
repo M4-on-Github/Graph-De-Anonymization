@@ -4,9 +4,9 @@ gplus_combined.txt/
 *.edgelist
 Graph Deanonymization2024/
 
-# Project_1 came in with cg-branch and its edge lists are already tracked.
-# Without this, any edge list added there later would be silently ignored.
-!Project_1/**/*.edgelist
+# The data/ edge lists are tracked on purpose. Without this exception the
+# blanket *.edgelist rule above would silently drop anything added there.
+!data/**/*.edgelist
 
 # Python
 __pycache__/
@@ -15,6 +15,7 @@ __pycache__/
 venv/
 
 # Rendered proposal output
+docs/proposal.pdf
 proposal.pdf
 
 # Local-only working files. These stay on disk and Claude Code still reads
