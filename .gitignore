@@ -1,0 +1,27 @@
+# Datasets are never committed. The Google+ download unpacks as a directory
+# named gplus_combined.txt holding a 1.3 GB file of the same name.
+gplus_combined.txt/
+*.edgelist
+Graph Deanonymization2024/
+
+# Project_1 came in with cg-branch and its edge lists are already tracked.
+# Without this, any edge list added there later would be silently ignored.
+!Project_1/**/*.edgelist
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Rendered proposal output
+proposal.pdf
+
+# Local-only working files. These stay on disk and Claude Code still reads
+# them; git ignoring a file does not hide it from the filesystem.
+CLAUDE.md
+SeedFree_Li.etal.pdf
+
+# OS cruft
+.DS_Store
+Thumbs.db
