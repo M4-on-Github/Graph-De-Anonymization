@@ -463,7 +463,7 @@ def main():
 
     print(f"Accuracy: {accuracy}")
     
-    with open(os.path.join(out_dir, 'result_'+str(number_of_top_index_pairs)+'_.txt'), 'w') as result_file: 
+    with open(os.path.join(out_dir, 'accuracy_top'+str(number_of_top_index_pairs)+'.txt'), 'w') as result_file: 
         result_file.write("Accuracy: "+str(accuracy)+"\n")
         result_file.write("# of Correct pairs: "+str(len(common))+"\n")
         result_file.write("Method Accuracy ({method_name}): "+str(method_accuracy)+"\n")

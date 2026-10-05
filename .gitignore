@@ -14,6 +14,11 @@ __pycache__/
 .venv/
 venv/
 
+# Generated run outputs. Only the Dec 2024 submissions are kept, in
+# results/archive_2024/; everything else in results/ is regenerable.
+results/*
+!results/archive_2024/
+
 # Rendered proposal output
 docs/proposal.pdf
 proposal.pdf

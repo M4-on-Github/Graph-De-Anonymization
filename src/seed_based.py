@@ -361,7 +361,7 @@ def main():
     # print(f"Accuracy: {accuracy}\t Precision: {precision}")
     print(f"Accuracy: {accuracy}")
     
-    with open(os.path.join(out_dir, 'result_'+ str(train_portion)+'_'+str(ecce_threshold)+'_.txt'), 'w') as result_file: 
+    with open(os.path.join(out_dir, 'accuracy_trainportion'+str(train_portion)+'_ecce'+str(ecce_threshold)+'.txt'), 'w') as result_file: 
         result_file.write("Accuracy: "+str(accuracy)+"\n")
         # result_file.write("Precision: "+str(precision)+"\n")
         result_file.close() 
