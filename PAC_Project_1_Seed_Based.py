@@ -15,6 +15,8 @@ import os
 import networkx as nx
 import numpy as np
 import argparse
+import pwd
+
 ### text colors
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -312,15 +314,19 @@ def process_files_and_get_initial_data(file_path, train_portion = 0.20):
 
 ### Now start the main operation 
 def main():
-    # Set up argument parser
-    parser = argparse.ArgumentParser(description="Seed Based Graph Deanonymization Script")
+    # Get username for PATH default args 
+    username = pwd.getpwuid(os.getuid())[0]
 
-    parser.add_argument('--path', type=str, default= '/home/thossain5/PAC_Seed_Based_Free/Project_1', \
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Seed Free Graph Deanonymization Script")
+    parser.add_argument('--method_name', type=str, default='pagerank', \
+                        help="Method name for centrality or strength measures. Options: 'eigen', 'pagerank', 'degree', 'k-truss', 'k-core'")
+    parser.add_argument('--integrate_with_Seed_Based', type=int, choices=[0, 1], default= 1, \
+                        help="Set 1 to integrate Seed Based Graph Deanonymization, otherwise 0 for only centrality measures.")
+    parser.add_argument('--path', type=str, default= f'/home/{username}/Graph-De-Anonymization/Project_1', \
                         help="Path to the validation dataset or project directory.")
-    parser.add_argument('--train_portion', type=float, default= 0.2, \
-                            help="Percentage of Given Seed Pairs from the validation seed pairs")
-    parser.add_argument('--ecce_threshold', type=float, default= 0.5, \
-                                help="Eccentricity Threshold For adding node pairs in seed pairs list")
+    parser.add_argument('--number_of_top_index_pairs', type=int, default= 50, \
+                        help="Before integrating Seed Based method how many top indices pairs you want to provide as given seed pairs")
 
     args = parser.parse_args()
     
@@ -329,7 +335,7 @@ def main():
     os.chdir(path)
     print(f"Current Working Directory: {path}")
     # file_path = path + r'\Graph Deanonymization2024\Seed_based'
-    file_path = os.path.join(path, 'Graph Deanonymization2024', 'validation_Dataset')
+    file_path = os.path.join(path, 'Graph1', 'validation_Dataset')
  
     train_portion = 0.20
     ecce_threshold = 0.5
