@@ -432,10 +432,11 @@ def main():
 
     elif integrate_with_Seed_Based == 1:
         
-        ### Import Seed Free Graph Deanonymization from specific Directory
+        ### Import the propagator from the sibling module. Resolve it from __file__,
+        ### not from the data path -- main() has already os.chdir'd away from src/.
         import sys 
-        sys.path.append(path)
-        from  PAC_Project_1_Seed_Based import SeedFreeD 
+        sys.path.append(str(Path(__file__).resolve().parent))
+        from  seed_based import SeedFreeD 
         
         top_k = number_of_top_index_pairs
 

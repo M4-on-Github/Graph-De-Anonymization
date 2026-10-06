@@ -35,10 +35,18 @@ python src/beta_noise_generator/perturbation.py --parent gplus_combined.txt     
 Each run writes `G1.edgelist`, `G2.edgelist`, `mapping.txt` and `stats.json`
 into `data/generated/<parent>_b<beta>_s<seed>/`.
 
-**Caveat for the inherited baseline.** `src/seed_based.py` and `src/seed_free.py`
-gate loading on the literal substring `labeled_dev` appearing in the *directory*
-path, and load nothing — silently — if it does not. Pass `--compat-name` to
-suffix generated directories so those scripts accept them.
+**Feeding the inherited baseline.** `src/seed_based.py` and `src/seed_free.py`
+take no dataset path — they build it as `os.path.join(--path, 'labeled_dev')`, so
+the pair must sit in a directory of exactly that name. `--compat-layout` writes
+that nesting:
+
+```bash
+python src/beta_noise_generator/perturbation.py --parent <p> --beta 0.1     --compat-layout --out runs/
+MPLBACKEND=Agg python src/seed_based.py --path runs/<p>_b10_s0 --out runs/out
+```
+
+`MPLBACKEND=Agg` is not optional for `seed_free.py`: it ends its plotting helper
+with a blocking `plt.show()`, so an unattended run hangs with no error.
 
 ## Where each piece comes from
 

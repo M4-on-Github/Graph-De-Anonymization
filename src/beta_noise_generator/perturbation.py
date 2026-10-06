@@ -271,9 +271,9 @@ def write_pair(outdir: Path, pair: dict) -> Path:
     """Write G1.edgelist / G2.edgelist / mapping.txt / stats.json.
 
     Filenames match what the inherited baseline looks for. Note that `src/seed_based.py`
-    and `src/seed_free.py` also gate loading on the literal substring `labeled_dev` being
-    in the *directory* path, so a generated directory will not load under them unless it
-    is named accordingly -- see this package's README note.
+    and `src/seed_free.py` take no dataset path: they build it as
+    os.path.join(--path, 'labeled_dev'). A generated pair is loadable by them only if it
+    sits in a directory of exactly that name -- see the CLI's --compat-layout.
     """
     outdir = Path(outdir)
     outdir.mkdir(parents=True, exist_ok=True)
@@ -388,9 +388,10 @@ def main(argv=None) -> int:
                          "Use on Google+ rather than loading all 30M lines.")
     ap.add_argument("--out", type=str, default=str(REPO_ROOT / "data" / "generated"),
                     help="Directory to write the generated pairs into.")
-    ap.add_argument("--compat-name", action="store_true",
-                    help="Suffix output dirs with '_labeled_dev' so the inherited "
-                         "baseline's substring path guard accepts them.")
+    ap.add_argument("--compat-layout", action="store_true",
+                    help="Nest each pair in a subdirectory literally named "
+                         "'labeled_dev', the only layout the inherited baseline can "
+                         "load. Point its --path at the parent of that directory.")
     ap.add_argument("--no-verify", action="store_true",
                     help="Write the pair even if the (1-beta)^2 check fails.")
     ap.add_argument("--self-test", action="store_true",
@@ -424,9 +425,11 @@ def main(argv=None) -> int:
                     continue
 
             name = f"{stem}_b{round(beta * 100):02d}_s{seed}"
-            if args.compat_name:
-                name += "_labeled_dev"
-            outdir = write_pair(out_root / name, pair)
+            case_dir = out_root / name
+            # The baseline hardcodes os.path.join(--path, 'labeled_dev'), so the pair
+            # has to sit in a subdirectory of exactly that name for it to be found.
+            outdir = write_pair(case_dir / "labeled_dev" if args.compat_layout
+                                else case_dir, pair)
             s = pair["stats"]
             print(f"{outdir.relative_to(REPO_ROOT) if outdir.is_relative_to(REPO_ROOT) else outdir}"
                   f"  |V^a cap V^u|={s['matchable_nodes']:,}"
