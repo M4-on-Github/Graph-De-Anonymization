@@ -48,6 +48,16 @@ These directories were renamed from the inherited layout. Old → new:
 The individual filenames inside were deliberately **not** changed, because the discovery
 logic matches on them.
 
+## Generated pairs
+
+`data/generated/` holds pairs cut from a single parent graph by
+`src/beta_noise_generator/perturbation.py`, with exact ground truth and a known β. It is
+gitignored — regenerate from the parent and the seed recorded in `stats.json`
+rather than committing it. `data/raw/` is for parent graphs and is also ignored.
+
+Generated directories do **not** load under the baseline scripts unless their
+name contains `labeled_dev`; pass `--compat-name` to the generator for that.
+
 ## Not in this repo
 
 `gplus_combined.txt/` (Google+, 1.3 GB, 107,614 nodes) sits at the repo root and is

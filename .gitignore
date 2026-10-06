@@ -8,6 +8,11 @@ Graph Deanonymization2024/
 # blanket *.edgelist rule above would silently drop anything added there.
 !data/**/*.edgelist
 
+# Parent graphs and the pairs cut from them. Regenerable from a parent plus a
+# seed, so only the generator is tracked -- see src/beta_noise_generator/.
+data/generated/
+data/raw/
+
 # Python
 __pycache__/
 *.py[cod]
