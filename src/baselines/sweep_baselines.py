@@ -34,11 +34,16 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO_ROOT / "src" / "adv_gd"))
 
 from sweep import PARENTS, divergence_beta, pair_name, generate as _generate  # noqa: E402
-from common import DATASETS  # noqa: E402
+from common import DATASETS, DEFAULTS  # noqa: E402
 import structural_fingerprint  # noqa: E402
 import isorank  # noqa: E402
+import centrality_rank_match  # noqa: E402
+import composite_centrality  # noqa: E402
+from centrality import MEASURES  # noqa: E402
 
-METHODS = {"structural_fingerprint": structural_fingerprint, "isorank": isorank}
+METHODS = {"structural_fingerprint": structural_fingerprint, "isorank": isorank,
+          "centrality_rank": centrality_rank_match,
+          "composite_centrality": composite_centrality}
 
 
 def build_plan(args) -> list[dict]:
@@ -87,12 +92,24 @@ def run_cell(cell: dict, args) -> int:
     if args.method == "isorank":
         kwargs.update(m=args.isorank_m, alpha=args.isorank_alpha,
                      rounds=args.isorank_rounds)
+    elif args.method == "centrality_rank":
+        kwargs.update(measures=args.measures)
+    elif args.method == "composite_centrality":
+        kwargs.update(csls_k=args.csls_k)
 
     t0 = time.time()
     out = mod.run(pair, cell["dataset"], **kwargs)
-    print(f"task {cell['task_id']} ({args.method}) done in {time.time() - t0:.0f}s  "
-          f"chi={out.get('chi')}  anchors={out.get('anchors_correct')}/"
-          f"{out.get('anchors_found')}")
+    if args.method == "centrality_rank":
+        # one sub-result per measure, not a single flat dict -- see
+        # centrality_rank_match.run's docstring for why.
+        parts = ", ".join(
+            f"{meas} pure_chi={sub.get('pure_chi')}" for meas, sub in out.items())
+        print(f"task {cell['task_id']} ({args.method}) done in "
+              f"{time.time() - t0:.0f}s  {parts}")
+    else:
+        print(f"task {cell['task_id']} ({args.method}) done in {time.time() - t0:.0f}s  "
+              f"chi={out.get('chi')}  anchors={out.get('anchors_correct')}/"
+              f"{out.get('anchors_found')}")
     return 0
 
 
@@ -113,6 +130,11 @@ def main(argv=None) -> int:
                     help="isorank only: top-m degree node restriction per side.")
     ap.add_argument("--isorank-alpha", type=float, default=0.6)
     ap.add_argument("--isorank-rounds", type=int, default=20)
+    ap.add_argument("--measures", type=str, nargs="+", choices=sorted(MEASURES),
+                    default=sorted(MEASURES),
+                    help="centrality_rank only: which measures to run.")
+    ap.add_argument("--csls-k", type=int, default=DEFAULTS["csls_k"],
+                    help="composite_centrality only.")
     ap.add_argument("--out", default=None,
                     help="Pair root. Default runs/sweep_divergence or "
                          "runs/sweep_nominal depending on --beta-mode -- "

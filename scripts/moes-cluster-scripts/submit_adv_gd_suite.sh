@@ -2,7 +2,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Adv-GD comparison suite on cit-HepTh — submit the whole thing.
 #
-# Four arrays, all depending on one pair-generation job (--dependency=afterok),
+# Six arrays, all depending on one pair-generation job (--dependency=afterok),
 # all over the SAME beta x pair_seed grid, into the SAME pair root
 # (runs/sweep_divergence/) so every method's numbers come from the identical
 # pairs:
@@ -14,8 +14,12 @@
 #      sweeping align_seed over it would just be the same run repeated)
 #   3  baseline_structural_fingerprint: beta x pair_seed              (array)
 #   4  baseline_isorank: beta x pair_seed                             (array)
+#   5  baseline_centrality_rank (docs/some-context.txt's own index-rank-
+#      matching method, 5 measures scored per cell): beta x pair_seed (array)
+#   6  ours_composite_centrality (this repo's own baseline: 6-feature
+#      fingerprint + CSLS matching): beta x pair_seed                 (array)
 #
-# Stages 1-4 do not depend on each other, only on stage 0, so a failure in one
+# Stages 1-6 do not depend on each other, only on stage 0, so a failure in one
 # does not block or corrupt the others (same reasoning as Report 1's
 # seed_based/seed_free arrays -- see submit_report1.sh).
 #
@@ -27,7 +31,8 @@
 # Submit-specific flags:
 #   --dry-run           Print the sbatch commands only, submit nothing.
 #   --no-generate       Assume the pairs exist; skip stage 0 and the dependency.
-#   --only KIND         One of: pairs | adv_gd | ablation | structural | isorank.
+#   --only KIND         One of: pairs | adv_gd | ablation | structural |
+#                       isorank | centrality_rank | composite_centrality.
 #   --limit N           Max concurrent array tasks per stage (default 12).
 #   --betas "L"         Nominal betas, space-separated (default matches
 #                        Report 1's own grid: 0.0 0.1 0.2 0.3 0.4 0.5).
@@ -69,8 +74,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-case "$ONLY" in ""|pairs|adv_gd|ablation|structural|isorank) ;;
-    *) echo "ERROR: --only must be pairs, adv_gd, ablation, structural or isorank" >&2
+case "$ONLY" in ""|pairs|adv_gd|ablation|structural|isorank|centrality_rank|composite_centrality) ;;
+    *) echo "ERROR: --only must be pairs, adv_gd, ablation, structural, isorank, centrality_rank or composite_centrality" >&2
        exit 1 ;;
 esac
 
@@ -145,4 +150,16 @@ if [ -z "$ONLY" ] || [ "$ONLY" = isorank ]; then
     submit_array baseline_isorank gda_bl_ir "$SCRIPTS/31_baselines_job.sh" "$N_SOLO" \
         --method isorank --status confirmatory \
         --note "Adv-GD suite: IsoRank baseline"
+fi
+
+if [ -z "$ONLY" ] || [ "$ONLY" = centrality_rank ]; then
+    submit_array baseline_centrality_rank gda_bl_cr "$SCRIPTS/31_baselines_job.sh" "$N_SOLO" \
+        --method centrality_rank --status confirmatory \
+        --note "Adv-GD suite: index-rank-matching baseline (docs/some-context.txt section 2)"
+fi
+
+if [ -z "$ONLY" ] || [ "$ONLY" = composite_centrality ]; then
+    submit_array ours_composite_centrality gda_bl_cc "$SCRIPTS/31_baselines_job.sh" "$N_SOLO" \
+        --method composite_centrality --status confirmatory \
+        --note "Adv-GD suite: this repo's own 6-feature + CSLS baseline"
 fi

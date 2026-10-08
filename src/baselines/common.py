@@ -18,13 +18,15 @@ ADV_GD_DIR = REPO_ROOT / "src" / "adv_gd"
 sys.path.insert(0, str(ADV_GD_DIR))
 
 from adv_gd import DATASETS, load_pair               # noqa: E402,F401
-from alignment import mutual_anchors, candidate_sets, TOP10, evaluate_anchors  # noqa: E402,F401
+from alignment import (mutual_anchors, candidate_sets, TOP10,              # noqa: E402,F401
+                       evaluate_anchors, csls_matrix, DEFAULTS)
 from propagation import propagate, evaluate           # noqa: E402,F401
 from provenance import RunRecord, capture_stderr      # noqa: E402,F401
 
 __all__ = ["DATASETS", "load_pair", "mutual_anchors", "candidate_sets",
-           "TOP10", "evaluate_anchors", "propagate", "evaluate",
-           "RunRecord", "capture_stderr", "top_degree", "REPO_ROOT"]
+           "TOP10", "evaluate_anchors", "csls_matrix", "DEFAULTS",
+           "propagate", "evaluate", "RunRecord", "capture_stderr",
+           "top_degree", "REPO_ROOT"]
 
 
 def top_degree(G, nodes: list, k: int):
