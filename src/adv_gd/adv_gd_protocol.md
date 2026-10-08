@@ -161,6 +161,87 @@ Ground truth is the identity on V^a ∩ V^u unless `--no-permute` is omitted, in
 which case `mapping.txt` carries the permutation. Keep the permutation on: with
 identity ground truth any bug that compares raw node IDs scores 100%.
 
+## Sweeping beta across seeds
+
+`src/adv_gd/sweep.py` is the multi-cell driver. One invocation of `adv_gd.py`
+runs one pair at one seed; the sweep is the cross product of noise level and
+alignment seed, and it exists because every number in the log below rests on a
+single noise draw at a single beta.
+
+```bash
+# What would run, and in what order. Writes nothing.
+python src/adv_gd/sweep.py --plan
+
+# Make the pairs (idempotent: existing pairs are left alone).
+python src/adv_gd/sweep.py --generate
+
+# One cell. SLURM array index, or a bash loop.
+python src/adv_gd/sweep.py --task-id $SLURM_ARRAY_TASK_ID
+```
+
+Four decisions are built into it, each because of something measured.
+
+**The alignment seed and the GAE seed are separate.** Phase 1 is deterministic
+given its own seed and is cached as `Z1.npz`/`Z2.npz`, keyed on epochs, dim and
+that seed. Phase 2's bimodality is a property of the adversarial
+initialization, not of the embedding, so a seed sweep that moved both seeds
+together would re-train two GAEs per cell -- roughly twenty minutes of GPU time
+each -- to vary something the question is not about. The sweep pins `--gae-seed
+0` and varies only the alignment seed, so Phase 1 is paid for once per pair.
+This is also why `--gae-seed` exists on `adv_gd.py` at all; it defaults to
+`seed`, which is how every result recorded before 2026-10-08 was produced.
+
+**A cell is one process.** `--task-id N` runs exactly cell N of the plan and
+exits. There is no in-process loop over cells, because a single long process
+that dies at cell 14 of 20 loses the uncompleted cells and tells you nothing
+about which; twenty processes that each write a record lose only their own. The
+plan order is fixed and printable, so `--task-id` is stable across invocations
+as long as the flags are.
+
+**`--beta-mode` chooses what beta means.** The paper does not say whether its
+beta is the per-copy deletion rate or the divergence between the two copies,
+and the difference is large: deleting independently at beta from each copy
+leaves an edge in both with probability (1-beta)^2, so a nominal beta=0.1 makes
+the copies differ by about 19%. Generating instead at beta' = 1 - sqrt(1-beta)
+makes them differ by beta. Measured on HepTh, that single change moves chi from
+0.913 to 0.943 against the paper's ~0.97 (see the noise-model section below),
+which is most of our shortfall. `nominal` reproduces our own earlier numbers;
+`divergence` is the comparison to make against Table 2. **Only `divergence`
+cells are comparable to the paper, and the two modes are not comparable to each
+other.**
+
+**The two modes generate into separate roots.** `runs/sweep_nominal/` and
+`runs/sweep_divergence/`, because a pair directory is named
+`<stem>_b<NN>_s<seed>` with beta rounded to whole percent, and that name
+encodes neither the mode nor the sampling fraction. Nominal beta=0.05 and
+divergence beta'=0.0513 both name `cit-HepTh_b05_s0`; sharing a root would let
+one silently replace the other. This is the pair-naming defect recorded in
+`docs/experiment_logging_policy.md`, worked around rather than fixed.
+
+Operational notes for the cluster.
+
+- **Set `PYTHONHASHSEED`.** The sweep refuses to run a cell without it, and
+  prints the value into every record. Phase 3 was measured to be hash-order
+  independent here, unlike the inherited baseline, but that measurement is only
+  meaningful next to the value it was taken under.
+- **Phase 1 needs a GPU.** 600 GAE epochs on HepTh's 27k nodes is the bulk of a
+  cell's wall clock, and on CPU it is far worse than the ~1.8 h a full
+  four-restart run took on an RTX 5070. Generate the pairs and warm the
+  embedding caches on a GPU node even if Phase 2 and 3 run elsewhere.
+- **Cost.** One end-to-end cell with four restarts took 6,511 s. Five betas by
+  four alignment seeds is 20 cells, of which the GAE training is shared within
+  each beta.
+- **Collate afterwards.** Each cell writes its own record and appends one line
+  to `results/runs/index.jsonl`; concurrent appends to one file are not
+  guaranteed intact on a network filesystem, so run
+  `python src/adv_gd/provenance.py --collate` when the array finishes. It
+  rebuilds the ledger from the record directories, which are authoritative.
+
+What the sweep still will not give us: a confidence interval over noise draws.
+`--pair-seeds` takes more than one value and the plan multiplies out, but at one
+pair seed -- the default, and what 20 cells of budget buys -- the beta axis is
+still N=1 per cell and only the alignment axis is replicated.
+
 ## Reproduction log
 
 ### GAE training length is the dominant unstated hyperparameter
