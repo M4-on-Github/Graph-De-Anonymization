@@ -1,0 +1,2717 @@
+diff --git a/.gitignore b/.gitignore
+index b4fd0ae..2193d8f 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,10 +8,10 @@ Graph Deanonymization2024/
+ # blanket *.edgelist rule above would silently drop anything added there.
+ !data/**/*.edgelist
+ 
+-# Parent graphs and the pairs cut from them. Regenerable from a parent plus a
+-# seed, so only the generator is tracked -- see src/beta_noise_generator/.
+-data/generated/
+-data/raw/
++# Generated evaluation pairs and experiment outputs. Regenerable from a parent
++# graph plus a seed, so only the generator is tracked -- see
++# src/beta_noise_generator/. data/ is for source datasets only.
++runs/
+ 
+ # Python
+ __pycache__/
+@@ -24,6 +24,18 @@ venv/
+ results/*
+ !results/archive_2024/
+ 
++# Run records are the exception to that rule, and tracked on purpose. A record
++# describes a run in an environment that no longer exists -- a torch nightly, a
++# dirty tree, a GPU -- so unlike the bytes it describes it cannot be
++# regenerated. The bytes stay in runs/ with their digests held here. See
++# docs/experiment_logging_policy.md.
++!results/adv_gd/
++
++# Large or binary artifacts do not belong in a record directory even so; the
++# record carries their SHA-256 instead.
++results/adv_gd/**/*.npz
++results/adv_gd/**/*.edgelist
++
+ # Rendered proposal output
+ docs/proposal.pdf
+ proposal.pdf
+diff --git a/data/README.md b/data/README.md
+index 9617c23..c0a30f5 100644
+--- a/data/README.md
++++ b/data/README.md
+@@ -50,13 +50,15 @@ logic matches on them.
+ 
+ ## Generated pairs
+ 
+-`data/generated/` holds pairs cut from a single parent graph by
+-`src/beta_noise_generator/perturbation.py`, with exact ground truth and a known Î². It is
+-gitignored â€” regenerate from the parent and the seed recorded in `stats.json`
+-rather than committing it. `data/raw/` is for parent graphs and is also ignored.
+-
+-Generated directories do **not** load under the baseline scripts unless their
+-name contains `labeled_dev`; pass `--compat-name` to the generator for that.
++Nothing generated is written under `data/` â€” this directory holds source datasets
++only. `src/beta_noise_generator/perturbation.py` writes pairs cut from a single
++parent graph, with exact ground truth and a known Î², into `runs/` at the repo root.
++That directory is gitignored â€” regenerate from the parent and the seed recorded in
++`stats.json` rather than committing it.
++
++The baseline scripts build their dataset path as `os.path.join(--path,
++'labeled_dev')`, so a generated pair loads only if it sits in a directory of
++exactly that name; pass `--compat-layout` to the generator to write that nesting.
+ 
+ ## Not in this repo
+ 
+diff --git a/src/beta_noise_generator/perturbation.py b/src/beta_noise_generator/perturbation.py
+index 8e17a83..19e7c8e 100644
+--- a/src/beta_noise_generator/perturbation.py
++++ b/src/beta_noise_generator/perturbation.py
+@@ -7,7 +7,7 @@ directory for the paper provenance of every step and for what this protocol cann
+ 
+ Library use:
+     from perturbation import load_parent, make_pair
+-    G = load_parent('data/raw/cit-HepTh.txt')
++    G = load_parent('data/cit-HepTH/cit-HepTh.txt')
+     pair = make_pair(G, beta=0.1, seed=0)
+ 
+ CLI:
+@@ -386,7 +386,7 @@ def main(argv=None) -> int:
+     ap.add_argument("--node-sample", type=float, default=None,
+                     help="Keep this fraction of parent nodes (hash-based, reproducible). "
+                          "Use on Google+ rather than loading all 30M lines.")
+-    ap.add_argument("--out", type=str, default=str(REPO_ROOT / "data" / "generated"),
++    ap.add_argument("--out", type=str, default=str(REPO_ROOT / "runs"),
+                     help="Directory to write the generated pairs into.")
+     ap.add_argument("--compat-layout", action="store_true",
+                     help="Nest each pair in a subdirectory literally named "
+diff --git a/src/beta_noise_generator/perturbation_protocol.md b/src/beta_noise_generator/perturbation_protocol.md
+index 3160cdf..d80901b 100644
+--- a/src/beta_noise_generator/perturbation_protocol.md
++++ b/src/beta_noise_generator/perturbation_protocol.md
+@@ -25,15 +25,17 @@ score Ï‡ = correct / |V^a âˆ© V^u|
+ # Protocol checks on a synthetic graph -- no dataset needed, run this first
+ python src/beta_noise_generator/perturbation.py --self-test
+ 
+-# One parent -> five betas x five repeats, written under data/generated/
+-python src/beta_noise_generator/perturbation.py --parent data/raw/cit-HepTh.txt --repeats 5
++# One parent -> five betas x five repeats, written under runs/
++python src/beta_noise_generator/perturbation.py --parent data/cit-HepTH/cit-HepTh.txt --repeats 5
+ 
+ # Google+ is 30M lines; sample nodes rather than loading all of it
+-python src/beta_noise_generator/perturbation.py --parent gplus_combined.txt     --node-sample 0.12 --beta 0.1 0.3
++python src/beta_noise_generator/perturbation.py --parent gplus_combined.txt \
++    --node-sample 0.12 --beta 0.1 0.3
+ ```
+ 
+ Each run writes `G1.edgelist`, `G2.edgelist`, `mapping.txt` and `stats.json`
+-into `data/generated/<parent>_b<beta>_s<seed>/`.
++into `runs/<parent>_b<beta>_s<seed>/`. Nothing is ever written under `data/`,
++which holds source datasets only.
+ 
+ **Feeding the inherited baseline.** `src/seed_based.py` and `src/seed_free.py`
+ take no dataset path â€” they build it as `os.path.join(--path, 'labeled_dev')`, so
+@@ -41,7 +43,8 @@ the pair must sit in a directory of exactly that name. `--compat-layout` writes
+ that nesting:
+ 
+ ```bash
+-python src/beta_noise_generator/perturbation.py --parent <p> --beta 0.1     --compat-layout --out runs/
++python src/beta_noise_generator/perturbation.py --parent <p> --beta 0.1 \
++    --compat-layout --out runs/
+ MPLBACKEND=Agg python src/seed_based.py --path runs/<p>_b10_s0 --out runs/out
+ ```
+ 
+diff --git a/docs/experiment_logging_policy.md b/docs/experiment_logging_policy.md
+new file mode 100644
+index 0000000..05a9479
+--- /dev/null
++++ b/docs/experiment_logging_policy.md
+@@ -0,0 +1,191 @@
++# Experiment logging and provenance policy
++
++Scope: every experimental run in this repository â€” Adv-GD runs, perturbation-pair
++generation, baseline runs, and any sweep or study built out of them.
++
++This policy exists because of a specific failure we created. Over roughly two days of
++Adv-GD work we executed on the order of twenty-five scored runs: a four-seed study, a
++three-by-four preprocessing grid, two eccentricity settings, two GAE epoch counts, a
++supervised ceiling study, and several end-to-end runs. **Exactly two of those runs still
++exist as data.** Every other one was overwritten, because the driver wrote its result to
++`<pair>/adv_gd_result.json` â€” one slot per pair, rewritten on every invocation. What
++survives of the rest is prose in `src/adv_gd/adv_gd_protocol.md` and a set of
++block-buffered `.log` files that had to be read by eye. The numbers in that spec are
++currently **assertions, not records.** No reviewer, teammate, or future version of us can
++check them against anything.
++
++Two conclusions follow, and they shape everything below.
++
++1. A result that is not archived at the moment it is produced is lost, not deferred.
++   Re-running is not a substitute: the environment, the code, and the random draw have all
++   moved on.
++2. The expensive part of an experiment is the compute; the record costs milliseconds.
++   There is no run small enough to be worth not logging.
++
++## What provenance does and does not buy
++
++Stating this first, because the main risk of a thorough logging policy is that it makes
++results feel more trustworthy than they are.
++
++**It buys auditability.** Given a record you can say exactly what code, what inputs, what
++seeds, and what environment produced a number, and you can detect when a later run differs
++in any of those. That is the whole of the benefit.
++
++**It does not buy reproducibility.** Phase 1 trains on CUDA. A fixed seed is
++bit-reproducible *on this machine with this torch build* â€” we measured that, two runs at
++seed 0 agreeing on `sum|W|` to all printed digits â€” and that measurement does not transfer
++to another GPU, another driver, or another torch version. The record cannot make a run
++portable. What it does is make the mismatch **visible** instead of silent, which is the
++achievable goal.
++
++**It does not make a single run into evidence.** A fully documented run of a bimodal
++procedure is still a coin flip (see the seed section of `src/adv_gd/adv_gd_protocol.md`:
++four seeds spanning 0 to 832 correct anchors, with no middle). Rich metadata on one run is
++if anything a hazard, because it looks like rigour. The schema therefore forces the sample
++size and the selection rule into every record, so that a number can never be quoted
++without them.
++
++**It does not check correctness.** Hashing an output mapping proves determinism, not that
++the mapping is right. Two runs agreeing byte-for-byte on a wrong answer is a thing that
++happens.
++
++## Three classes of thing, three destinations
++
++| Class | Example | Regenerable? | Where | Tracked in git? |
++|---|---|---|---|---|
++| **Record** â€” what was run, by what code, on what input, with what result | `record.json`, the ledger line, a dirty-tree diff | **No.** The environment that produced it is gone. | `results/adv_gd/` | **Yes** |
++| **Bulk artifact** â€” the bytes a run consumed or produced | pair edge lists, GAE embeddings (`Z*.npz`), output node mappings | Yes, from a record plus a seed | `runs/` | No |
++| **Narrative** â€” what we concluded and why | `adv_gd_protocol.md`, `perturbation_protocol.md` | No | `src/<module>/` | Yes |
++
++The split between the first two is the load-bearing decision. `.gitignore` previously
++excluded all of `results/` except the 2024 archive, on the rule that generated output is
++regenerable. **That rule is wrong for records and right for bytes.** A 2 KB JSON record
++describing a run on a torch nightly from March 2026 can never be regenerated; a 300 KB
++output mapping can be, from the record. So records are now tracked and bulk stays ignored,
++with each artifact's SHA-256 carried in the record. That gives the property we actually
++need: if a regenerated artifact hashes differently from the one a conclusion was drawn
++from, we find out.
++
++Consequence to accept deliberately: the hash in a tracked record may point at bytes nobody
++still has. That is a worse outcome than keeping everything and a much better one than
++keeping nothing, and it is the only version that stays inside a repository that is not a
++data store. Where an artifact is both small and genuinely irreplaceable, copy it *into* the
++record directory rather than hashing it in place â€” which is why each run record embeds the
++generator's `stats.json` verbatim instead of referencing it.
++
++## Layout
++
++```
++results/adv_gd/
++  index.jsonl                     append-only ledger, one line per run, tracked
++  <run_id>/
++    record.json                   the full record, tracked
++    diff.patch                    present only when the tree was dirty, tracked
++    stderr.log                    the run's console output, tracked when small
++runs/<pair>/
++  G1.edgelist G2.edgelist         pair input, hashed into the record
++  mapping.txt stats.json          ground truth and generator provenance
++  Z1.npz Z2.npz                   Phase 1 cache, stamped with epochs/dim/seed
++  out_mapping_<run_id>.txt        Phase 3 output, hashed into the record
++  adv_gd_result.json              last run on this pair; a convenience, not the record
++```
++
++`run_id` is `<UTC timestamp>_<pair>_<8 hex>`, for example
++`20261007T1430Z_cit-HepTh_b10_s0_3f9a1c02`. The timestamp sorts; the hash is over the code
++state plus the full configuration, so two runs that differ in any input differ in id, and a
++genuine repeat of an identical configuration is visible as the same trailing hash at a
++different time.
++
++## Record schema
++
++Every field is there to answer a question somebody will actually ask. Grouped by question.
++
++**What code?** `git.head`, `git.branch`, `git.dirty`, `git.diff_sha256`. A bare commit hash
++is a lie in a repository where the work is uncommitted â€” all of the Adv-GD module is, at the
++time of writing. When the tree is dirty the uncommitted diff is written next to the record
++as `diff.patch` and hashed, so `head` plus `diff.patch` reconstructs the exact source.
++`git.dirty: true` with no diff stored is not an acceptable record.
++
++**What environment?** `env.python`, `env.platform`, `env.host`, `env.packages` (torch,
++numpy, networkx, scipy), `env.cuda` (availability, device name, build), `env.hashseed`.
++Torch here is a dated nightly (`2.12.0.dev20260329+cu128`); "torch 2.12" would not identify
++it. `hashseed` is recorded because the inherited baseline is hash-order sensitive and this
++reimplementation was measured not to be â€” a claim that needs the value it was measured
++under.
++
++**What input?** `pair`, `inputs[]` with a path, byte size and SHA-256 for each of
++`G1.edgelist`, `G2.edgelist`, `mapping.txt`, plus `pair_stats` holding the generator's
++`stats.json` inline. The pair *name* is not an identifier: regenerate a pair with a changed
++generator and the name is unchanged while every number computed from it has moved.
++
++**What configuration?** `argv` exactly as invoked, `params` (the resolved dataset
++parameters), `config` (the resolved Phase 2 hyperparameters, including defaults the caller
++did not pass), `gae_epochs`, `theta`, `eccen_support`, `seed`. Resolved values, not the
++flags â€” a default that changes later must not silently rewrite the meaning of an old record.
++
++**How large was the sample, and what was selected?** `n_restarts`, `restarts[]` (the mean
++cosine of each), `selected_seed`, `selection: "mean_match_cosine"`. This group is
++mandatory. A number drawn from a selection over restarts is not the same kind of claim as a
++number from a single run, and the record must not permit the distinction to be lost.
++
++**Exploratory or confirmatory?** `status`, one of `exploratory` or `confirmatory`, plus a
++free-text `note`. Set it before the run, not after. This is the cheapest available guard
++against reporting a cell found by searching as though it had been predicted; it is weaker
++than pre-registration and better than nothing. A sweep is exploratory. A re-run of one
++setting to confirm a specific prior expectation is confirmatory. If in doubt it is
++exploratory.
++
++**What came out?** `metrics` (AUC per graph, anchors found/correct/precision, mapped,
++correct, chi, gamma, the paper's Table 2 cell for comparison), `refine_history`,
++`outputs[]` with a path, size and SHA-256 per produced artifact, and `seconds`. The output
++node mapping is written and hashed. Previously it was discarded: chi was reported and the
++25,782 pairs it was computed from were thrown away, which made the determinism check we ran
++impossible to repeat.
++
++**Did it finish?** `status_exit`, one of `ok`, `error`, `killed`, with `error` carrying the
++traceback. A killed run is data â€” the beta-interpretation run was killed for low system
++memory partway through Phase 3, and that it got as far as it did is worth knowing. Records
++are written for failures too.
++
++## Rules
++
++1. **Records are append-only and immutable.** Never edit or delete a `record.json`. A run
++   found to be invalid gets a new record whose `note` explains it and whose
++   `supersedes` names the old `run_id`. The old record stays. We have already lost one
++   session's experiments to overwriting; the fix is structural, not discipline.
++2. **One record per run, written even on failure.** Write it in a `finally`.
++3. **Every reported number cites a `run_id`.** Tables in `adv_gd_protocol.md` and in any
++   report name the runs behind them. A number with no run id is a claim, and should be
++   labelled as one.
++4. **Studies are compositions, not new formats.** A sweep is N runs with N records plus a
++   small script that reads `index.jsonl`. It does not get a bespoke JSON schema â€”
++   `seed_study_phase2.json` and `norm_seed_grid.json` were both one-off shapes that only
++   the script that wrote them could read.
++5. **Logs are not evidence.** Background shell logs here are block-buffered: `betatest.log`
++   showed epoch 120 of 600 while the run had in fact completed two phases, and we
++   misreported progress from it once. Trust `record.json` and artifact hashes on disk.
++   `stderr.log` is archived as a courtesy for reading, not as a source of truth.
++6. **Never hand-edit a bulk artifact.** The two `cit-HepTh_b10_s0` embedding caches were
++   retroactively stamped with `epochs=600 dim=32 seed=0` to match a new cache-validation
++   check. That was defensible â€” the values were known with certainty from the run that
++   produced them â€” and it is exactly the kind of act that must not become routine, because
++   the stamp now asserts something no record witnesses. Re-generate instead.
++
++## What this does not cover, and what to watch for
++
++- **One pair per beta.** Every Adv-GD figure we have rests on a single noise draw. Logging
++  does not create a confidence interval over the pair, and no amount of recorded metadata
++  changes that `N = 1` on the dimension most likely to matter.
++- **Hyperparameter search is not yet separated from evaluation.** Preprocessing mode and
++  epoch count were chosen by looking at scored outcomes on the same pair the result is
++  reported on. The `status` field makes that visible; it does not fix it. A held-out pair
++  for final numbers is the real fix.
++- **Selection by mean cosine is itself a modelling choice** that the paper specifies and we
++  validated against ground truth on one dataset. Recording it per run is what will let a
++  later disagreement be traced.
++
++## Citation
++
++The critical-appraisal framing of this policy follows: Kassis, T., Agarwal, V., He, Y.,
++Patel, D., & Brueckner, A. M. (2026). *Scientific Agent Skills: A Library of Procedural
++Knowledge for Research Agents.* arXiv:2609.00065. https://doi.org/10.48550/arXiv.2609.00065
+diff --git a/src/adv_gd/__init__.py b/src/adv_gd/__init__.py
+new file mode 100644
+index 0000000..97da8e4
+--- /dev/null
++++ b/src/adv_gd/__init__.py
+@@ -0,0 +1,33 @@
++"""Adv-GD: seed-free graph de-anonymization with adversarial learning.
++
++A reimplementation of Li, Lu, Luo and Cai, CIKM '20, from the paper text --
++there is no official code release. Read `adv_gd_protocol.md` in this directory
++before using or extending any of it: it records which parts are specified by
++the paper, which are our choices, and the two printed equations that cannot be
++implemented as written.
++
++Three phases, one module each:
++    embedding.py    Phase 1 -- GAE node embeddings
++    alignment.py    Phase 2 -- adversarial linear map, CSLS, Procrustes
++    propagation.py  Phase 3 -- Algorithms 1 and 2
++    adv_gd.py       driver, and the Table 2 comparison
++
++Every module has a `--self-test` that runs without a dataset.
++"""
++
++from alignment import align, csls_matrix, evaluate_anchors, procrustes
++from embedding import gae_embed, reconstruction_auc
++from propagation import eccentricity, evaluate, get_scores, propagate
++
++__all__ = [
++    "align",
++    "csls_matrix",
++    "eccentricity",
++    "evaluate",
++    "evaluate_anchors",
++    "gae_embed",
++    "get_scores",
++    "procrustes",
++    "propagate",
++    "reconstruction_auc",
++]
+diff --git a/src/adv_gd/adv_gd.py b/src/adv_gd/adv_gd.py
+new file mode 100644
+index 0000000..8a7df73
+--- /dev/null
++++ b/src/adv_gd/adv_gd.py
+@@ -0,0 +1,313 @@
++"""Adv-GD driver: run the phases on a generated pair and score the result.
++
++Reads a pair directory written by `src/beta_noise_generator/perturbation.py`
++(G1.edgelist, G2.edgelist, mapping.txt, stats.json), runs Phase 1 and Phase 2,
++and reports anchor quality in the form of the paper's Table 2.
++
++`--phases 12` stops after alignment, which is the fast loop: Table 2 is an
++anchor-quality table and needs nothing further. `--phases 123` adds
++propagation and reports chi and gamma.
++
++Embeddings are cached as Z1.npz / Z2.npz inside the pair directory, because
++Phase 1 costs about two minutes per graph and Phase 2 is where the parameters
++actually get swept.
++
++CLI:
++    python src/adv_gd/adv_gd.py --pair runs/cit-HepTh_b10_s0 --dataset hepth
++    python src/adv_gd/adv_gd.py --pair runs/cit-HepTh_b10_s0 --dataset hepth --refresh
++"""
++
++from __future__ import annotations
++
++import argparse
++import json
++import sys
++import time
++from pathlib import Path
++
++import networkx as nx
++import numpy as np
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++
++from alignment import DEFAULTS, align, evaluate_anchors   # noqa: E402
++from embedding import gae_embed, reconstruction_auc       # noqa: E402
++from propagation import evaluate, propagate               # noqa: E402
++from provenance import RunRecord, capture_stderr          # noqa: E402
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++
++# The paper gives no epoch count for Phase 1. Kipf and Welling's default of 200
++# leaves the two graphs at different losses and a much lower alignment ceiling
++# (0.82 against 0.97) -- see the reproduction log in `adv_gd_protocol.md`. It is
++# declared here rather than left to `gae_embed`'s default so that a run record
++# always states it.
++GAE_EPOCHS = 600
++
++# Table 1, p.749. D is the embedding dimension, not a degree.
++DATASETS = {
++    "fb":    {"dim": 16,  "n_adv": 1000,  "n_anch": 400,  "m": 5000},
++    "hepth": {"dim": 32,  "n_adv": 5000,  "n_anch": 1000, "m": 10000},
++    "gplus": {"dim": 300, "n_adv": 20000, "n_anch": 5000, "m": 50000},
++}
++
++# Table 2, p.751 -- anchors reported as correct/found. The only exact integers
++# the paper gives, which is why they are the primary reproduction target.
++PAPER_TABLE2 = {
++    "fb":    {10: (90, 90),    20: (77, 77),    30: (73, 74),
++              40: (69, 70),    50: (65, 67)},
++    "hepth": {10: (753, 755),  20: (714, 729),  30: (652, 670),
++              40: (585, 607),  50: (472, 512)},
++    "gplus": {10: (4921, 4956), 20: (4912, 4918), 30: (4899, 4906),
++              40: (4882, 4889), 50: (4788, 4815)},
++}
++
++
++def load_pair(pair: Path) -> tuple[nx.Graph, nx.Graph, dict, dict]:
++    """Load the two graphs, the ground-truth mapping, and the generator stats."""
++    Ga = nx.read_edgelist(pair / "G1.edgelist", nodetype=str)
++    Gu = nx.read_edgelist(pair / "G2.edgelist", nodetype=str)
++    truth = {}
++    with (pair / "mapping.txt").open() as fh:
++        for line in fh:
++            parts = line.split()
++            if len(parts) == 2:
++                truth[parts[0]] = parts[1]
++    stats = json.loads((pair / "stats.json").read_text())
++    return Ga, Gu, truth, stats
++
++
++def embed_cached(G: nx.Graph, path: Path, dim: int, seed: int, refresh: bool,
++                 epochs: int = GAE_EPOCHS,
++                 verbose: bool = True) -> tuple[np.ndarray, list]:
++    """Embed G, reusing a cached .npz when it was built the same way.
++
++    Both the node set and the settings are checked, not just the file's
++    existence. A cache written for a different graph would silently misalign
++    every row, and one written at a different epoch count or dimension is a
++    different embedding entirely -- epoch count moves the alignment ceiling
++    from 0.82 to 0.97, so quietly reusing the wrong one would invalidate the
++    run without any sign of it. Older caches carry no settings, so they are
++    rejected rather than trusted.
++    """
++    if path.exists() and not refresh:
++        blob = np.load(path, allow_pickle=True)
++        nodes = [str(x) for x in blob["nodes"]]
++        cached = {k: int(blob[k]) for k in ("epochs", "dim", "seed")
++                  if k in blob}
++        want = {"epochs": epochs, "dim": dim, "seed": seed}
++        if set(nodes) != set(G.nodes()):
++            print(f"  {path.name} is for a different graph; re-embedding",
++                  file=sys.stderr)
++        elif cached != want:
++            print(f"  {path.name} was built as {cached or 'unrecorded'}, "
++                  f"need {want}; re-embedding", file=sys.stderr)
++        else:
++            if verbose:
++                print(f"  reusing {path.name} ({len(nodes):,} nodes, "
++                      f"{epochs} epochs)", file=sys.stderr)
++            return blob["Z"], nodes
++    Z, nodes = gae_embed(G, dim=dim, epochs=epochs, seed=seed, verbose=verbose)
++    np.savez_compressed(path, Z=Z, nodes=np.array(nodes, dtype=object),
++                        epochs=epochs, dim=dim, seed=seed)
++    return Z, nodes
++
++
++def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
++        cfg: dict | None = None, phases: str = "123", theta: float = 0.5,
++        eccen_support: str = "all", gae_epochs: int = GAE_EPOCHS,
++        status: str = "exploratory", note: str = "", record: bool = True,
++        verbose: bool = True) -> dict:
++    params = DATASETS[dataset]
++    Ga, Gu, truth, stats = load_pair(pair)
++    beta_pct = int(round(stats["beta"] * 100))
++
++    # The record is built before any work, because everything identifying the
++    # run is known now, and finished in a `finally`, because a run that fails or
++    # is killed partway is still data about where it got to. See
++    # `docs/experiment_logging_policy.md`.
++    resolved = {**DEFAULTS, **(cfg or {})}
++    rec = RunRecord("adv_gd", pair.name, status, note) if record else None
++    if rec:
++        rec.set(seed=seed, beta=stats["beta"], dataset=dataset, phases=phases,
++                params=params, config=resolved, gae_epochs=gae_epochs,
++                theta=theta, eccen_support=eccen_support,
++                n_restarts=resolved["n_restarts"],
++                selection="mean_match_cosine",
++                matchable_nodes=stats.get("matchable_nodes"),
++                pair_stats=stats, pair_dir=str(pair))
++        rec.add_inputs(pair / "G1.edgelist", pair / "G2.edgelist",
++                       pair / "mapping.txt", pair / "stats.json")
++        rec.seal_id()
++
++    print(f"pair {pair.name}  beta={stats['beta']}  "
++          f"G1 {Ga.number_of_nodes():,}n/{Ga.number_of_edges():,}e  "
++          f"G2 {Gu.number_of_nodes():,}n/{Gu.number_of_edges():,}e",
++          file=sys.stderr)
++
++    t0 = time.time()
++    with capture_stderr() as console:
++        try:
++            out = _run_phases(pair, params, Ga, Gu, truth, stats, beta_pct,
++                              dataset, seed, refresh, cfg, phases, theta,
++                              eccen_support, gae_epochs, t0,
++                              rec.run_id if rec else "unrecorded", verbose)
++            exit_status, error = "ok", None
++        except BaseException as exc:      # KeyboardInterrupt included: a killed
++            import traceback               # run is recorded, not discarded.
++            exit_status, error = "error", traceback.format_exc()
++            out = {"failed_in": f"{type(exc).__name__}: {exc}"}
++            raise
++        finally:
++            if rec:
++                if "3" in phases and "mapping_path" in out:
++                    rec.add_outputs(Path(out.pop("mapping_path")))
++                rec.set(selected_seed=out.get("selected_seed"),
++                        restarts=out.get("restarts"),
++                        refine_history=out.get("refine_history"),
++                        config=out.get("config", resolved))
++                rec.metric(**{k: out.get(k) for k in
++                              ("auc_g1", "auc_g2", "anchors_found",
++                               "anchors_correct", "anchor_precision",
++                               "paper_correct", "paper_found", "mapped",
++                               "correct", "chi", "gamma")})
++                rec.finish(exit_status, error, console.getvalue(), verbose)
++                out["run_id"] = rec.run_id
++    (pair / "adv_gd_result.json").write_text(json.dumps(out, indent=2))
++    return out
++
++
++def _run_phases(pair: Path, params: dict, Ga, Gu, truth: dict, stats: dict,
++                beta_pct: int, dataset: str, seed: int, refresh: bool,
++                cfg: dict | None, phases: str, theta: float,
++                eccen_support: str, gae_epochs: int, t0: float,
++                run_id: str, verbose: bool) -> dict:
++    """The three phases. Split out of `run` so the record can wrap it."""
++    print("phase 1: GAE embeddings", file=sys.stderr)
++    Za, nodes_a = embed_cached(Ga, pair / "Z1.npz", params["dim"], seed,
++                               refresh, gae_epochs, verbose)
++    Zu, nodes_u = embed_cached(Gu, pair / "Z2.npz", params["dim"], seed,
++                               refresh, gae_epochs, verbose)
++    auc_a = reconstruction_auc(Ga, Za, nodes_a)
++    auc_u = reconstruction_auc(Gu, Zu, nodes_u)
++    print(f"  reconstruction AUC  G1 {auc_a:.4f}  G2 {auc_u:.4f}", file=sys.stderr)
++
++    print("phase 2: adversarial alignment", file=sys.stderr)
++    res = align(Za, nodes_a, Zu, nodes_u, Ga, Gu,
++                n_adv=params["n_adv"], n_anch=params["n_anch"], m=params["m"],
++                cfg=cfg, seed=seed, verbose=verbose)
++
++    score = evaluate_anchors(res["anchors"], truth)
++    paper = PAPER_TABLE2.get(dataset, {}).get(beta_pct)
++
++    out = {
++        "pair": pair.name,
++        "dataset": dataset,
++        "beta": stats["beta"],
++        "seed": seed,
++        "matchable_nodes": stats.get("matchable_nodes"),
++        "gae_epochs": gae_epochs,
++        "auc_g1": auc_a,
++        "auc_g2": auc_u,
++        "anchors_found": score["found"],
++        "anchors_correct": score["correct"],
++        "anchor_precision": score["precision"],
++        "paper_correct": paper[0] if paper else None,
++        "paper_found": paper[1] if paper else None,
++        "refine_history": res["history"],
++        "selected_seed": res["selected_seed"],
++        "restarts": res["restarts"],
++        "config": {k: v for k, v in res["config"].items()},
++        "seconds": round(time.time() - t0, 1),
++    }
++
++    if "3" in phases:
++        print("phase 3: propagation", file=sys.stderr)
++        mapping = propagate(Ga, Gu, res["anchors"], res["candidates"],
++                            theta=theta, support=eccen_support, verbose=verbose)
++        final = evaluate(mapping, truth, stats.get("matchable_nodes"))
++        # The output mapping is the run's actual result. It used to be discarded
++        # once chi had been computed, which made the determinism check we ran on
++        # it impossible to repeat.
++        mpath = pair / f"out_mapping_{run_id}.txt"
++        mpath.write_text("".join(f"{u} {v}\n" for u, v in mapping.items()))
++        out.update({
++            "mapping_path": str(mpath),
++            "mapped": final["mapped"],
++            "correct": final["correct"],
++            "chi": final["chi"],
++            "gamma": final["gamma"],
++            "theta": theta,
++            "eccen_support": eccen_support,
++        })
++
++    print("", file=sys.stderr)
++    print(f"  anchors (ours)   {score['correct']}/{score['found']}  "
++          f"precision {score['precision']:.4f}", file=sys.stderr)
++    if paper:
++        print(f"  anchors (paper)  {paper[0]}/{paper[1]}  "
++              f"precision {paper[0] / paper[1]:.4f}", file=sys.stderr)
++    if "3" in phases:
++        print(f"  de-anonymized    {out['correct']:,}/{out['mapped']:,} mapped  "
++              f"chi {out['chi']:.4f}  gamma {out['gamma']:.4f}", file=sys.stderr)
++    print(f"  {time.time() - t0:.0f}s total", file=sys.stderr)
++    return out
++
++
++def main(argv=None) -> int:
++    ap = argparse.ArgumentParser(description="Run Adv-GD on a generated pair.")
++    ap.add_argument("--pair", type=str, required=True,
++                    help="Pair directory from the beta noise generator.")
++    ap.add_argument("--dataset", type=str, required=True, choices=sorted(DATASETS),
++                    help="Which Table 1 parameter row to use.")
++    ap.add_argument("--seed", type=int, default=0)
++    ap.add_argument("--refresh", action="store_true",
++                    help="Recompute embeddings even if a cache exists.")
++    ap.add_argument("--adv-epochs", type=int, default=None)
++    ap.add_argument("--adv-steps", type=int, default=None)
++    ap.add_argument("--refine-rounds", type=int, default=None)
++    ap.add_argument("--csls-k", type=int, default=None)
++    ap.add_argument("--status", choices=("exploratory", "confirmatory"),
++                    default="exploratory",
++                    help="Declare this before the run, not after. A sweep is "
++                         "exploratory; only a run confirming a stated prior "
++                         "expectation is confirmatory.")
++    ap.add_argument("--note", type=str, default="",
++                    help="Why this run was made. Goes in the record.")
++    ap.add_argument("--no-record", action="store_true",
++                    help="Skip the run record. For debugging only -- an "
++                         "unrecorded run cannot be reported.")
++    ap.add_argument("--gae-epochs", type=int, default=GAE_EPOCHS,
++                    help="Phase 1 training epochs. The paper states none.")
++    ap.add_argument("--n-restarts", type=int, default=None,
++                    help="Adversarial runs to select among by mean cosine.")
++    ap.add_argument("--phases", type=str, default="123",
++                    choices=("12", "123"),
++                    help="Stop after alignment, or run propagation too.")
++    ap.add_argument("--theta", type=float, default=0.5,
++                    help="Eccentricity threshold; the paper uses 0.5 throughout.")
++    ap.add_argument("--eccen-support", type=str, default="all",
++                    choices=("all", "nonzero"),
++                    help="Whether sigma covers the score vector's zeros.")
++    ap.add_argument("--normalize", type=str, default=None,
++                    choices=("none", "renorm", "center_renorm"),
++                    help="Embedding preprocessing before Phase 2.")
++    args = ap.parse_args(argv)
++
++    cfg = {}
++    for flag, key in (("adv_epochs", "adv_epochs"), ("adv_steps", "adv_steps"),
++                      ("refine_rounds", "refine_rounds"), ("csls_k", "csls_k"),
++                      ("normalize", "normalize"), ("n_restarts", "n_restarts")):
++        val = getattr(args, flag)
++        if val is not None:
++            cfg[key] = val
++
++    run(Path(args.pair), args.dataset, seed=args.seed, refresh=args.refresh,
++        cfg=cfg or None, phases=args.phases, theta=args.theta,
++        eccen_support=args.eccen_support, gae_epochs=args.gae_epochs,
++        status=args.status, note=args.note, record=not args.no_record)
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/src/adv_gd/adv_gd_protocol.md b/src/adv_gd/adv_gd_protocol.md
+new file mode 100644
+index 0000000..f3b88ea
+--- /dev/null
++++ b/src/adv_gd/adv_gd_protocol.md
+@@ -0,0 +1,394 @@
++# Adv-GD: reimplementation spec and provenance
++
++Design note for the Adv-GD reimplementation in this directory.
++Source: `docs/SeedFree_Li.etal.pdf` â€” Li, Lu, Luo, Cai, *Seed Free Graph
++De-anonymization with Adversarial Learning*, CIKM '20.
++
++**There is no official implementation.** The paper contains six URLs â€” its own
++DOI, the three dataset pages, and two Statista links â€” and no code release. The
++authors' pages carry none either. Everything here is reconstructed from the text,
++so this document records what the paper states, what it omits, and what we chose
++in its place. Treat an unmarked choice as ours, not theirs.
++
++## What it does
++
++Three phases. Input is a pair (G^a, G^u) with no seeds; output is a node mapping.
++
++```
++Phase 1  embedding    Z^a = GAE(G^a),  Z^u = GAE(G^u)        # independently, d dims
++Phase 2  alignment    learn linear W : Z^a -> Z^u adversarially
++                      score pairs by CSLS
++                      anchors = mutual CSLS nearest neighbours
++                                among top-N_anch degree nodes of both graphs
++                      refine W by Procrustes on the anchors, repeat
++                      candidates = top-10 CSLS matches for each
++                                   top-M degree node of G^a
++Phase 3  propagation  seed the mapping with the anchors, then spread over
++                      matched neighbours (Algorithms 1 and 2)
++```
++
++Phases 1â€“2 replace the seed assumption; Phase 3 is a propagation step of the same
++family as the inherited `src/seed_based.py`.
++
++## Where each piece comes from
++
++| Element | Paper location |
++|---|---|
++| Three-phase framework | Â§3, Fig. 1, p.746 |
++| GAE encoder, two-layer GCN, X = I | Â§2.2, Eq. 1â€“3, p.746 |
++| Adversarial objective for discriminator and W | Â§3.1, Eq. 4â€“5, p.747 |
++| Train on top-N_adv degree nodes only | Â§3.1, p.747 |
++| CSLS similarity | Â§3.1, Eq. 6â€“7, p.747 (method from MUSE [21]) |
++| Anchor selection rule | Â§3.1, p.747 |
++| Procrustes refinement by SVD | Â§3.1, Eq. 8â€“9, p.747 |
++| Candidate sets: top-10 CSLS per top-M degree node | Â§3.1, p.747 |
++| GetScores | Algorithm 1, p.748 |
++| Propagating De-anonymization, two stages on `flag` | Algorithm 2, p.748 |
++| Eccentricity threshold theta = 0.5 | Â§4.2, p.750 |
++| Per-dataset D, M, N_adv, N_anch | Table 1, p.749 |
++| Model selection by mean cosine of CSLS matches | Â§3.1, p.747 |
++
++## Hyperparameters the paper supplies
++
++Table 1, p.749. `D` is the embedding dimension, not a degree.
++
++| Dataset | \|V\| | \|E\| | D | N_adv | N_anch | M |
++|---|---|---|---|---|---|---|
++| FB | 8,758 | 405,450 | 16 | 1,000 | 400 | 5,000 |
++| HepTh | 27,770 | 352,807 | 32 | 5,000 | 1,000 | 10,000 |
++| Gplus | 107,614 | 13,673,453 | 300 | 20,000 | 5,000 | 50,000 |
++
++Also stated: discriminator by SGD, learning rate 0.1, batch 32; W by Adam,
++learning rate 0.01, batch 32; theta = 0.5 for all datasets.
++
++Those \|V\| and \|E\| are the **source files' advertised counts**, not counts of the
++undirected simple graphs Adv-GD runs on. HepTh's 352,807 is exactly the number of
++edge lines in `cit-HepTh.txt`; collapsed it is 352,285 (see
++`src/beta_noise_generator/perturbation_protocol.md`). Do not use Table 1 to
++validate a loaded graph beyond confirming the right file was downloaded.
++
++Gplus does not use GAE: the paper reports out-of-memory on a 32 GB GPU and
++switches to PyTorch-BigGraph (Â§4.2). So Gplus is not a test of this code path.
++
++## What the paper leaves unstated â€” and what this module declares
++
++Every gap is in training detail, and every fill below comes from the work Li
++cites for that component. Phase 2 is MUSE applied to graph embeddings instead of
++word embeddings, so MUSE's defaults are the defensible reading â€” but they are
++still our choice.
++
++| Choice | Paper | This module | Taken from |
++|---|---|---|---|
++| Embedding normalization before Phase 2 | unstated | **none**, the literal reading; measured equal to unit-norming, while MUSE's centering is harmful | measured here |
++| Adversarial restarts | unstated; model selection itself is specified | **4**, selected by mean cosine - see the reproduction log | measured here; a single-seed run is a coin flip |
++| K in CSLS | unstated | 10 | MUSE [21] |
++| Discriminator architecture | unstated | 2 hidden layers x 2048, LeakyReLU 0.2, dropout 0.1, label smoothing 0.2 | MUSE [21] |
++| Adversarial epochs | unstated | 5 | MUSE [21] |
++| Refinement rounds | "again", count unstated | 5 | MUSE [21] |
++| Orthogonalization of W during training | unstated | yes, beta = 0.01 | MUSE [21] |
++| GAE hidden dim | "two-layer", only output D given | 64 -> D | Kipf & Welling [18] |
++| GAE epochs | unstated | **600**, not Kipf's 200 â€” see the reproduction log | measured here |
++| GAE optimizer | unstated | Adam lr 0.01 | Kipf & Welling [18] |
++| GAE loss negatives | Eq. 3 has none | full BCE, positive class reweighted | see below |
++| Random seeds | unstated | recorded per run |  |
++
++## Errors in the paper as printed
++
++Two equations cannot be implemented literally. These are typesetting faults, not
++design decisions, and we implement the standard forms.
++
++- **Eq. 1** gives the normalized adjacency as `D^(-1/2) A D`. That is not
++  symmetric and is not a graph Laplacian normalization. The intended form is
++  `D^(-1/2) A D^(-1/2)`.
++- **Eq. 3** gives the GAE loss as `-(1/N^2) sum_ij A_ij log(A_ij_hat)` â€” the
++  positive term only. Minimizing it is degenerate: drive every reconstructed
++  entry to 1 and the loss goes to zero, with no pressure to keep non-edges apart.
++  The intended form is binary cross-entropy over both classes, with the positive
++  class reweighted because A is sparse.
++
++## Validation targets
++
++Reproduction is checked against HepTh first, because it is the only dataset for
++which the paper reports **exact integers** rather than a figure.
++
++**Table 2, p.751 â€” landmark (anchor) identification on HepTh.** This scores
++Phases 1â€“2 alone, with no propagation, which is what makes it valuable: it
++isolates the half of the method that is genuinely new.
++
++| beta | Adv-GD correct/found | CCS14 |
++|---|---|---|
++| 10% | 753/755 | 25/1000 |
++| 20% | 714/729 | 15/1000 |
++| 30% | 652/670 | 13/1000 |
++| 40% | 585/607 | 12/1000 |
++| 50% | 472/512 | 8/1000 |
++
++**End to end,** HepTh chi runs "from 97% to 28%" across beta = 10%â€“50%
++(Â§4.3, p.750, read off Fig. 3(b)) â€” a range, not a table, so it is a weaker check.
++
++chi = (correctly de-anonymized nodes) / \|V^a âˆ© V^u\|. On our generated HepTh
++pairs the denominators are:
++
++| beta | 10% | 20% | 30% | 40% | 50% |
++|---|---|---|---|---|---|
++| \|V^a âˆ© V^u\| | 27,444 | 27,108 | 26,657 | 26,138 | 25,423 |
++
++Nothing in the inherited baseline computes chi, so its reported accuracies are
++not comparable to any number above.
++
++## What a reproduction here can and cannot claim
++
++- **Can:** that the method as described, with MUSE/GAE defaults for the gaps,
++  reaches or misses the published anchor counts on the same parent graph under
++  the same perturbation protocol.
++- **Cannot:** that any gap was filled the way the authors filled it. A miss is
++  evidence about our reconstruction at least as much as about their result.
++- **Cannot:** anything about Gplus as a test of this code, since the paper used a
++  different embedding method there.
++- **Cannot:** robustness to anything but edge deletion. The protocol adds no
++  false edges â€” see the cons in `perturbation_protocol.md`.
++
++## Input
++
++Pairs come from `src/beta_noise_generator/perturbation.py`, written to `runs/`:
++
++```bash
++python src/beta_noise_generator/perturbation.py \
++    --parent data/cit-HepTH/cit-HepTh.txt --beta 0.1 0.2 0.3 0.4 0.5
++```
++
++Ground truth is the identity on V^a âˆ© V^u unless `--no-permute` is omitted, in
++which case `mapping.txt` carries the permutation. Keep the permutation on: with
++identity ground truth any bug that compares raw node IDs scores 100%.
++
++## Reproduction log
++
++### GAE training length is the dominant unstated hyperparameter
++
++The paper gives no epoch count for Phase 1. Starting from Kipf and Welling's
++default of 200 produced anchors far below Table 2, and the shortfall was traced
++to Phase 1 rather than Phase 2 by measuring a **supervised ceiling**: hand
++Procrustes the complete ground-truth correspondence, which is the best any
++linear map could do on a given pair of embedding spaces, and see how far the
++anchors get. Anything the unsupervised pipeline achieves is bounded by it.
++
++On HepTh at beta = 0.1, one pair, seed 0:
++
++| GAE epochs | Reconstruction AUC | Ceiling anchors | Ceiling precision | Supervised rank-1 over all 27,444 matchable nodes |
++|---|---|---|---|---|
++| 200 | 0.988 | 394/478 | 0.824 | 0.103 |
++| 600 | 0.996 | 823/848 | 0.971 | 0.420 |
++
++Two things follow.
++
++- **Reconstruction AUC is a poor guide to alignability.** It moved 0.988 ->
++  0.996, under one point, while the ceiling precision moved 0.82 -> 0.97 and
++  rank-1 accuracy quadrupled. A GAE can reconstruct its own adjacency matrix
++  well while still sitting in a gauge no linear map can reconcile with a second
++  graph's. Do not tune Phase 1 on AUC.
++- **The default was wrong, not the method.** At 200 epochs the two graphs had
++  not even converged to the same loss (0.4059 vs a still-falling G2); at 600
++  they agree to four decimals (0.3847 / 0.3849). Independently trained
++  embeddings have to be comparably converged before a single W can align them.
++
++This matters for anyone reading Table 2 as a reproducibility target: one
++parameter that moved the ceiling a long way is one the paper never states.
++
++Two cautions about this table. Both rows are a single pair at a single seed, so
++the ceiling figures have no error bar -- though the supervised Procrustes that
++produces them involves no adversarial training and is deterministic, so they at
++least do not inherit the seed problem described below.
++
++More importantly, the table says nothing about the end-to-end result, and an
++earlier version of this log drew a conclusion from it that the evidence does
++not support. The unsupervised run at seed 0 read 342/472 at 200 epochs and
++7/282 at 600, which looked like longer training breaking the alignment. It was
++not: at 600 epochs seeds 2 and 3 both reach 0.971 precision and only seeds 0
++and 1 fail. The 200-vs-600 end-to-end comparison was one run on each side of a
++bimodal distribution, and it cannot separate training length from the seed
++draw. What survives is the ceiling improvement; the claim that 600 epochs hurt
++the pipeline does not.
++
++### Why the ceiling is the right diagnostic
++
++The unsupervised result and the supervised ceiling separate the two failure
++modes that otherwise look identical:
++
++- unsupervised far below ceiling  -> Phase 2 is at fault (adversarial training,
++  CSLS, refinement)
++- unsupervised near a low ceiling -> Phase 1 is at fault (the embeddings cannot
++  be aligned by any linear map, however good the search)
++
++At 200 epochs our unsupervised run reached 342/472 against a 394/478 ceiling,
++87% of what was attainable, which is what ruled Phase 2 out as the cause *at
++that seed*. The qualifier matters: with hindsight from the seed study, a single
++unsupervised run sitting far below the ceiling is just as likely to be a
++failing seed as a broken Phase 2, so the comparison is only diagnostic when the
++unsupervised side is itself the best of several restarts. Used that way the
++logic holds, and it is why `align` now reports the mean cosine of every
++restart.
++
++### Adversarial training is bimodal across seeds, and model selection is what makes it work
++
++This is the largest single effect we have measured, and it governs how every
++other number in this log has to be read.
++
++Phase 2 at a fixed seed is bit-reproducible: two runs at seed 0 agree on sum|W|
++to all printed digits. Across seeds it is not merely noisy, it is bimodal.
++HepTh, beta = 0.1, 600-epoch embeddings, DEFAULTS otherwise:
++
++| Seed | Anchors correct/found | Precision | Mean match cosine |
++|---|---|---|---|
++| 0 | 7/282 | 0.025 | 0.845 |
++| 1 | 0/257 | 0.000 | 0.824 |
++| 2 | 832/857 | 0.971 | 0.958 |
++| 3 | 829/854 | 0.971 | 0.959 |
++
++Roughly half of all seeds find the right alignment and the rest find nothing;
++there is no middle. Reporting a mean over seeds is therefore meaningless -- the
++spread across four seeds is 0 to 832 correct -- and **a single-seed result is a
++coin flip, not a measurement**. Any number quoted from this pipeline has to say
++how many restarts produced it.
++
++What rescues the method is the one line of section 3.1 that is easy to read as
++a formality: *use the average cosine similarity of the matching node pairs
++derived by CSLS to select models.* It separates the two modes perfectly, with
++no ground truth and no validation set, which is the only thing available to a
++genuinely seed-free method. Across twelve runs (three preprocessing modes by
++four seeds) it selected the best or statistically tied-best seed in every mode:
++
++| Preprocessing | Seeds reaching a good alignment | Best precision | Precision of the mean-cosine pick |
++|---|---|---|---|
++| `none` -- the paper as written | 2/4 | 0.971 | 0.971 |
++| `renorm` -- unit-norm rows | 2/4 | 0.976 | 0.976 |
++| `center_renorm` -- MUSE's default | **0/4** | 0.190 | 0.190 |
++
++`n_restarts` is therefore 4 by default and the criterion is applied inside
++`align`, rather than left to the caller. With it the pipeline is reliable: the
++confirming run rejected seeds 0 and 1 on mean cosine alone (0.845, 0.824),
++selected seed 3 (0.959), and finished at chi = 0.913. Every run records the
++mean cosine of all four restarts and which seed was selected, in the
++`restarts` and `selected_seed` fields of `adv_gd_result.json`, so a result can
++always be checked against the spread it was drawn from.
++
++The pattern replicates on an independently generated pair. On
++`cit-HepTh_b05_s0` -- a different parent perturbation, 90% edge overlap instead
++of 81% -- the four restarts read 0.8296, 0.9557, 0.9554, 0.8405: again two
++seeds in the high mode and two in the low, and again cleanly separated, with
++seed 1 selected at 859 anchors. Two pairs is not a distribution, but the
++split is not an artefact of one noise draw.
++
++One consequence for anyone extending Phase 2: **do not compare settings at one
++seed each.** Four restarts per cell is the minimum that distinguishes a real
++effect from a seed draw, and that is what the twelve-run grid above costs.
++
++Two readings of that table are worth separating.
++
++- **Row-normalizing the embeddings does not matter**, and an earlier version of
++  this log claimed it did. That claim came from three runs at seed 0 only,
++  where `none` happened to draw a failing seed and `renorm` a succeeding one.
++  Measured across four seeds the two are indistinguishable, so the default is
++  the paper's literal reading. This is a good illustration of the hazard the
++  bimodality creates: a one-run-per-cell comparison of any Phase 2 setting will
++  mostly measure which seeds it drew.
++- **Centering is genuinely harmful**, and this survives the correction: 0 of 4
++  seeds, best of four 0.190, and tripling the adversarial budget drove it to
++  0/246 rather than fixing it. The reason is structural. The GAE decoder
++  sigma(Z Z^T) is invariant under an orthogonal transform of Z but not under a
++  translation of it, and that invariance is precisely why one linear W can
++  align two independently trained spaces. Subtracting a different per-graph
++  mean breaks the symmetry the method depends on. MUSE centers word vectors,
++  which carry no such constraint; carrying that default across was our error,
++  not MUSE's.
++
++### What is and is not controlled
++
++| Source of randomness | Controlled by | Status |
++|---|---|---|
++| GAE weight init | `--seed` -> `torch.manual_seed` | bit-reproducible at a fixed seed |
++| Adversarial init, batch sampling | `--seed` -> `torch.manual_seed` plus a CPU `Generator` | bit-reproducible at a fixed seed; **bimodal across seeds** |
++| Restart selection | `n_restarts`, mean cosine | deterministic given the seed range |
++| AUC sampling | `seed` argument | diagnostic only, does not affect results |
++| Degree ties in `top_degree` | broken by node id | deterministic |
++| Phase 3 iteration order | nothing needed | deterministic; see below |
++| Pair generation (which edges are deleted) | the generator's own `--seed`, recorded in `stats.json` | one pair per beta so far |
++
++Phase 3 needs checking rather than assuming, because the inherited baseline is
++hash-seed sensitive: it iterates Python `set`s of string node ids, so its
++accuracy moves about 0.1pp between runs. This reimplementation does not inherit
++that. Sets are only membership-tested, never iterated; everything iterated is a
++`dict` or a NetworkX adjacency view, both insertion-ordered. Confirmed
++empirically -- the full 25,782-pair mapping has the same SHA-256 under
++PYTHONHASHSEED 0, 1 and 12345, with chi identical to six decimals.
++
++The remaining uncontrolled dimension is the **pair**: one generated pair per
++beta, so none of these figures carry a confidence interval over the noise draw.
++
++### Where the reproduction stands
++
++HepTh, beta = 0.1, one pair, all three phases, 4 restarts selected by mean
++cosine (seed 3 chosen):
++
++| | Ours | Paper |
++|---|---|---|
++| Anchors correct/found (Table 2) | 830/854 | 753/755 |
++| Anchor precision | 0.972 | 0.997 |
++| chi -- correct over 27,444 matchable | **0.913** | ~0.97 |
++| gamma -- correct over 25,727 mapped | 0.974 | not reported for this cell |
++
++The two-stage structure of Algorithm 2 behaves as described: the candidate-set
++restriction grows the mapping conservatively to 8,301 over five sweeps, then
++lifting it adds 17,452 more over eight. Precision barely moves between the
++anchors (0.972) and the final mapping (0.974), which is the property the
++paper's design is after -- propagation does not degrade what alignment handed
++it.
++
++This is one cell of Table 2 on our own generated pair, not the paper's pair, so
++it is evidence that the method is reproducible as described plus the gaps
++above, not a replication of the paper's number. We land about 5 points of chi
++short, and the section after next locates that shortfall outside Phases 1-2.
++The remaining beta values are still to run.
++
++### The residual gap to the paper is not in anchor quality
++
++With 854 *perfect* anchors handed to Phase 3 -- the true images of the 854
++highest-degree nodes, so Phase 2 plays no part -- propagation reaches:
++
++| sigma support | theta | Mapped | Correct | chi | gamma |
++|---|---|---|---|---|---|
++| all (literal) | 0.5 | 25,782 | 25,125 | 0.9155 | 0.9745 |
++| all (literal) | 1.0 | 25,777 | 25,145 | 0.9162 | 0.9755 |
++| nonzero | 0.5 | 24,321 | 23,992 | 0.8742 | 0.9865 |
++
++Our full pipeline, with 829/854 anchors, reaches chi = 0.913. Perfect anchors
++buy 0.002. So propagation is almost indifferent to the 25 wrong anchors, and
++**the roughly 5 point gap to the paper's ~0.97 is not an anchor-quality
++problem** -- it sits in Phase 3 or in the noise model, not in Phases 1-2. The
++eccentricity ambiguity does not explain it either: the literal reading is
++already the better one, and theta barely matters.
++
++The most likely remaining explanation is the perturbation protocol rather than
++the algorithm. We delete edges independently from each copy at beta, so an edge
++survives in both with probability (1-beta)^2 and about 19% of edges differ
++between the two graphs at beta = 0.1. If the paper's beta instead describes the
++total divergence between the two copies, their task at a nominal beta = 0.1 is
++materially easier than ours. This is the interpretation question already
++flagged in `src/beta_noise_generator/perturbation_protocol.md`, and it is the
++first thing to test before concluding anything about Phase 3.
++
++### A phi/psi inversion that the self-test could not see
++
++Phase 3's first run mapped nothing at all beyond the anchors. The cause was
++ours, not the paper's: the reverse-direction mapping psi was rebuilt by
++unpacking `psi.items()` into the wrong variable order, which turned it into a
++second copy of phi. Every reverse `get_scores` then looked up G^u neighbours in
++a dict keyed by G^a ids, found nothing, and the symmetry check rejected all
++26,748 unmapped nodes.
++
++Worth recording because of *why* it survived: the self-test propagated a graph
++against itself, where the G^a and G^u id spaces coincide and a mapping keyed by
++the wrong one still resolves. The test now relabels the two copies with
++disjoint id prefixes, which fails on the old code (50/800, anchors only) and
++passes on the fixed code (800/800). Any test for a two-sided matching algorithm
++needs the two sides to be distinguishable, or it cannot see this whole class of
++bug.
+\ No newline at end of file
+diff --git a/src/adv_gd/alignment.py b/src/adv_gd/alignment.py
+new file mode 100644
+index 0000000..92b4303
+--- /dev/null
++++ b/src/adv_gd/alignment.py
+@@ -0,0 +1,506 @@
++"""Phase 2 of Adv-GD: adversarial alignment of two embedding spaces.
++
++The two graphs are embedded independently, so their spaces are unrelated: node
++v in G^a and its true counterpart in G^u land in arbitrary, different places.
++This phase learns a single linear map W taking one space onto the other, with
++no seed pairs, by training W to fool a discriminator that tries to tell mapped
++source vectors from target vectors.
++
++Paper provenance (docs/SeedFree_Li.etal.pdf, section 3.1, p.747):
++    equations 4-5   discriminator and W objectives
++    equations 6-7   CSLS similarity
++    equations 8-9   Procrustes refinement, solved by SVD
++    train on the top N_adv degree nodes of each graph only
++    anchors  = mutual CSLS nearest neighbours among top N_anch degree nodes
++    candidates = top 10 CSLS matches for each top M degree node of G^a
++    model selection = mean cosine of the CSLS-matched pairs
++
++The paper fixes the structure but not the training schedule. Everything in
++DEFAULTS below is ours, taken from MUSE (reference [21]), which is where the
++paper takes CSLS from and which Phase 2 otherwise follows closely. See
++`adv_gd_protocol.md`.
++
++Library use:
++    from alignment import align
++    res = align(Za, nodes_a, Zu, nodes_u, Ga, Gu, n_adv=5000, n_anch=1000, m=10000)
++
++CLI:
++    python src/adv_gd/alignment.py --self-test
++"""
++
++from __future__ import annotations
++
++import argparse
++import sys
++import time
++from pathlib import Path
++
++import networkx as nx
++import numpy as np
++import torch
++import torch.nn as nn
++
++# Unstated by the paper; MUSE defaults. Changing these changes results, so they
++# are reported in the run record rather than buried here.
++DEFAULTS = {
++    "csls_k": 10,            # neighbours in the CSLS local-scaling term
++    "disc_hidden": 2048,     # discriminator width
++    "disc_layers": 2,        # hidden layers
++    "disc_dropout": 0.1,
++    "disc_input_dropout": 0.1,
++    "disc_leaky": 0.2,
++    "label_smooth": 0.2,
++    "adv_epochs": 5,
++    "adv_steps": 2000,       # discriminator/W update pairs per epoch
++    "refine_rounds": 5,
++    "ortho_beta": 0.01,      # strength of the orthogonalization pull on W
++    "normalize": "none",     # embedding preprocessing; see _preprocess
++    "n_restarts": 4,         # independent adversarial runs; see _search
++}
++
++# Paper-specified, section 3.1 and 4.2.
++DISC_LR = 0.1               # SGD
++MAP_LR = 0.01               # Adam
++BATCH = 32
++TOP10 = 10                  # candidate-set size per node
++
++
++# --------------------------------------------------------------------------------------
++# Similarity
++# --------------------------------------------------------------------------------------
++
++def _unit(X: torch.Tensor) -> torch.Tensor:
++    return X / X.norm(dim=1, keepdim=True).clamp_min(1e-12)
++
++
++def _preprocess(X: torch.Tensor, mode: str) -> torch.Tensor:
++    """Put an embedding matrix on the scale the adversarial phase expects.
++
++    The paper says nothing about this, and leaving it out is defensible on a
++    literal reading -- but it is not harmless. GAE embedding norms grow as
++    training goes on (mean 1.83, max 8.9 after 600 epochs on HepTh), and the
++    discriminator can separate the two spaces on scale alone, which gives W no
++    useful gradient. MUSE, which this phase otherwise follows, centers and
++    renormalizes first. Measured effect is in the reproduction log of
++    `adv_gd_protocol.md`.
++
++    "none"           leave the embeddings as the GAE produced them -- default
++    "renorm"         unit-norm each row
++    "center_renorm"  subtract the mean row, then unit-norm (MUSE's default)
++
++    Measured over four seeds each, `none` and `renorm` are indistinguishable:
++    both reach a good alignment on 2 of 4 seeds, best precision 0.971 against
++    0.976. So the default is the paper's literal reading, which costs nothing.
++
++    Centering, which is MUSE's default, is a different matter -- 0 of 4 seeds,
++    best precision 0.190 -- and the reason is structural rather than a tuning
++    accident. The GAE decoder sigma(Z Z^T) is invariant under an orthogonal
++    transform of Z but not under a translation of it, and that invariance is
++    the whole reason a single linear W can align two independently trained
++    spaces. Subtracting a per-graph mean shifts the two spaces by different
++    vectors and breaks the symmetry the method relies on. MUSE centers word
++    vectors, which carry no such constraint; carrying that default across was
++    our error, not MUSE's.
++    """
++    if mode == "none":
++        return X
++    if mode == "center_renorm":
++        X = X - X.mean(dim=0, keepdim=True)
++    elif mode != "renorm":
++        raise ValueError(f"unknown normalize mode {mode!r}")
++    return _unit(X)
++
++
++def csls_matrix(src: torch.Tensor, tgt: torch.Tensor, k: int,
++                chunk: int = 2048) -> torch.Tensor:
++    """CSLS(i, j) = 2 cos(src_i, tgt_j) - r_t(src_i) - r_s(tgt_j).
++
++    r_t(i) is the mean cosine from src_i to its k nearest targets, and r_s(j)
++    the mean cosine from tgt_j to its k nearest sources. Subtracting both
++    penalizes hubs -- vectors that sit near everything -- which plain nearest
++    neighbour search in high dimensions otherwise favours heavily (paper
++    section 3.1, after equation 5).
++    """
++    src, tgt = _unit(src), _unit(tgt)
++
++    r_t = torch.empty(src.shape[0], device=src.device)
++    for lo in range(0, src.shape[0], chunk):
++        sims = src[lo:lo + chunk] @ tgt.t()
++        r_t[lo:lo + chunk] = sims.topk(min(k, sims.shape[1]), dim=1).values.mean(1)
++
++    r_s = torch.empty(tgt.shape[0], device=tgt.device)
++    for lo in range(0, tgt.shape[0], chunk):
++        sims = tgt[lo:lo + chunk] @ src.t()
++        r_s[lo:lo + chunk] = sims.topk(min(k, sims.shape[1]), dim=1).values.mean(1)
++
++    out = torch.empty(src.shape[0], tgt.shape[0], device=src.device)
++    for lo in range(0, src.shape[0], chunk):
++        out[lo:lo + chunk] = (2 * (src[lo:lo + chunk] @ tgt.t())
++                              - r_t[lo:lo + chunk, None] - r_s[None, :])
++    return out
++
++
++# --------------------------------------------------------------------------------------
++# Discriminator
++# --------------------------------------------------------------------------------------
++
++class Discriminator(nn.Module):
++    """Predicts the probability that a vector came from the mapped source space.
++
++    Architecture is not given in the paper; this is MUSE's.
++    """
++
++    def __init__(self, dim: int, hidden: int, layers: int, dropout: float,
++                 input_dropout: float, leaky: float):
++        super().__init__()
++        mods: list[nn.Module] = [nn.Dropout(input_dropout)]
++        width = dim
++        for _ in range(layers):
++            mods += [nn.Linear(width, hidden), nn.LeakyReLU(leaky), nn.Dropout(dropout)]
++            width = hidden
++        mods += [nn.Linear(width, 1), nn.Sigmoid()]
++        self.net = nn.Sequential(*mods)
++
++    def forward(self, x: torch.Tensor) -> torch.Tensor:
++        return self.net(x).view(-1)
++
++
++def _orthogonalize(W: torch.Tensor, beta: float) -> None:
++    """Pull W back towards orthogonality: W <- (1+b) W - b (W W^T) W.
++
++    The refinement step (equation 9) assumes an orthogonal W, so letting the
++    adversarial phase drift far from orthogonal makes the two stages
++    inconsistent. MUSE applies this after every update.
++    """
++    with torch.no_grad():
++        W.copy_((1 + beta) * W - beta * (W @ W.t()) @ W)
++
++
++# --------------------------------------------------------------------------------------
++# Adversarial training
++# --------------------------------------------------------------------------------------
++
++def train_mapping(Za: torch.Tensor, Zu: torch.Tensor, cfg: dict, seed: int = 0,
++                  verbose: bool = True) -> torch.Tensor:
++    """Learn W mapping the Za space onto the Zu space, without seeds.
++
++    Za and Zu are already restricted to the top N_adv degree nodes of each
++    graph: the paper trains on those only, on the grounds that high-degree
++    nodes keep more of their structure under edge deletion.
++    """
++    dev = Za.device
++    dim = Za.shape[1]
++    torch.manual_seed(seed)
++
++    W = torch.eye(dim, device=dev, requires_grad=True)
++    disc = Discriminator(dim, cfg["disc_hidden"], cfg["disc_layers"],
++                         cfg["disc_dropout"], cfg["disc_input_dropout"],
++                         cfg["disc_leaky"]).to(dev)
++
++    opt_d = torch.optim.SGD(disc.parameters(), lr=DISC_LR)
++    opt_w = torch.optim.Adam([W], lr=MAP_LR)
++    bce = nn.BCELoss()
++    smooth = cfg["label_smooth"]
++    g = torch.Generator(device="cpu").manual_seed(seed)
++    t0 = time.time()
++
++    for epoch in range(1, cfg["adv_epochs"] + 1):
++        d_running = w_running = 0.0
++        for _ in range(cfg["adv_steps"]):
++            ia = torch.randint(0, Za.shape[0], (BATCH,), generator=g).to(dev)
++            iu = torch.randint(0, Zu.shape[0], (BATCH,), generator=g).to(dev)
++
++            # Discriminator: source-mapped -> 1, target -> 0 (paper equation 4).
++            with torch.no_grad():
++                mapped = Za[ia] @ W.t()
++            x = torch.cat([mapped, Zu[iu]])
++            y = torch.cat([torch.full((BATCH,), 1 - smooth, device=dev),
++                           torch.full((BATCH,), smooth, device=dev)])
++            opt_d.zero_grad()
++            loss_d = bce(disc(x), y)
++            loss_d.backward()
++            opt_d.step()
++
++            # W: flip the labels, so W is rewarded for fooling the
++            # discriminator (paper equation 5).
++            x = torch.cat([Za[ia] @ W.t(), Zu[iu]])
++            y = torch.cat([torch.full((BATCH,), smooth, device=dev),
++                           torch.full((BATCH,), 1 - smooth, device=dev)])
++            opt_w.zero_grad()
++            loss_w = bce(disc(x), y)
++            loss_w.backward()
++            opt_w.step()
++            _orthogonalize(W.data, cfg["ortho_beta"])
++
++            d_running += float(loss_d)
++            w_running += float(loss_w)
++
++        if verbose:
++            n = cfg["adv_steps"]
++            print(f"  adv epoch {epoch}/{cfg['adv_epochs']}  "
++                  f"D {d_running / n:.4f}  W {w_running / n:.4f}  "
++                  f"{time.time() - t0:.0f}s", file=sys.stderr)
++
++    return W.detach()
++
++
++# --------------------------------------------------------------------------------------
++# Anchors, refinement, candidates
++# --------------------------------------------------------------------------------------
++
++def mutual_anchors(scores: torch.Tensor) -> list[tuple[int, int]]:
++    """Pairs that are each other's best match under CSLS.
++
++    Paper condition (2) for an anchor. Mutuality is what makes these usable as
++    pseudo-seeds: a one-sided nearest neighbour is far more often wrong.
++    """
++    best_fwd = scores.argmax(dim=1)
++    best_bwd = scores.argmax(dim=0)
++    return [(i, int(j)) for i, j in enumerate(best_fwd.tolist())
++            if int(best_bwd[j]) == i]
++
++
++def procrustes(Za_anch: torch.Tensor, Zu_anch: torch.Tensor) -> torch.Tensor:
++    """W* = U V^T with U S V^T = SVD(Zu_anch^T Za_anch)  (paper equation 9).
++
++    The orthogonal Procrustes solution to min ||W Za - Zu||_F. Constraining W
++    to be orthogonal is what makes this a closed form rather than a second
++    optimization.
++    """
++    U, _, Vt = torch.linalg.svd(Zu_anch.t() @ Za_anch)
++    return U @ Vt
++
++
++def candidate_sets(scores: torch.Tensor, top: int = TOP10) -> torch.Tensor:
++    """Top-`top` CSLS matches in G^u for each row (paper section 3.1, end)."""
++    return scores.topk(min(top, scores.shape[1]), dim=1).indices
++
++
++def mean_match_cosine(src: torch.Tensor, tgt: torch.Tensor,
++                      pairs: list[tuple[int, int]]) -> float:
++    """Model-selection measure: mean cosine over the matched pairs.
++
++    Adv-GD is seed-free, so there is no validation set. The paper selects
++    hyperparameters by maximizing this instead (section 3.1).
++    """
++    if not pairs:
++        return float("nan")
++    i = torch.tensor([p[0] for p in pairs], device=src.device)
++    j = torch.tensor([p[1] for p in pairs], device=tgt.device)
++    return float((_unit(src)[i] * _unit(tgt)[j]).sum(1).mean())
++
++
++# --------------------------------------------------------------------------------------
++# Driver
++# --------------------------------------------------------------------------------------
++
++def top_degree(G: nx.Graph, nodes: list, k: int) -> np.ndarray:
++    """Row indices of the k highest-degree nodes, ties broken by id for determinism."""
++    deg = G.degree()
++    order = sorted(range(len(nodes)), key=lambda i: (-deg[nodes[i]], nodes[i]))
++    return np.array(order[:min(k, len(nodes))], dtype=np.int64)
++
++
++def _search(Za_t: torch.Tensor, Zu_t: torch.Tensor, adv_a, adv_u, anch_a,
++            anch_u, cfg: dict, seed: int, verbose: bool = True,
++            label: str = "") -> tuple:
++    """One adversarial run plus its refinement rounds: W, its anchors, history.
++
++    Separate from `align` because it has to be repeated. Adversarial training
++    is bimodal here -- see `n_restarts` -- so a single run is a coin flip and
++    the caller picks among several by mean cosine.
++    """
++    if verbose and label:
++        print(f"  {label}  (seed {seed})", file=sys.stderr)
++    W = train_mapping(Za_t[adv_a], Zu_t[adv_u], cfg, seed=seed, verbose=verbose)
++
++    history, pairs = [], []
++    for rnd in range(cfg["refine_rounds"] + 1):
++        s = csls_matrix(Za_t[anch_a] @ W.t(), Zu_t[anch_u], cfg["csls_k"])
++        pairs = mutual_anchors(s)
++        cos = mean_match_cosine(Za_t[anch_a] @ W.t(), Zu_t[anch_u], pairs)
++        history.append({"round": rnd, "anchors": len(pairs), "mean_cosine": cos})
++        if verbose:
++            print(f"    refine {rnd}/{cfg['refine_rounds']}  "
++                  f"anchors {len(pairs):,}  mean cosine {cos:.4f}",
++                  file=sys.stderr)
++        if rnd == cfg["refine_rounds"] or not pairs:
++            break
++        W = procrustes(Za_t[anch_a][[p[0] for p in pairs]],
++                       Zu_t[anch_u][[p[1] for p in pairs]])
++    return W, pairs, history
++
++
++def align(Za: np.ndarray, nodes_a: list, Zu: np.ndarray, nodes_u: list,
++          Ga: nx.Graph, Gu: nx.Graph, n_adv: int, n_anch: int, m: int,
++          cfg: dict | None = None, seed: int = 0, device: str | None = None,
++          verbose: bool = True) -> dict:
++    """Run Phase 2 end to end and return W, anchors, candidate sets, and stats.
++
++    Anchors and candidates are returned as node ids, not row indices, so the
++    caller never has to know the embedding row order.
++    """
++    cfg = {**DEFAULTS, **(cfg or {})}
++    dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
++    Za_t = _preprocess(torch.as_tensor(Za, dtype=torch.float32, device=dev),
++                       cfg["normalize"])
++    Zu_t = _preprocess(torch.as_tensor(Zu, dtype=torch.float32, device=dev),
++                       cfg["normalize"])
++
++    adv_a = top_degree(Ga, nodes_a, n_adv)
++    adv_u = top_degree(Gu, nodes_u, n_adv)
++    if verbose:
++        print(f"adversarial training on top {len(adv_a):,} / {len(adv_u):,} "
++              f"degree nodes", file=sys.stderr)
++
++    # Anchors come from the top N_anch degree nodes of each graph (condition 1),
++    # which for every dataset in Table 1 is a subset of the N_adv used above.
++    anch_a = top_degree(Ga, nodes_a, n_anch)
++    anch_u = top_degree(Gu, nodes_u, n_anch)
++
++    runs = []
++    for r in range(cfg["n_restarts"]):
++        W, pairs, history = _search(Za_t, Zu_t, adv_a, adv_u, anch_a, anch_u,
++                                    cfg, seed=seed + r, verbose=verbose,
++                                    label=f"restart {r + 1}/{cfg['n_restarts']}")
++        runs.append({"seed": seed + r, "W": W, "pairs": pairs,
++                     "history": history,
++                     "mean_cosine": history[-1]["mean_cosine"]})
++
++    # Model selection, section 3.1: the mean cosine of the CSLS-matched pairs.
++    # This is the only selection signal available -- Adv-GD is seed-free, so
++    # there is no ground truth and no validation set to choose on. It is also
++    # doing real work: adversarial training reaches a good alignment on roughly
++    # half of all seeds and near-zero on the rest, and this criterion separates
++    # the two cleanly. See the reproduction log in `adv_gd_protocol.md`.
++    best = max(runs, key=lambda r: r["mean_cosine"])
++    W, pairs = best["W"], best["pairs"]
++    if verbose and cfg["n_restarts"] > 1:
++        spread = ", ".join(f"{r['mean_cosine']:.4f}" for r in runs)
++        print(f"  mean cosine across restarts: {spread}", file=sys.stderr)
++        print(f"  selected seed {best['seed']} "
++              f"({best['mean_cosine']:.4f}, {len(pairs):,} anchors)",
++              file=sys.stderr)
++
++    anchors = [(nodes_a[anch_a[i]], nodes_u[anch_u[j]]) for i, j in pairs]
++
++    # Candidate sets: top 10 CSLS matches in all of G^u for each of the top M
++    # degree nodes of G^a. M exceeds N_adv in Table 1, so this deliberately
++    # covers nodes the adversarial phase never trained on.
++    cand_a = top_degree(Ga, nodes_a, m)
++    s_cand = csls_matrix(Za_t[cand_a] @ W.t(), Zu_t, cfg["csls_k"])
++    top = candidate_sets(s_cand, TOP10).cpu().numpy()
++    candidates = {nodes_a[cand_a[i]]: [nodes_u[j] for j in top[i]]
++                  for i in range(len(cand_a))}
++
++    return {
++        "W": W.cpu().numpy(),
++        "anchors": anchors,
++        "candidates": candidates,
++        "history": best["history"],
++        "selected_seed": best["seed"],
++        "restarts": [{"seed": r["seed"], "anchors": len(r["pairs"]),
++                      "mean_cosine": r["mean_cosine"]} for r in runs],
++        "config": cfg,
++    }
++
++
++def evaluate_anchors(anchors: list[tuple[str, str]], truth: dict) -> dict:
++    """Score anchors against ground truth, in the paper's Table 2 form.
++
++    Reported as correct/found: the denominator is how many anchors the method
++    proposed, not how many it could have.
++    """
++    correct = sum(1 for a, u in anchors if truth.get(a) == u)
++    return {"found": len(anchors), "correct": correct,
++            "precision": correct / len(anchors) if anchors else float("nan")}
++
++
++# --------------------------------------------------------------------------------------
++# Checks
++# --------------------------------------------------------------------------------------
++
++def self_test(verbose: bool = True) -> bool:
++    """Checks on synthetic data where the correct alignment is known.
++
++    A random orthogonal rotation of a point cloud is exactly the problem W is
++    meant to undo, so Procrustes and CSLS must solve it near-perfectly. If they
++    do not, nothing on real graphs will work.
++    """
++    ok = True
++    rng = np.random.default_rng(0)
++    n, d = 400, 16
++    Z = rng.normal(size=(n, d)).astype(np.float32)
++    Q, _ = np.linalg.qr(rng.normal(size=(d, d)))
++    Zr = (Z @ Q).astype(np.float32)
++
++    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
++    A = torch.as_tensor(Z, device=dev)
++    B = torch.as_tensor(Zr, device=dev)
++
++    # Procrustes given the true correspondence must recover the rotation.
++    W = procrustes(A, B)
++    err = float((A @ W.t() - B).norm() / B.norm())
++    if err > 1e-4:
++        print(f"  [FAIL] Procrustes relative error {err:.2e}", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] Procrustes recovers the rotation (rel. error {err:.2e})",
++              file=sys.stderr)
++
++    # W is orthogonal, so W W^T must be the identity.
++    off = float((W @ W.t() - torch.eye(d, device=dev)).abs().max())
++    if off > 1e-4:
++        print(f"  [FAIL] W not orthogonal, max |WW^T - I| = {off:.2e}", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] W is orthogonal (max |WW^T - I| = {off:.2e})", file=sys.stderr)
++
++    # Under the recovered map, every point's mutual CSLS match is itself.
++    s = csls_matrix(A @ W.t(), B, DEFAULTS["csls_k"])
++    pairs = mutual_anchors(s)
++    hits = sum(1 for i, j in pairs if i == j)
++    if hits < 0.99 * n:
++        print(f"  [FAIL] CSLS mutual matches {hits}/{n}", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] CSLS mutual nearest neighbours {hits}/{n} correct",
++              file=sys.stderr)
++
++    # Candidate sets must contain the true match.
++    cands = candidate_sets(s, TOP10).cpu().numpy()
++    in_top = sum(1 for i in range(n) if i in cands[i])
++    if in_top < 0.99 * n:
++        print(f"  [FAIL] true match in top-10 for only {in_top}/{n}", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] true match in top-10 for {in_top}/{n}", file=sys.stderr)
++
++    # An unrelated space must NOT align -- guards against a scoring bug that
++    # would make everything look matched.
++    Zbad = rng.normal(size=(n, d)).astype(np.float32)
++    s_bad = csls_matrix(A, torch.as_tensor(Zbad, device=dev), DEFAULTS["csls_k"])
++    bad_hits = sum(1 for i, j in mutual_anchors(s_bad) if i == j)
++    if bad_hits > 0.05 * n:
++        print(f"  [FAIL] {bad_hits}/{n} spurious matches on unrelated data",
++              file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] unrelated spaces do not align ({bad_hits}/{n} matches)",
++              file=sys.stderr)
++
++    print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
++    return ok
++
++
++def main(argv=None) -> int:
++    ap = argparse.ArgumentParser(description="Adv-GD Phase 2: adversarial alignment.")
++    ap.add_argument("--self-test", action="store_true")
++    args = ap.parse_args(argv)
++    if args.self_test:
++        return 0 if self_test() else 1
++    ap.error("nothing to do; Phase 2 runs from the driver, or use --self-test")
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/src/adv_gd/embedding.py b/src/adv_gd/embedding.py
+new file mode 100644
+index 0000000..aea856a
+--- /dev/null
++++ b/src/adv_gd/embedding.py
+@@ -0,0 +1,322 @@
++"""Phase 1 of Adv-GD: graph autoencoder embeddings.
++
++Learns a d-dimensional representation of each node from topology alone, by
++training a two-layer GCN encoder to reconstruct the adjacency matrix.
++
++Paper provenance (docs/SeedFree_Li.etal.pdf, section 2.2, equations 1-3):
++    encoder   GCN(X, A) = A_hat ReLU(A_hat X W0) W1
++    decoder   A_recon   = sigmoid(Z Z^T)
++    X is the identity -- no node features are used
++    A has its diagonal set to 1 before normalization
++
++Two equations in the paper cannot be implemented as printed; see
++`adv_gd_protocol.md` for the full argument. In short:
++
++  * Equation 1 writes the normalized adjacency as D^-1/2 A D, which is not
++    symmetric. We use the standard D^-1/2 A D^-1/2.
++  * Equation 3 writes the loss with the positive term only, which is degenerate
++    -- driving every reconstructed entry to 1 sends it to zero. We use full
++    binary cross-entropy with the positive class reweighted, as GAE does.
++
++Unstated by the paper and chosen here from Kipf and Welling's GAE defaults:
++hidden width, epoch count, and optimizer. All are CLI flags.
++
++Library use:
++    from embedding import gae_embed
++    Z, nodes = gae_embed(G, dim=32, seed=0)
++
++CLI:
++    python src/adv_gd/embedding.py --self-test
++    python src/adv_gd/embedding.py --graph runs/cit-HepTh_b10_s0/G1.edgelist --dim 32
++"""
++
++from __future__ import annotations
++
++import argparse
++import sys
++import time
++from pathlib import Path
++
++import networkx as nx
++import numpy as np
++import torch
++import torch.nn as nn
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++
++# Rows of the decoder computed at once. The full Z Z^T for HepTh is 27,769^2
++# floats (3.1 GB) before gradients, which does not fit in 8.5 GB of VRAM. The
++# loss is a sum over rows, so chunking changes nothing but the peak memory.
++DEFAULT_CHUNK = 2048
++
++
++# --------------------------------------------------------------------------------------
++# Graph -> tensors
++# --------------------------------------------------------------------------------------
++
++def normalized_adjacency(G: nx.Graph, nodes: list, device) -> torch.Tensor:
++    """Build A_hat = D^-1/2 (A + I) D^-1/2 as a sparse tensor.
++
++    The paper sets the diagonal of A to 1 ("we assume each node is connected to
++    itself") and only then forms D, so the self-loop is included in the degree.
++    """
++    index = {u: i for i, u in enumerate(nodes)}
++    n = len(nodes)
++
++    eu = [index[u] for u, v in G.edges()]
++    ev = [index[v] for u, v in G.edges()]
++    rows = eu + ev + list(range(n))     # both directions, then the diagonal
++    cols = ev + eu + list(range(n))
++
++    rows_t = torch.tensor(rows, dtype=torch.long)
++    cols_t = torch.tensor(cols, dtype=torch.long)
++    vals = torch.ones(len(rows), dtype=torch.float32)
++
++    deg = torch.zeros(n, dtype=torch.float32).scatter_add_(0, rows_t, vals)
++    dinv = deg.pow(-0.5)
++    vals = dinv[rows_t] * vals * dinv[cols_t]
++
++    return torch.sparse_coo_tensor(
++        torch.stack([rows_t, cols_t]), vals, (n, n)
++    ).coalesce().to(device)
++
++
++def target_block_indices(G: nx.Graph, nodes: list, index: dict,
++                         blocks: list, device) -> list:
++    """Per-row-block coordinates of the 1-entries of (A + I), computed once.
++
++    The reconstruction target is the same every epoch, so walking the graph in
++    Python each time dominates the runtime. Here the coordinates are built once
++    and each epoch only scatters them into a zero block on the device.
++    """
++    n = len(nodes)
++    eu = np.fromiter((index[u] for u, v in G.edges()), dtype=np.int64,
++                     count=G.number_of_edges())
++    ev = np.fromiter((index[v] for u, v in G.edges()), dtype=np.int64,
++                     count=G.number_of_edges())
++    diag = np.arange(n, dtype=np.int64)
++    rows = np.concatenate([eu, ev, diag])
++    cols = np.concatenate([ev, eu, diag])
++
++    order = np.argsort(rows, kind="stable")
++    rows, cols = rows[order], cols[order]
++
++    out = []
++    for lo, hi in blocks:
++        a, b = np.searchsorted(rows, [lo, hi])
++        out.append((
++            torch.from_numpy(rows[a:b] - lo).to(device),
++            torch.from_numpy(cols[a:b]).to(device),
++        ))
++    return out
++
++
++# --------------------------------------------------------------------------------------
++# Model
++# --------------------------------------------------------------------------------------
++
++class GAEEncoder(nn.Module):
++    """Two-layer GCN with X = I, so the first layer is a plain weight lookup.
++
++    With an identity feature matrix, A_hat X W0 reduces to A_hat W0, which saves
++    materializing an n x n identity. W0 is therefore n x hidden.
++    """
++
++    def __init__(self, n: int, hidden: int, dim: int):
++        super().__init__()
++        self.w0 = nn.Parameter(torch.empty(n, hidden))
++        self.w1 = nn.Parameter(torch.empty(hidden, dim))
++        nn.init.xavier_uniform_(self.w0)
++        nn.init.xavier_uniform_(self.w1)
++
++    def forward(self, a_hat: torch.Tensor) -> torch.Tensor:
++        h = torch.relu(torch.sparse.mm(a_hat, self.w0))
++        return torch.sparse.mm(a_hat, h @ self.w1)
++
++
++# --------------------------------------------------------------------------------------
++# Training
++# --------------------------------------------------------------------------------------
++
++def gae_embed(G: nx.Graph, dim: int = 32, hidden: int = 64, epochs: int = 200,
++              lr: float = 0.01, seed: int = 0, chunk: int = DEFAULT_CHUNK,
++              device: str | None = None, verbose: bool = True
++              ) -> tuple[np.ndarray, list]:
++    """Train a GAE on G and return (Z, nodes) with Z[i] the embedding of nodes[i].
++
++    Node order is sorted so that two calls on the same graph line up, and so the
++    caller can map embeddings back to ids without a side channel.
++    """
++    torch.manual_seed(seed)
++    np.random.seed(seed)
++
++    dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
++    nodes = sorted(G.nodes())
++    index = {u: i for i, u in enumerate(nodes)}
++    n = len(nodes)
++
++    a_hat = normalized_adjacency(G, nodes, dev)
++    model = GAEEncoder(n, hidden, dim).to(dev)
++    opt = torch.optim.Adam(model.parameters(), lr=lr)
++
++    # Class reweighting, as in GAE: positives are rare, so without this the model
++    # predicts all-zero. n_pos counts the unit diagonal too, matching the target.
++    n_pos = 2 * G.number_of_edges() + n
++    n_tot = n * n
++    pos_weight = torch.tensor((n_tot - n_pos) / n_pos, device=dev)
++    norm = n_tot / (2.0 * (n_tot - n_pos))
++    lossfn = nn.BCEWithLogitsLoss(pos_weight=pos_weight, reduction="sum")
++
++    blocks = [(lo, min(lo + chunk, n)) for lo in range(0, n, chunk)]
++    coords = target_block_indices(G, nodes, index, blocks, dev)
++    t0 = time.time()
++
++    for epoch in range(1, epochs + 1):
++        opt.zero_grad()
++        Z = model(a_hat)
++        total = 0.0
++        for k, (lo, hi) in enumerate(blocks):
++            r, c = coords[k]
++            target = torch.zeros(hi - lo, n, device=dev)
++            target[r, c] = 1.0
++            logits = Z[lo:hi] @ Z.t()
++            loss = norm * lossfn(logits, target) / n_tot
++            # Z is shared by every block, so its graph must survive until the last.
++            loss.backward(retain_graph=(k < len(blocks) - 1))
++            total += float(loss.detach())
++            del logits, target
++        opt.step()
++        if verbose and (epoch % 20 == 0 or epoch == 1):
++            print(f"  epoch {epoch:4d}/{epochs}  loss {total:.4f}  "
++                  f"{time.time() - t0:.0f}s", file=sys.stderr)
++
++    with torch.no_grad():
++        Z = model(a_hat).cpu().numpy()
++    if verbose:
++        print(f"embedded {n:,} nodes -> {dim}d in {time.time() - t0:.0f}s on {dev}",
++              file=sys.stderr)
++    return Z, nodes
++
++
++# --------------------------------------------------------------------------------------
++# Checks
++# --------------------------------------------------------------------------------------
++
++def reconstruction_auc(G: nx.Graph, Z: np.ndarray, nodes: list,
++                       n_sample: int = 20000, seed: int = 0) -> float:
++    """AUC of z_i . z_j at separating real edges from sampled non-edges.
++
++    This is the only honest check on an unsupervised embedding: if the decoder
++    cannot tell an edge from a non-edge, the embedding carries no topology and
++    everything downstream is noise. Chance is 0.5.
++    """
++    rng = np.random.default_rng(seed)
++    index = {u: i for i, u in enumerate(nodes)}
++    edges = list(G.edges())
++    pick = rng.choice(len(edges), size=min(n_sample, len(edges)), replace=False)
++    pos = np.array([[index[edges[i][0]], index[edges[i][1]]] for i in pick])
++
++    neg = []
++    while len(neg) < len(pos):
++        i, j = rng.integers(0, len(nodes), 2)
++        if i != j and not G.has_edge(nodes[i], nodes[j]):
++            neg.append([i, j])
++    neg = np.array(neg)
++
++    def score(pairs):
++        return np.sum(Z[pairs[:, 0]] * Z[pairs[:, 1]], axis=1)
++
++    sp, sn = score(pos), score(neg)
++    # AUC by rank, which avoids a scipy or sklearn dependency.
++    allv = np.concatenate([sp, sn])
++    ranks = allv.argsort().argsort().astype(float) + 1
++    r_pos = ranks[:len(sp)].sum()
++    return float((r_pos - len(sp) * (len(sp) + 1) / 2) / (len(sp) * len(sn)))
++
++
++def self_test(verbose: bool = True) -> bool:
++    """Train on a small synthetic graph and assert the embedding is informative."""
++    ok = True
++    G = nx.gnm_random_graph(1500, 12000, seed=7)
++    print(f"self-test on gnm_random_graph(1500, 12000): "
++          f"{G.number_of_nodes():,} nodes / {G.number_of_edges():,} edges",
++          file=sys.stderr)
++
++    Z, nodes = gae_embed(G, dim=16, hidden=32, epochs=120, seed=0, verbose=verbose)
++
++    if Z.shape != (1500, 16):
++        print(f"  [FAIL] shape {Z.shape}, expected (1500, 16)", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] embedding shape {Z.shape}", file=sys.stderr)
++
++    if not np.isfinite(Z).all():
++        print("  [FAIL] embedding contains nan or inf", file=sys.stderr)
++        ok = False
++    else:
++        print("  [PASS] all finite", file=sys.stderr)
++
++    auc = reconstruction_auc(G, Z, nodes, seed=0)
++    if auc < 0.80:
++        print(f"  [FAIL] reconstruction AUC {auc:.4f} -- embedding is not "
++              f"capturing topology", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] reconstruction AUC {auc:.4f} (chance 0.5)", file=sys.stderr)
++
++    # Determinism: same seed must give the same embedding, or nothing downstream
++    # is comparable between runs.
++    Z2, _ = gae_embed(G, dim=16, hidden=32, epochs=120, seed=0, verbose=False)
++    if not np.allclose(Z, Z2, atol=1e-5):
++        print(f"  [FAIL] not reproducible at a fixed seed "
++              f"(max delta {np.abs(Z - Z2).max():.2e})", file=sys.stderr)
++        ok = False
++    else:
++        print("  [PASS] reproducible at a fixed seed", file=sys.stderr)
++
++    print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
++    return ok
++
++
++# --------------------------------------------------------------------------------------
++# CLI
++# --------------------------------------------------------------------------------------
++
++def main(argv=None) -> int:
++    ap = argparse.ArgumentParser(description="Adv-GD Phase 1: GAE node embeddings.")
++    ap.add_argument("--graph", type=str, help="Edge list to embed.")
++    ap.add_argument("--dim", type=int, default=32, help="Embedding dimension D.")
++    ap.add_argument("--hidden", type=int, default=64, help="GCN hidden width.")
++    ap.add_argument("--epochs", type=int, default=200)
++    ap.add_argument("--lr", type=float, default=0.01)
++    ap.add_argument("--seed", type=int, default=0)
++    ap.add_argument("--chunk", type=int, default=DEFAULT_CHUNK)
++    ap.add_argument("--device", type=str, default=None, help="cuda or cpu.")
++    ap.add_argument("--out", type=str, default=None, help="Write Z and ids to this .npz.")
++    ap.add_argument("--self-test", action="store_true")
++    args = ap.parse_args(argv)
++
++    if args.self_test:
++        return 0 if self_test() else 1
++    if not args.graph:
++        ap.error("--graph is required unless --self-test is given")
++
++    G = nx.read_edgelist(args.graph, nodetype=str)
++    print(f"loaded {G.number_of_nodes():,} nodes / {G.number_of_edges():,} edges",
++          file=sys.stderr)
++
++    Z, nodes = gae_embed(G, dim=args.dim, hidden=args.hidden, epochs=args.epochs,
++                         lr=args.lr, seed=args.seed, chunk=args.chunk,
++                         device=args.device)
++    print(f"reconstruction AUC {reconstruction_auc(G, Z, nodes):.4f}", file=sys.stderr)
++
++    if args.out:
++        out = Path(args.out)
++        out.parent.mkdir(parents=True, exist_ok=True)
++        np.savez_compressed(out, Z=Z, nodes=np.array(nodes, dtype=object))
++        print(f"wrote {out}", file=sys.stderr)
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/src/adv_gd/propagation.py b/src/adv_gd/propagation.py
+new file mode 100644
+index 0000000..90a6580
+--- /dev/null
++++ b/src/adv_gd/propagation.py
+@@ -0,0 +1,266 @@
++"""Phase 3 of Adv-GD: propagating de-anonymization.
++
++Takes the anchor pairs from Phase 2 as a starting mapping and spreads it across
++the graph: an unmapped node is matched to whichever node in the other graph
++shares the most already-matched neighbours, provided the best candidate stands
++out clearly enough from the runner-up.
++
++Paper provenance (docs/SeedFree_Li.etal.pdf, section 3.2, p.748):
++    Algorithm 1 GetScores                  -- implemented in `get_scores`
++    Algorithm 2 Propagating De-anonymization -- implemented in `propagate`
++    Eccen(S) = (S_p - S_q) / sigma(S)      -- `eccentricity`
++    theta = 0.5 for all datasets            (section 4.2, p.750)
++
++This is the most faithfully reproducible part of Adv-GD: unlike Phases 1 and 2,
++both algorithms are given as line-by-line pseudocode, and the one free
++parameter has a stated value.
++
++One ambiguity remains, and it is not minor. S is defined as "a zero vector of
++size |G2|" -- roughly 27,000 entries for HepTh, almost all of which stay zero --
++and sigma is "the standard of the vector". Taken literally, sigma is computed
++over all those zeros, so it is tiny, Eccen is correspondingly huge, and theta
++= 0.5 rejects nearly nothing. Computing sigma over the non-zero scores only
++makes the threshold actually bind. The literal reading is the default here,
++because it is what the paper says; `--eccen-support nonzero` selects the other.
++
++Library use:
++    from propagation import propagate
++    mapping = propagate(Ga, Gu, anchors, candidates, theta=0.5)
++"""
++
++from __future__ import annotations
++
++import argparse
++import math
++import sys
++import time
++
++import networkx as nx
++
++
++def eccentricity(scores: dict, universe: int, support: str = "all") -> float:
++    """(largest - second largest) / standard deviation of the score vector.
++
++    `scores` holds only the non-zero entries; `universe` is the full length the
++    paper's zero vector would have. With support="all" the zeros are included
++    in the standard deviation, which is the literal reading of the paper.
++    """
++    if not scores:
++        return 0.0
++    vals = sorted(scores.values(), reverse=True)
++    top = vals[0]
++    second = vals[1] if len(vals) > 1 else 0.0
++
++    total = sum(vals)
++    total_sq = sum(v * v for v in vals)
++    n = universe if support == "all" else len(vals)
++    if n <= 1:
++        return 0.0
++
++    mean = total / n
++    var = total_sq / n - mean * mean
++    if var <= 0:
++        return 0.0
++    return (top - second) / math.sqrt(var)
++
++
++def get_scores(G1: nx.Graph, G2: nx.Graph, v1: str, phi: dict,
++               mapped_targets: set) -> dict:
++    """Algorithm 1: score every candidate in G2 against node v1 of G1.
++
++    For each already-matched neighbour of v1, walk the neighbours of that
++    neighbour's image in G2 and credit each unmatched one. The credit is
++    1/sqrt(degree) so that high-degree nodes, which neighbour everything, do
++    not win by default (paper section 3.2).
++    """
++    scores: dict[str, float] = {}
++    for nb in G1[v1]:
++        img = phi.get(nb)
++        if img is None or img not in G2:
++            continue
++        for cand in G2[img]:
++            if cand in mapped_targets:
++                continue
++            deg = G2.degree(cand)
++            if deg:
++                scores[cand] = scores.get(cand, 0.0) + 1.0 / math.sqrt(deg)
++    return scores
++
++
++def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
++              theta: float = 0.5, support: str = "all",
++              max_sweeps: int = 100, verbose: bool = True) -> dict:
++    """Algorithm 2: two-stage propagation from the Phase 2 anchors.
++
++    Stage one (flag = 0) only accepts a match that the Phase 2 candidate set
++    already proposed, which keeps early mistakes from compounding. Once that
++    stalls, stage two (flag = 1) drops the restriction and lets propagation run
++    on topology alone.
++
++    Returns the mapping from G^a ids to G^u ids, anchors included.
++    """
++    # Drop any anchor naming a node that is not in both graphs, then build the
++    # two directions from the surviving pairs. Deriving psi from the filtered
++    # pair list rather than by inverting phi keeps the key spaces straight:
++    # phi is keyed by G^a ids, psi by G^u ids, and the reverse-direction
++    # get_scores below is silently useless if they are ever the same.
++    kept = [(a, u) for a, u in anchors if a in Ga and u in Gu]
++    phi = {a: u for a, u in kept}                  # G^a -> G^u
++    psi = {u: a for a, u in kept}                  # G^u -> G^a
++
++    n_a, n_u = Gu.number_of_nodes(), Ga.number_of_nodes()
++    flag = 0
++    t0 = time.time()
++
++    for sweep in range(1, max_sweeps + 1):
++        added = 0
++        for v_a in list(Ga.nodes()):
++            if v_a in phi:
++                continue
++
++            s1 = get_scores(Ga, Gu, v_a, phi, set(psi))
++            if eccentricity(s1, n_a, support) < theta:
++                continue
++            v_u = max(s1.items(), key=lambda kv: kv[1])[0]
++
++            # Reverse check: v_u must pick v_a back, which is what stops two
++            # G^a nodes from both claiming the same G^u node.
++            s2 = get_scores(Gu, Ga, v_u, psi, set(phi))
++            if eccentricity(s2, n_u, support) < theta:
++                continue
++            v_back = max(s2.items(), key=lambda kv: kv[1])[0]
++            if v_back != v_a:
++                continue
++
++            # Stage one additionally requires the match to be in the candidate
++            # set built by Phase 2 (Algorithm 2, line 11).
++            if flag == 0 and v_u not in candidates.get(v_a, ()):
++                continue
++
++            phi[v_a] = v_u
++            psi[v_u] = v_a
++            added += 1
++
++        if verbose:
++            print(f"  sweep {sweep:3d}  stage {flag}  +{added:,} "
++                  f"-> {len(phi):,} mapped  {time.time() - t0:.0f}s",
++                  file=sys.stderr)
++
++        if added == 0:
++            if flag == 0:
++                flag = 1            # candidate restriction lifted
++                continue
++            break
++
++    return phi
++
++
++def evaluate(mapping: dict, truth: dict, matchable: int | None = None) -> dict:
++    """The paper's two metrics (section 4.3, p.750-751).
++
++    chi   -- successfully de-anonymized nodes over |V^a intersect V^u|, the
++             number that could in principle be recovered.
++    gamma -- successfully de-anonymized nodes over the number actually mapped,
++             i.e. the precision of the output.
++
++    These differ sharply when a method maps only a confident subset, so a
++    figure quoted without saying which one it is cannot be compared.
++    """
++    correct = sum(1 for a, u in mapping.items() if truth.get(a) == u)
++    denom = matchable if matchable else len(truth)
++    return {
++        "mapped": len(mapping),
++        "correct": correct,
++        "chi": correct / denom if denom else float("nan"),
++        "gamma": correct / len(mapping) if mapping else float("nan"),
++        "matchable": denom,
++    }
++
++
++# --------------------------------------------------------------------------------------
++# Checks
++# --------------------------------------------------------------------------------------
++
++def self_test(verbose: bool = True) -> bool:
++    """Propagate on a graph paired with itself, seeded with perfect anchors.
++
++    With two identical graphs and correct seeds, propagation should recover
++    almost everything. If it cannot solve this, it cannot solve anything, and
++    a failure here points at the algorithm rather than at noise.
++    """
++    ok = True
++    G = nx.gnm_random_graph(800, 6000, seed=11)
++    Ga = nx.relabel_nodes(G, {n: f"a{n}" for n in G.nodes()})
++
++    # G^u carries *different* ids for the same nodes. This matters: with one
++    # graph paired against itself the G^a and G^u id spaces coincide, and a
++    # mapping keyed by the wrong one still resolves, so a phi/psi mix-up passes
++    # unnoticed. Disjoint ids make the two directions distinguishable, which is
++    # what caught exactly that bug in `propagate`.
++    Gu = nx.relabel_nodes(G, {n: f"u{n}" for n in G.nodes()})
++    truth = {f"a{n}": f"u{n}" for n in G.nodes()}
++
++    nodes = sorted(G.nodes(), key=lambda n: -G.degree(n))
++    anchors = [(f"a{n}", f"u{n}") for n in nodes[:50]]
++    candidates = {f"a{n}": [f"u{n}"] for n in G.nodes()}
++
++    mapping = propagate(Ga, Gu, anchors, candidates, theta=0.5, verbose=verbose)
++    res = evaluate(mapping, truth)
++
++    if res["correct"] < 0.90 * Ga.number_of_nodes():
++        print(f"  [FAIL] identical graphs: only {res['correct']}/"
++              f"{Ga.number_of_nodes()} recovered", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] identical graphs: {res['correct']}/"
++              f"{Ga.number_of_nodes()} recovered (chi {res['chi']:.4f})",
++              file=sys.stderr)
++
++    if res["gamma"] < 0.99:
++        print(f"  [FAIL] precision {res['gamma']:.4f} on identical graphs",
++              file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] precision {res['gamma']:.4f}", file=sys.stderr)
++
++    # Wrong seeds must not produce a correct mapping -- this catches a scoring
++    # bug that ignores the anchors and matches on node id.
++    bad_anchors = [(f"a{a}", f"u{b}")
++                   for a, b in zip(nodes[:50], nodes[50:100])]
++    bad = propagate(Ga, Gu, bad_anchors, candidates, theta=0.5, verbose=False)
++    bad_res = evaluate(bad, truth)
++    if bad_res["correct"] > 0.20 * Ga.number_of_nodes():
++        print(f"  [FAIL] wrong seeds still recovered {bad_res['correct']} nodes "
++              f"-- ground truth is leaking", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] wrong seeds recover little ({bad_res['correct']} nodes)",
++              file=sys.stderr)
++
++    # Eccentricity arithmetic, both readings.
++    s = {"a": 3.0, "b": 1.0}
++    e_all = eccentricity(s, universe=100, support="all")
++    e_nz = eccentricity(s, universe=100, support="nonzero")
++    if not (e_all > e_nz > 0):
++        print(f"  [FAIL] eccentricity readings inconsistent: all={e_all:.3f} "
++              f"nonzero={e_nz:.3f}", file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] eccentricity: all-entries {e_all:.2f} > non-zero "
++              f"{e_nz:.2f}, as expected", file=sys.stderr)
++
++    print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
++    return ok
++
++
++def main(argv=None) -> int:
++    ap = argparse.ArgumentParser(description="Adv-GD Phase 3: propagation.")
++    ap.add_argument("--self-test", action="store_true")
++    args = ap.parse_args(argv)
++    if args.self_test:
++        return 0 if self_test() else 1
++    ap.error("nothing to do; Phase 3 runs from the driver, or use --self-test")
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/src/adv_gd/provenance.py b/src/adv_gd/provenance.py
+new file mode 100644
+index 0000000..955c77b
+--- /dev/null
++++ b/src/adv_gd/provenance.py
+@@ -0,0 +1,520 @@
++"""Run records: what code, what input, what environment, what came out.
++
++Implements the policy in `docs/experiment_logging_policy.md`. Read that first --
++it says why records are tracked in git while the bytes they describe are not,
++and what a record does and does not entitle you to claim.
++
++The short version. A run builds a `RunRecord` before it does any work, because
++everything identifying it is known up front; adds its inputs and resolved
++configuration; and calls `finish` in a `finally`, so that failed and killed runs
++leave records too. `finish` writes an immutable directory under
++`results/adv_gd/<run_id>/` and appends one line to `results/adv_gd/index.jsonl`.
++
++Nothing here is Adv-GD specific; the perturbation generator can use it as-is.
++"""
++
++from __future__ import annotations
++
++import contextlib
++import functools
++import hashlib
++import io
++import json
++import os
++import platform
++import subprocess
++import sys
++import time
++from datetime import datetime, timezone
++from pathlib import Path
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++ARCHIVE = REPO_ROOT / "results" / "adv_gd"
++LEDGER = "index.jsonl"
++
++# Fields a record is not allowed to omit. The first three identify the run; the
++# last two exist so that a number can never be quoted without the sample size
++# and selection rule it came from -- the policy's one mandatory group.
++REQUIRED = ("seed", "status", "note")
++REQUIRED_IF_RESTARTS = ("n_restarts", "selection", "selected_seed")
++
++
++def _run_git(*args: str, ok: tuple[int, ...] = (0,)) -> str:
++    """Return git stdout, or '' if git is unavailable or the call fails.
++
++    `ok` exists because `git diff --no-index` follows diff(1) and exits **1**
++    when the files differ, which is the successful case when inlining an
++    untracked file. Treating that as a failure silently produced an empty patch
++    while reporting nothing wrong.
++    """
++    try:
++        out = subprocess.run(("git", "-C", str(REPO_ROOT)) + args,
++                             capture_output=True, text=True, timeout=60)
++    except (OSError, subprocess.SubprocessError):
++        return ""
++    return out.stdout if out.returncode in ok else ""
++
++
++def sha256_text(text: str) -> str:
++    return hashlib.sha256(text.encode("utf-8", "replace")).hexdigest()
++
++
++def sha256_file(path: Path, chunk: int = 1 << 20) -> str:
++    h = hashlib.sha256()
++    with open(path, "rb") as fh:
++        while block := fh.read(chunk):
++            h.update(block)
++    return h.hexdigest()
++
++
++# Untracked content that is archived inline rather than merely hashed. The
++# source and the write-ups are what a reader needs to reconstruct a run; data
++# and generated bytes are not, and inlining them would put a dataset in the
++# patch. Everything excluded is still listed with its digest.
++SOURCE_DIRS = ("src/", "docs/", "scripts/")
++SOURCE_SUFFIXES = (".py", ".md", ".txt", ".json", ".toml", ".cfg", ".yml", ".yaml", ".sh")
++INLINE_MAX_BYTES = 256 * 1024
++
++
++def describe_file(path: Path, root: Path | None = None) -> dict:
++    """Path, size and digest for one artifact, or a note that it is missing."""
++    path = Path(path)
++    rel = str(path.relative_to(root)) if root and path.is_relative_to(root) else str(path)
++    if not path.exists():
++        return {"path": rel, "missing": True}
++    return {"path": rel, "bytes": path.stat().st_size, "sha256": sha256_file(path)}
++
++
++def _summarize_tree(path: Path) -> dict:
++    """Describe a directory by its listing instead of its contents.
++
++    Hashing a directory file by file is not viable: the untracked cit-HepTh
++    download is 119 MB across ~29,000 files, so walking it would stall every run
++    and put 29,000 entries in every record. A digest over (relative path, size)
++    pairs detects a changed download at constant cost. It will not notice an
++    edit that preserves a file's length, which is an accepted limit -- source,
++    where that matters, is inlined in full instead.
++    """
++    files = sorted(f for f in path.rglob("*") if f.is_file())
++    listing = chr(10).join(
++        f"{f.relative_to(path).as_posix()} {f.stat().st_size}" for f in files)
++    return {
++        "path": path.relative_to(REPO_ROOT).as_posix(),
++        "tree": True,
++        "files": len(files),
++        "bytes": sum(f.stat().st_size for f in files),
++        "listing_sha256": sha256_text(listing),
++    }
++
++
++def _untracked_source(entries: list[str]) -> tuple[list[str], list[dict]]:
++    """Split untracked entries into source files to inline and the rest.
++
++    `git status --porcelain` collapses a wholly untracked directory to one line
++    ending in `/`, so an entire new module appears as the single string
++    "src/adv_gd/" and none of its contents. Source directories are therefore
++    expanded file by file; anything else is summarized by `_summarize_tree`.
++    """
++    source, other = [], []
++    for entry in entries:
++        path = REPO_ROOT / entry
++        in_source = entry.startswith(SOURCE_DIRS)
++        if path.is_dir():
++            if in_source:
++                source += [f.relative_to(REPO_ROOT).as_posix()
++                           for f in sorted(path.rglob("*")) if f.is_file()]
++            else:
++                other.append(_summarize_tree(path))
++        elif in_source:
++            source.append(entry)
++        else:
++            other.append(describe_file(path, REPO_ROOT))
++    keep = [f for f in source
++            if f.endswith(SOURCE_SUFFIXES)
++            and (REPO_ROOT / f).stat().st_size <= INLINE_MAX_BYTES]
++    other += [describe_file(REPO_ROOT / f, REPO_ROOT)
++              for f in source if f not in keep]
++    return keep, other
++
++
++@functools.lru_cache(maxsize=1)
++def git_state() -> tuple[dict, str]:
++    """Describe the working tree, and return the uncommitted diff alongside it.
++
++    A commit hash alone misidentifies a dirty tree, which is the normal state
++    here -- the whole adv_gd module is uncommitted, so `head` by itself points
++    at a tree containing none of the code that produced any of these runs. The
++    diff is returned so the caller can archive it: `head` plus that patch
++    reconstructs the exact source.
++
++    Cached for the process: a run must not record two different code states for
++    itself, and the walk is not free.
++
++    Untracked source files are inlined into the patch; untracked data and
++    generated artifacts are listed with digests instead. That boundary is a
++    deliberate size tradeoff -- the dataset under `data/` is ~100 MB and a
++    record is not a backup -- and it means a record whose untracked inputs were
++    data files cannot regenerate them, only detect that they changed.
++    """
++    head = _run_git("rev-parse", "HEAD").strip()
++    branch = _run_git("rev-parse", "--abbrev-ref", "HEAD").strip()
++    porcelain = [l for l in _run_git("status", "--porcelain").splitlines() if len(l) > 3]
++    dirty = sorted(l[3:].strip().strip('"') for l in porcelain)
++
++    diff = _run_git("diff", "HEAD")
++    to_inline, hashed = _untracked_source(
++        [l[3:].strip().strip('"') for l in porcelain if l.startswith("??")])
++    inlined = []
++    for rel in to_inline:
++        # --no-index against an empty file renders the whole file as an
++        # addition, which is how an untracked file becomes part of a patch.
++        # It exits 1 on difference, like diff(1), so that code is accepted.
++        extra = _run_git("diff", "--no-index", "--", "/dev/null", rel,
++                         ok=(0, 1))
++        if extra:
++            diff += extra
++            inlined.append(rel)
++        else:
++            hashed.append(describe_file(REPO_ROOT / rel, REPO_ROOT))
++
++    state = {
++        "head": head[:12],
++        "head_full": head,
++        "branch": branch,
++        "dirty": bool(dirty),
++        "dirty_paths": dirty,
++        "untracked_inlined": sorted(inlined),
++        "untracked_hashed": hashed,
++        "diff_sha256": sha256_text(diff) if diff else None,
++        "diff_bytes": len(diff.encode("utf-8", "replace")) if diff else 0,
++    }
++    return state, diff
++
++
++def environment() -> dict:
++    """Identify the machine and the library builds, not just version numbers.
++
++    Phase 1 trains on CUDA, so a fixed seed is bit-reproducible only against the
++    same device and torch build. Recording the build is what makes a later
++    mismatch detectable; it cannot make the run portable.
++    """
++    pkgs = {}
++    for name in ("torch", "numpy", "networkx", "scipy", "sklearn"):
++        try:
++            pkgs[name] = __import__(name).__version__
++        except Exception:
++            pkgs[name] = None
++
++    cuda = {"available": False}
++    try:
++        import torch
++        cuda["available"] = bool(torch.cuda.is_available())
++        if cuda["available"]:
++            cuda["device"] = torch.cuda.get_device_name(0)
++            cuda["capability"] = ".".join(map(str, torch.cuda.get_device_capability(0)))
++            cuda["version"] = torch.version.cuda
++    except Exception:
++        pass
++
++    return {
++        "python": sys.version.split()[0],
++        "platform": platform.platform(),
++        "host": platform.node(),
++        "packages": pkgs,
++        "cuda": cuda,
++        # The inherited baseline is hash-order sensitive and this
++        # reimplementation was measured not to be; that claim needs the value
++        # it was measured under.
++        "hashseed": os.environ.get("PYTHONHASHSEED", "unset"),
++    }
++
++
++class _Tee:
++    """Write to the real stream and to a buffer at the same time."""
++
++    def __init__(self, stream, buffer):
++        self._stream, self._buffer = stream, buffer
++
++    def write(self, text):
++        self._buffer.write(text)
++        return self._stream.write(text)
++
++    def flush(self):
++        self._stream.flush()
++
++    def __getattr__(self, name):
++        return getattr(self._stream, name)
++
++
++@contextlib.contextmanager
++def capture_stderr():
++    """Tee stderr into a buffer while leaving it visible on the console.
++
++    The phase modules resolve `sys.stderr` at call time, so replacing it here
++    captures their progress output too. A tee rather than a redirect because a
++    run takes minutes and watching it is the point; archiving the text is a
++    convenience for reading afterwards, never the record -- see rule 5 of the
++    policy on why logs are not evidence here.
++    """
++    buf = io.StringIO()
++    saved = sys.stderr
++    sys.stderr = _Tee(saved, buf)
++    try:
++        yield buf
++    finally:
++        sys.stderr = saved
++
++
++class RunRecord:
++    """One run's record. Build it before the work, finish it in a `finally`."""
++
++    def __init__(self, kind: str, pair: str, status: str, note: str = "",
++                 archive: Path = ARCHIVE, argv: list[str] | None = None,
++                 supersedes: str | None = None):
++        if status not in ("exploratory", "confirmatory"):
++            raise ValueError("status must be 'exploratory' or 'confirmatory'; "
++                             "set it before the run, not after")
++        self.archive = Path(archive)
++        self.git, self._diff = git_state()
++        self.t0 = time.time()
++        self.started = datetime.now(timezone.utc)
++        self.data: dict = {
++            "kind": kind,
++            "pair": pair,
++            "status": status,
++            "note": note,
++            "supersedes": supersedes,
++            "started_utc": self.started.isoformat(timespec="seconds"),
++            "argv": argv if argv is not None else sys.argv,
++            "git": self.git,
++            "env": environment(),
++            "inputs": [],
++            "outputs": [],
++            "metrics": {},
++        }
++        self.run_id = ""      # assigned by seal_id once the config is known
++        self._stderr: Path | None = None
++
++    # -- building -------------------------------------------------------------
++
++    def set(self, **fields) -> "RunRecord":
++        self.data.update(fields)
++        return self
++
++    def metric(self, **fields) -> "RunRecord":
++        self.data["metrics"].update(
++            {k: v for k, v in fields.items() if v is not None})
++        return self
++
++    def add_inputs(self, *paths: Path, root: Path | None = None) -> "RunRecord":
++        for p in paths:
++            self.data["inputs"].append(describe_file(p, root or REPO_ROOT))
++        return self
++
++    def add_outputs(self, *paths: Path, root: Path | None = None) -> "RunRecord":
++        for p in paths:
++            self.data["outputs"].append(describe_file(p, root or REPO_ROOT))
++        return self
++
++    def seal_id(self) -> str:
++        """Fix the run id from the code state plus the resolved configuration.
++
++        Called once the configuration is in the record and before any artifact
++        is written, so output filenames can carry the id. Two runs differing in
++        any recorded input differ in id; a genuine repeat of one configuration
++        shows the same trailing hash at a different timestamp.
++        """
++        if self.run_id:
++            return self.run_id
++        keyed = {k: self.data.get(k) for k in
++                 ("kind", "pair", "seed", "params", "config", "gae_epochs",
++                  "theta", "eccen_support", "phases", "n_restarts")}
++        keyed["code"] = (self.git["head_full"], self.git["diff_sha256"])
++        keyed["inputs"] = [i.get("sha256") for i in self.data["inputs"]]
++        digest = sha256_text(json.dumps(keyed, sort_keys=True, default=str))[:8]
++        stamp = self.started.strftime("%Y%m%dT%H%MZ")
++        self.run_id = f"{stamp}_{self.data['pair']}_{digest}"
++        self.data["run_id"] = self.run_id
++        self.data["config_sha256"] = digest
++        return self.run_id
++
++    @property
++    def dir(self) -> Path:
++        return self.archive / self.seal_id()
++
++    # -- finishing ------------------------------------------------------------
++
++    def _validate(self) -> list[str]:
++        missing = [k for k in REQUIRED if self.data.get(k) is None]
++        if self.data.get("restarts"):
++            missing += [k for k in REQUIRED_IF_RESTARTS
++                        if self.data.get(k) is None]
++        return missing
++
++    def finish(self, status_exit: str = "ok", error: str | None = None,
++               stderr_text: str | None = None, verbose: bool = True) -> Path:
++        """Write the record directory and append the ledger line.
++
++        Always called, including for a failure or a kill: a run that died in
++        Phase 3 is data about where it got to. Validation problems are reported
++        and recorded rather than raised, because refusing to write the record of
++        a run that has already consumed the compute is the one outcome this
++        whole mechanism exists to prevent.
++        """
++        self.data["status_exit"] = status_exit
++        if error:
++            self.data["error"] = error
++        self.data["seconds"] = round(time.time() - self.t0, 1)
++        self.data["finished_utc"] = datetime.now(timezone.utc).isoformat(
++            timespec="seconds")
++        missing = self._validate()
++        if missing:
++            self.data["record_incomplete"] = missing
++            print(f"  record is missing required fields: {missing}",
++                  file=sys.stderr)
++
++        out = self.dir
++        out.mkdir(parents=True, exist_ok=True)
++        if self._diff:
++            (out / "diff.patch").write_text(self._diff, encoding="utf-8",
++                                            errors="replace")
++        if stderr_text:
++            (out / "stderr.log").write_text(stderr_text, encoding="utf-8",
++                                            errors="replace")
++
++        record = out / "record.json"
++        if record.exists():
++            # Same configuration, same minute. Do not overwrite a record.
++            record = out / f"record.{int(time.time())}.json"
++            self.data["note"] = (self.data["note"] +
++                                 " [repeat within one minute of an identical "
++                                 "configuration; earlier record kept]").strip()
++        record.write_text(json.dumps(self.data, indent=2, default=str))
++
++        self.archive.mkdir(parents=True, exist_ok=True)
++        with open(self.archive / LEDGER, "a", encoding="utf-8") as fh:
++            fh.write(json.dumps(self.ledger_line(), default=str) + "\n")
++
++        if verbose:
++            print(f"  record {self.run_id}", file=sys.stderr)
++        return record
++
++    def ledger_line(self) -> dict:
++        """The one-line summary that makes `index.jsonl` greppable."""
++        m = self.data["metrics"]
++        return {
++            "run_id": self.run_id,
++            "started_utc": self.data["started_utc"],
++            "kind": self.data["kind"],
++            "pair": self.data["pair"],
++            "status": self.data["status"],
++            "status_exit": self.data["status_exit"],
++            "seed": self.data.get("seed"),
++            "beta": self.data.get("beta"),
++            "n_restarts": self.data.get("n_restarts"),
++            "anchor_precision": m.get("anchor_precision"),
++            "chi": m.get("chi"),
++            "gamma": m.get("gamma"),
++            "seconds": self.data["seconds"],
++            "git": self.git["head"] + ("+dirty" if self.git["dirty"] else ""),
++            "note": self.data["note"],
++        }
++
++
++def read_ledger(archive: Path = ARCHIVE) -> list[dict]:
++    """Every ledger line, oldest first. A study is a filter over this."""
++    path = Path(archive) / LEDGER
++    if not path.exists():
++        return []
++    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
++
++
++def _self_test() -> int:
++    import tempfile
++
++    git, diff = git_state()
++    assert len(git["head_full"]) == 40, "no git head"
++    assert isinstance(git["dirty"], bool)
++    env = environment()
++    assert env["packages"]["torch"], "torch version not captured"
++    if not _run_git("ls-files", "src/adv_gd/provenance.py").strip():
++        inlined_self = [f for f in git["untracked_inlined"]
++                        if f.endswith("provenance.py")]
++        assert inlined_self, (
++            "this file is untracked but was not inlined into the patch")
++        assert "def git_state" in diff, "the patch does not contain this module"
++    print(f"  git {git['head']} dirty={git['dirty']} "
++          f"({len(git['dirty_paths'])} paths, {len(git['untracked_inlined'])} "
++          f"untracked inlined, {len(git['untracked_hashed'])} hashed, "
++          f"diff {git['diff_bytes']:,}B)")
++    print(f"  env {env['python']} torch {env['packages']['torch']} "
++          f"cuda={env['cuda'].get('device', False)}")
++
++    with tempfile.TemporaryDirectory() as td:
++        td = Path(td)
++        arch = td / "arch"
++        probe = td / "probe.txt"
++        probe.write_text("x" * 100)
++        d = describe_file(probe, td)
++        assert d["bytes"] == 100 and len(d["sha256"]) == 64
++
++        def build(seed=0, note="t"):
++            r = RunRecord("selftest", "pair_x", "exploratory", note, archive=arch,
++                          argv=["selftest"])
++            r.set(seed=seed, params={"dim": 32}, config={"csls_k": 10},
++                  restarts=[0.9, 0.8], n_restarts=2, selection="mean_match_cosine",
++                  selected_seed=0)
++            r.add_inputs(probe, root=td)
++            return r
++
++        a, b, c = build(), build(), build(seed=1)
++        assert a.seal_id().split("_")[-1] == b.seal_id().split("_")[-1], \
++            "identical configurations must share a digest"
++        assert a.seal_id().split("_")[-1] != c.seal_id().split("_")[-1], \
++            "a changed seed must change the digest"
++        assert a.seal_id() == a.seal_id(), "id must be stable once sealed"
++
++        a.metric(chi=0.913).add_outputs(probe, root=td)
++        rec = a.finish(stderr_text="log", verbose=False)
++        on_disk = json.loads(rec.read_text())
++        assert on_disk["run_id"] == a.run_id
++        assert on_disk["metrics"]["chi"] == 0.913
++        assert "record_incomplete" not in on_disk, on_disk.get("record_incomplete")
++        assert (a.dir / "stderr.log").exists()
++        assert (a.dir / "diff.patch").exists() == bool(diff)
++
++        # A second run in the same directory must not clobber the first. Pin the
++        # start time rather than relying on the clock staying inside one minute.
++        b.started = a.started
++        b.run_id = ""
++        b.metric(chi=0.5).finish(verbose=False)
++        kept = sorted(p.name for p in a.dir.glob("record*.json"))
++        assert len(kept) == 2, kept
++
++        # A missing mandatory field is reported, not silently accepted.
++        bad = RunRecord("selftest", "pair_x", "exploratory", "n", archive=arch,
++                        argv=["x"])
++        bad.set(seed=0, restarts=[0.9])
++        bad.finish(verbose=False)
++        assert "n_restarts" in json.loads(
++            (bad.dir / "record.json").read_text())["record_incomplete"]
++
++        with capture_stderr() as buf:
++            print("visible and captured", file=sys.stderr)
++        assert "visible and captured" in buf.getvalue()
++        assert not isinstance(sys.stderr, _Tee), "stderr not restored"
++
++        led = read_ledger(arch)
++        assert len(led) == 3, led
++        assert led[0]["chi"] == 0.913 and led[0]["run_id"] == a.run_id
++        print(f"  ledger {len(led)} lines, records immutable, validation fires")
++
++    print("provenance self-test passed")
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(_self_test() if "--self-test" in sys.argv else
++                     (print(json.dumps(
++                         {"git": git_state()[0], "env": environment()}, indent=2))
++                      or 0))

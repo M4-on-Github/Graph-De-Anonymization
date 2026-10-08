@@ -1,0 +1,262 @@
+{
+  "kind": "adv_gd",
+  "pair": "cit-HepTh_b10_s0",
+  "status": "exploratory",
+  "note": "logging machinery check of the phase 3 artifact path, not a result",
+  "supersedes": null,
+  "started_utc": "2026-10-08T02:48:29+00:00",
+  "argv": [
+    "src/adv_gd/adv_gd.py",
+    "--pair",
+    "runs/cit-HepTh_b10_s0",
+    "--dataset",
+    "hepth",
+    "--phases",
+    "123",
+    "--n-restarts",
+    "1",
+    "--adv-steps",
+    "20",
+    "--status",
+    "exploratory",
+    "--note",
+    "logging machinery check of the phase 3 artifact path, not a result"
+  ],
+  "git": {
+    "head": "26e58ba39f30",
+    "head_full": "26e58ba39f30d9a172f1b891c16acce95f4f74b4",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      ".gitignore",
+      "data/README.md",
+      "data/cit-HepTH/",
+      "docs/experiment_logging_policy.md",
+      "experiment_records",
+      "results/adv_gd/",
+      "src/adv_gd/",
+      "src/beta_noise_generator/perturbation.py",
+      "src/beta_noise_generator/perturbation_protocol.md"
+    ],
+    "untracked_inlined": [
+      "docs/experiment_logging_policy.md",
+      "src/adv_gd/__init__.py",
+      "src/adv_gd/adv_gd.py",
+      "src/adv_gd/adv_gd_protocol.md",
+      "src/adv_gd/alignment.py",
+      "src/adv_gd/embedding.py",
+      "src/adv_gd/propagation.py",
+      "src/adv_gd/provenance.py"
+    ],
+    "untracked_hashed": [
+      {
+        "path": "data/cit-HepTH",
+        "tree": true,
+        "files": 29557,
+        "bytes": 38857917,
+        "listing_sha256": "c4b7a5ecf12993cf7d5d0f601d6ac5c030cbea097957754c84d5c48814e27aff"
+      },
+      {
+        "path": "experiment_records",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "results/adv_gd",
+        "tree": true,
+        "files": 9,
+        "bytes": 279333,
+        "listing_sha256": "929f49f7a95a028c85c26ab5e8b15ddcd4d5e3be17fb09bff77a997cf178596a"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/adv_gd.cpython-313.pyc",
+        "bytes": 11825,
+        "sha256": "dffbc77ce566e9c84953ab8b973c07ce72e804c51b587ac3d2db3027ef8d7675"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/alignment.cpython-313.pyc",
+        "bytes": 28909,
+        "sha256": "c97ae2875209a0e31958c8307072497f7a7323461a236f6e566d19c59d75be8e"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/embedding.cpython-313.pyc",
+        "bytes": 19714,
+        "sha256": "329ac1f7cc9cd57db897bcfed88ea4e70098990fc710db55f2fcd338f1aa6d22"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/propagation.cpython-313.pyc",
+        "bytes": 13069,
+        "sha256": "046f4279f2666cf575249f5efa97960f6175f918856cc8816b86f439503e24bf"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/provenance.cpython-313.pyc",
+        "bytes": 32031,
+        "sha256": "ee787b1351871dc65cdc7699943691c01b1f2876f86573d8c0e1364a9ed0f8b2"
+      }
+    ],
+    "diff_sha256": "9df05d135c4440fe9096e636f4a9a6712c29c174e22938de786620fb8d184fd6",
+    "diff_bytes": 124586
+  },
+  "env": {
+    "python": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "host": "M4",
+    "packages": {
+      "torch": "2.12.0.dev20260329+cu128",
+      "numpy": "2.4.2",
+      "networkx": "3.6.1",
+      "scipy": "1.17.1",
+      "sklearn": "1.9.0"
+    },
+    "cuda": {
+      "available": true,
+      "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "capability": "12.0",
+      "version": "12.8"
+    },
+    "hashseed": "unset"
+  },
+  "inputs": [
+    {
+      "path": "runs/cit-HepTh_b10_s0/G1.edgelist",
+      "bytes": 3865090,
+      "sha256": "cfc462e1cbed220f13912bec4575aaa3c8764cb4399a443786aedc28c43d5c39"
+    },
+    {
+      "path": "runs/cit-HepTh_b10_s0/G2.edgelist",
+      "bytes": 3862084,
+      "sha256": "1305285d1b6a20e8782db726e3c11a844b7c1974140426a6cc5658f086e72dd1"
+    },
+    {
+      "path": "runs/cit-HepTh_b10_s0/mapping.txt",
+      "bytes": 334660,
+      "sha256": "1e1a78509733acc1cf9c1853efc535964787d319196a4755742d5599ccab0b4c"
+    },
+    {
+      "path": "runs/cit-HepTh_b10_s0/stats.json",
+      "bytes": 633,
+      "sha256": "7f1b985c15dae321f58503971be14c6ffa9a94e955a1eea68a3b86d6e39d3c2f"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/cit-HepTh_b10_s0/out_mapping_20261008T0248Z_cit-HepTh_b10_s0_0e618028.txt",
+      "bytes": 25190,
+      "sha256": "7f4eefb12316aefd65c9dba30d309cdad02e57e30cbfe04dd98e76e52f6b629e"
+    }
+  ],
+  "metrics": {
+    "auc_g1": 0.9957519075,
+    "auc_g2": 0.99547338,
+    "anchors_found": 233,
+    "anchors_correct": 0,
+    "anchor_precision": 0.0,
+    "paper_correct": 753,
+    "paper_found": 755,
+    "mapped": 2063,
+    "correct": 0,
+    "chi": 0.0,
+    "gamma": 0.0
+  },
+  "seed": 0,
+  "beta": 0.1,
+  "dataset": "hepth",
+  "phases": "123",
+  "params": {
+    "dim": 32,
+    "n_adv": 5000,
+    "n_anch": 1000,
+    "m": 10000
+  },
+  "config": {
+    "csls_k": 10,
+    "disc_hidden": 2048,
+    "disc_layers": 2,
+    "disc_dropout": 0.1,
+    "disc_input_dropout": 0.1,
+    "disc_leaky": 0.2,
+    "label_smooth": 0.2,
+    "adv_epochs": 5,
+    "adv_steps": 20,
+    "refine_rounds": 5,
+    "ortho_beta": 0.01,
+    "normalize": "none",
+    "n_restarts": 1
+  },
+  "gae_epochs": 600,
+  "theta": 0.5,
+  "eccen_support": "all",
+  "n_restarts": 1,
+  "selection": "mean_match_cosine",
+  "matchable_nodes": 27444,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 316950,
+    "edges_u": 316696,
+    "shared_edges": 284853,
+    "retention_a": 0.8996976879515165,
+    "retention_u": 0.8989766808124104,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.8085867976212442,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.0006609555201672018,
+    "jaccard": 0.8166821008449138,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27602,
+    "nodes_u": 27584,
+    "isolated_dropped_a": 167,
+    "isolated_dropped_u": 185,
+    "matchable_nodes": 27444
+  },
+  "pair_dir": "runs\\cit-HepTh_b10_s0",
+  "run_id": "20261008T0248Z_cit-HepTh_b10_s0_0e618028",
+  "config_sha256": "0e618028",
+  "selected_seed": 0,
+  "restarts": [
+    {
+      "seed": 0,
+      "anchors": 233,
+      "mean_cosine": 0.784339964389801
+    }
+  ],
+  "refine_history": [
+    {
+      "round": 0,
+      "anchors": 169,
+      "mean_cosine": 0.5860621929168701
+    },
+    {
+      "round": 1,
+      "anchors": 200,
+      "mean_cosine": 0.6954458355903625
+    },
+    {
+      "round": 2,
+      "anchors": 206,
+      "mean_cosine": 0.7401561737060547
+    },
+    {
+      "round": 3,
+      "anchors": 220,
+      "mean_cosine": 0.7706583142280579
+    },
+    {
+      "round": 4,
+      "anchors": 217,
+      "mean_cosine": 0.7795407772064209
+    },
+    {
+      "round": 5,
+      "anchors": 233,
+      "mean_cosine": 0.784339964389801
+    }
+  ],
+  "status_exit": "ok",
+  "seconds": 412.1,
+  "finished_utc": "2026-10-08T02:55:21+00:00"
+}

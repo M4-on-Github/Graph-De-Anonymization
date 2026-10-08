@@ -1,5 +1,8 @@
 # Datasets are never committed. The Google+ download unpacks as a directory
-# named gplus_combined.txt holding a 1.3 GB file of the same name.
+# named gplus_combined.txt holding a 1.3 GB file of the same name; the HepTh
+# one carries ~29,000 abstract files beside the edge list. Both are documented
+# in data/README.md with the URL to fetch them from.
+data/cit-HepTH/
 gplus_combined.txt/
 *.edgelist
 Graph Deanonymization2024/
@@ -8,10 +11,10 @@ Graph Deanonymization2024/
 # blanket *.edgelist rule above would silently drop anything added there.
 !data/**/*.edgelist
 
-# Parent graphs and the pairs cut from them. Regenerable from a parent plus a
-# seed, so only the generator is tracked -- see src/beta_noise_generator/.
-data/generated/
-data/raw/
+# Generated evaluation pairs and experiment outputs. Regenerable from a parent
+# graph plus a seed, so only the generator is tracked -- see
+# src/beta_noise_generator/. data/ is for source datasets only.
+runs/
 
 # Python
 __pycache__/
@@ -23,6 +26,18 @@ venv/
 # results/archive_2024/; everything else in results/ is regenerable.
 results/*
 !results/archive_2024/
+
+# Run records are the exception to that rule, and tracked on purpose. A record
+# describes a run in an environment that no longer exists -- a torch nightly, a
+# dirty tree, a GPU -- so unlike the bytes it describes it cannot be
+# regenerated. The bytes stay in runs/ with their digests held here. See
+# docs/experiment_logging_policy.md.
+!results/runs/
+
+# Large or binary artifacts do not belong in a record directory even so; the
+# record carries their SHA-256 instead.
+results/runs/**/*.npz
+results/runs/**/*.edgelist
 
 # Rendered proposal output
 docs/proposal.pdf

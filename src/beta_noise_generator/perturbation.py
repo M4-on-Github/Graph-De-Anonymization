@@ -7,7 +7,7 @@ directory for the paper provenance of every step and for what this protocol cann
 
 Library use:
     from perturbation import load_parent, make_pair
-    G = load_parent('data/raw/cit-HepTh.txt')
+    G = load_parent('data/cit-HepTH/cit-HepTh.txt')
     pair = make_pair(G, beta=0.1, seed=0)
 
 CLI:
@@ -29,6 +29,9 @@ import networkx as nx
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+sys.path.insert(0, str(REPO_ROOT / "src" / "adv_gd"))
+from provenance import RunRecord  # noqa: E402  (shared, not adv_gd specific)
 
 
 # --------------------------------------------------------------------------------------
@@ -366,6 +369,84 @@ def self_test(verbose: bool = True) -> bool:
 # CLI
 # --------------------------------------------------------------------------------------
 
+# Of the ~20 fields in stats.json, these are the ones that say whether the pair
+# came out as predicted. The rest stay in the record's embedded `pair_stats`.
+LEDGER_METRICS = ("overlap_ratio", "overlap_predicted", "overlap_sigma",
+                  "jaccard", "retention_a", "retention_u", "matchable_nodes",
+                  "edges_a", "edges_u", "parent_edges")
+
+
+def record_pair(parent: Path, name: str, beta: float, seed: int, args,
+                pair: dict, outdir: Path | None, passed: bool, msg: str,
+                status: str, note: str, overwrote: str | None = None) -> str:
+    """Write a run record for one generated pair.
+
+    Generation is recorded as `confirmatory` by default, which is not a pose:
+    each pair has a numeric prediction stated before it is made -- measured edge
+    overlap within tolerance of (1-beta)^2 -- and `check_overlap` tests exactly
+    that. A pair that fails the check is recorded too, with `verify_passed`
+    false and no outputs, because a protocol that misses its own prediction is
+    the most interesting thing the generator can tell us.
+    """
+    rec = RunRecord("perturbation", name, status, note)
+    rec.set(seed=seed, beta=beta, mode=args.mode,
+            permute=not args.no_permute, node_sample=args.node_sample,
+            compat_layout=args.compat_layout,
+            # No restarts and nothing selected: one draw, kept or rejected on a
+            # stated criterion. Spelled out rather than left absent so the
+            # record cannot be mistaken for one where a choice was made.
+            n_restarts=1, selection="none (single draw, accepted on "
+                                    "(1-beta)^2 overlap check)",
+            selected_seed=seed,
+            parent=str(parent), pair_stats=pair["stats"],
+            matchable_nodes=pair["stats"].get("matchable_nodes"),
+            verify_passed=passed, verify_message=msg,
+            overwrote_existing=overwrote,
+            out_dir=str(outdir) if outdir else None)
+    rec.add_inputs(parent)
+    rec.seal_id()
+    if outdir is not None:
+        rec.add_outputs(*(outdir / f for f in
+                          ("G1.edgelist", "G2.edgelist", "mapping.txt",
+                           "stats.json")))
+    rec.metric(**{k: pair["stats"].get(k) for k in LEDGER_METRICS})
+    rec.finish("ok" if passed else "verify_failed", verbose=False)
+    return rec.run_id
+
+
+def existing_pair_conflict(case_dir: Path, pair: dict,
+                           compat: bool) -> str | None:
+    """Report whether writing here would replace a *differently made* pair.
+
+    The directory name is `<stem>_b<NN>_s<seed>`, which encodes neither the
+    sampling fraction nor the mode, so two different configurations map to one
+    directory. A 5% node sample and a 0.4% one both wrote to
+    `cit-HepTh_b10_s0` during this feature's own testing, and the second
+    silently replaced the first -- leaving the first record's output digests
+    pointing at bytes that no longer existed.
+
+    Renaming the scheme would invalidate every path already referenced in the
+    protocol docs and the embedding caches, so the overwrite is allowed and
+    reported instead: loudly on stderr, and as `overwrote_existing` in the
+    record of the run that did it.
+    """
+    old = (case_dir / "labeled_dev" if compat else case_dir) / "stats.json"
+    if not old.exists():
+        return None
+    try:
+        prev = json.loads(old.read_text())
+    except (OSError, ValueError):
+        return "unreadable stats.json already present"
+    now = pair["stats"]
+    differs = {k: (prev.get(k), now.get(k)) for k in
+               ("beta", "seed", "mode", "permuted", "parent_nodes",
+                "parent_edges")
+               if prev.get(k) != now.get(k)}
+    if not differs:
+        return None
+    return "; ".join(f"{k}: {a} -> {b}" for k, (a, b) in differs.items())
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
         description="Generate (G^a, G^u, ground truth) pairs by the Li et al. "
@@ -386,7 +467,7 @@ def main(argv=None) -> int:
     ap.add_argument("--node-sample", type=float, default=None,
                     help="Keep this fraction of parent nodes (hash-based, reproducible). "
                          "Use on Google+ rather than loading all 30M lines.")
-    ap.add_argument("--out", type=str, default=str(REPO_ROOT / "data" / "generated"),
+    ap.add_argument("--out", type=str, default=str(REPO_ROOT / "runs"),
                     help="Directory to write the generated pairs into.")
     ap.add_argument("--compat-layout", action="store_true",
                     help="Nest each pair in a subdirectory literally named "
@@ -394,6 +475,15 @@ def main(argv=None) -> int:
                          "load. Point its --path at the parent of that directory.")
     ap.add_argument("--no-verify", action="store_true",
                     help="Write the pair even if the (1-beta)^2 check fails.")
+    ap.add_argument("--status", choices=("exploratory", "confirmatory"),
+                    default="confirmatory",
+                    help="Generation is confirmatory by default: every pair has "
+                         "a stated (1-beta)^2 prediction that is then checked.")
+    ap.add_argument("--note", type=str, default="",
+                    help="Why this pair was generated. Goes in the record.")
+    ap.add_argument("--no-record", action="store_true",
+                    help="Skip run records. For debugging only -- an "
+                         "unrecorded pair cannot be reported on.")
     ap.add_argument("--self-test", action="store_true",
                     help="Run the protocol checks on a synthetic graph and exit.")
     args = ap.parse_args(argv)
@@ -408,13 +498,15 @@ def main(argv=None) -> int:
         print("parent graph has no edges", file=sys.stderr)
         return 1
 
-    stem = resolve_edgelist_path(args.parent).stem.replace(".", "_")
+    parent_path = resolve_edgelist_path(args.parent)
+    stem = parent_path.stem.replace(".", "_")
     out_root = Path(args.out)
     failures = 0
 
     for beta in args.beta:
         for r in range(args.repeats):
             seed = args.seed + r
+            name = f"{stem}_b{round(beta * 100):02d}_s{seed}"
             pair = make_pair(G, beta, seed=seed, mode=args.mode,
                              permute=not args.no_permute)
             passed, msg = check_overlap(pair["stats"])
@@ -422,19 +514,33 @@ def main(argv=None) -> int:
                 failures += 1
                 print(f"  VERIFY FAILED beta={beta} seed={seed}: {msg}", file=sys.stderr)
                 if not args.no_verify:
+                    # Record the rejected draw before moving on: one record per
+                    # pair attempted, not per pair kept.
+                    if not args.no_record:
+                        record_pair(parent_path, name, beta, seed, args, pair,
+                                    None, False, msg, args.status, args.note)
                     continue
 
-            name = f"{stem}_b{round(beta * 100):02d}_s{seed}"
             case_dir = out_root / name
+            conflict = existing_pair_conflict(case_dir, pair, args.compat_layout)
+            if conflict:
+                print(f"  REPLACING a differently generated pair at {case_dir} "
+                      f"({conflict}). Digests in any earlier record of this "
+                      f"path no longer resolve.", file=sys.stderr)
             # The baseline hardcodes os.path.join(--path, 'labeled_dev'), so the pair
             # has to sit in a subdirectory of exactly that name for it to be found.
             outdir = write_pair(case_dir / "labeled_dev" if args.compat_layout
                                 else case_dir, pair)
+            run_id = (record_pair(parent_path, name, beta, seed, args, pair,
+                                  outdir, passed, msg, args.status, args.note,
+                                  conflict)
+                      if not args.no_record else "unrecorded")
             s = pair["stats"]
             print(f"{outdir.relative_to(REPO_ROOT) if outdir.is_relative_to(REPO_ROOT) else outdir}"
                   f"  |V^a cap V^u|={s['matchable_nodes']:,}"
                   f"  E^a={s['edges_a']:,} E^u={s['edges_u']:,}"
-                  f"  {msg}")
+                  f"  {msg}"
+                  f"\n  record {run_id}")
 
     if failures and not args.no_verify:
         print(f"\n{failures} pair(s) skipped: measured overlap did not match (1-beta)^2. "

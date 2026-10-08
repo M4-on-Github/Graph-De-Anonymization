@@ -1,0 +1,22 @@
+phase 1: GAE embeddings
+  reusing Z1.npz (27,602 nodes, 600 epochs)
+  reusing Z2.npz (27,584 nodes, 600 epochs)
+  reconstruction AUC  G1 0.9958  G2 0.9955
+phase 2: adversarial alignment
+adversarial training on top 5,000 / 5,000 degree nodes
+  restart 1/1  (seed 0)
+  adv epoch 1/5  D 0.6900  W 0.7040  0s
+  adv epoch 2/5  D 0.6872  W 0.7092  1s
+  adv epoch 3/5  D 0.6806  W 0.7207  1s
+  adv epoch 4/5  D 0.6825  W 0.7212  1s
+  adv epoch 5/5  D 0.6745  W 0.7382  1s
+    refine 0/5  anchors 169  mean cosine 0.5861
+    refine 1/5  anchors 200  mean cosine 0.6954
+    refine 2/5  anchors 206  mean cosine 0.7402
+    refine 3/5  anchors 220  mean cosine 0.7707
+    refine 4/5  anchors 217  mean cosine 0.7795
+    refine 5/5  anchors 233  mean cosine 0.7843
+
+  anchors (ours)   0/233  precision 0.0000
+  anchors (paper)  753/755  precision 0.9974
+  6s total

@@ -1,0 +1,146 @@
+{
+  "kind": "perturbation",
+  "pair": "probe_reject_b10_s0",
+  "status": "confirmatory",
+  "note": "unit check of the rejected-draw record path",
+  "supersedes": null,
+  "started_utc": "2026-10-08T03:14:55+00:00",
+  "argv": [
+    "-"
+  ],
+  "git": {
+    "head": "26e58ba39f30",
+    "head_full": "26e58ba39f30d9a172f1b891c16acce95f4f74b4",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      ".gitignore",
+      "data/README.md",
+      "data/cit-HepTH/",
+      "docs/experiment_logging_policy.md",
+      "results/runs/",
+      "src/adv_gd/",
+      "src/beta_noise_generator/perturbation.py",
+      "src/beta_noise_generator/perturbation_protocol.md"
+    ],
+    "untracked_inlined": [
+      "docs/experiment_logging_policy.md",
+      "src/adv_gd/__init__.py",
+      "src/adv_gd/adv_gd.py",
+      "src/adv_gd/adv_gd_protocol.md",
+      "src/adv_gd/alignment.py",
+      "src/adv_gd/embedding.py",
+      "src/adv_gd/propagation.py",
+      "src/adv_gd/provenance.py"
+    ],
+    "untracked_hashed": [
+      {
+        "path": "data/cit-HepTH",
+        "tree": true,
+        "files": 29557,
+        "bytes": 38857917,
+        "listing_sha256": "c4b7a5ecf12993cf7d5d0f601d6ac5c030cbea097957754c84d5c48814e27aff"
+      },
+      {
+        "path": "results/runs",
+        "tree": true,
+        "files": 16,
+        "bytes": 714014,
+        "listing_sha256": "318f8b9f0cf23367fa5a2aca0545e1b0dd8e00dc2936a0bd471776f1b8961678"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/adv_gd.cpython-313.pyc",
+        "bytes": 11825,
+        "sha256": "dffbc77ce566e9c84953ab8b973c07ce72e804c51b587ac3d2db3027ef8d7675"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/alignment.cpython-313.pyc",
+        "bytes": 28909,
+        "sha256": "c97ae2875209a0e31958c8307072497f7a7323461a236f6e566d19c59d75be8e"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/embedding.cpython-313.pyc",
+        "bytes": 19714,
+        "sha256": "329ac1f7cc9cd57db897bcfed88ea4e70098990fc710db55f2fcd338f1aa6d22"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/propagation.cpython-313.pyc",
+        "bytes": 13069,
+        "sha256": "046f4279f2666cf575249f5efa97960f6175f918856cc8816b86f439503e24bf"
+      },
+      {
+        "path": "src/adv_gd/__pycache__/provenance.cpython-313.pyc",
+        "bytes": 33174,
+        "sha256": "27014ddc14d5d7c03b36c51b43272aa12138c12c439e0f08a2f1a66c92e162e9"
+      }
+    ],
+    "diff_sha256": "7400f797137384060aa07bce80470220253771b579246a245c6d78ed948f24f8",
+    "diff_bytes": 139216
+  },
+  "env": {
+    "python": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "host": "M4",
+    "packages": {
+      "torch": "2.12.0.dev20260329+cu128",
+      "numpy": "2.4.2",
+      "networkx": "3.6.1",
+      "scipy": "1.17.1",
+      "sklearn": "1.9.0"
+    },
+    "cuda": {
+      "available": true,
+      "device": "NVIDIA GeForce RTX 5070 Laptop GPU",
+      "capability": "12.0",
+      "version": "12.8"
+    },
+    "hashseed": "unset"
+  },
+  "inputs": [
+    {
+      "path": "data/cit-HepTH/cit-HepTh.txt/cit-HepTh.txt",
+      "bytes": 5576851,
+      "sha256": "556bd671a7a0e15bd6921d22d9599a17b53b41c6a46b766fbaf768f1d39643b2"
+    }
+  ],
+  "outputs": [],
+  "metrics": {
+    "overlap_ratio": 0.42,
+    "overlap_predicted": 0.81,
+    "matchable_nodes": 7,
+    "edges_a": 9,
+    "edges_u": 8,
+    "parent_edges": 11
+  },
+  "seed": 0,
+  "beta": 0.1,
+  "mode": "bernoulli",
+  "permute": true,
+  "node_sample": 0.05,
+  "compat_layout": false,
+  "n_restarts": 1,
+  "selection": "none (single draw, accepted on (1-beta)^2 overlap check)",
+  "selected_seed": 0,
+  "parent": "data\\cit-HepTH\\cit-HepTh.txt\\cit-HepTh.txt",
+  "pair_stats": {
+    "beta": 0.1,
+    "seed": 0,
+    "mode": "bernoulli",
+    "overlap_ratio": 0.42,
+    "overlap_predicted": 0.81,
+    "matchable_nodes": 7,
+    "edges_a": 9,
+    "edges_u": 8,
+    "parent_edges": 11
+  },
+  "matchable_nodes": 7,
+  "verify_passed": false,
+  "verify_message": "overlap 0.4200 vs predicted 0.8100 (delta 0.3900, tol 0.05)",
+  "overwrote_existing": null,
+  "out_dir": null,
+  "run_id": "20261008T0314Z_probe_reject_b10_s0_df2a676d",
+  "config_sha256": "df2a676d",
+  "status_exit": "verify_failed",
+  "seconds": 7.9,
+  "finished_utc": "2026-10-08T03:15:02+00:00"
+}

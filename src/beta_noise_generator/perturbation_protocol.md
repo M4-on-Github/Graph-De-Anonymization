@@ -25,15 +25,17 @@ score χ = correct / |V^a ∩ V^u|
 # Protocol checks on a synthetic graph -- no dataset needed, run this first
 python src/beta_noise_generator/perturbation.py --self-test
 
-# One parent -> five betas x five repeats, written under data/generated/
-python src/beta_noise_generator/perturbation.py --parent data/raw/cit-HepTh.txt --repeats 5
+# One parent -> five betas x five repeats, written under runs/
+python src/beta_noise_generator/perturbation.py --parent data/cit-HepTH/cit-HepTh.txt --repeats 5
 
 # Google+ is 30M lines; sample nodes rather than loading all of it
-python src/beta_noise_generator/perturbation.py --parent gplus_combined.txt     --node-sample 0.12 --beta 0.1 0.3
+python src/beta_noise_generator/perturbation.py --parent gplus_combined.txt \
+    --node-sample 0.12 --beta 0.1 0.3
 ```
 
 Each run writes `G1.edgelist`, `G2.edgelist`, `mapping.txt` and `stats.json`
-into `data/generated/<parent>_b<beta>_s<seed>/`.
+into `runs/<parent>_b<beta>_s<seed>/`. Nothing is ever written under `data/`,
+which holds source datasets only.
 
 **Feeding the inherited baseline.** `src/seed_based.py` and `src/seed_free.py`
 take no dataset path — they build it as `os.path.join(--path, 'labeled_dev')`, so
@@ -41,7 +43,8 @@ the pair must sit in a directory of exactly that name. `--compat-layout` writes
 that nesting:
 
 ```bash
-python src/beta_noise_generator/perturbation.py --parent <p> --beta 0.1     --compat-layout --out runs/
+python src/beta_noise_generator/perturbation.py --parent <p> --beta 0.1 \
+    --compat-layout --out runs/
 MPLBACKEND=Agg python src/seed_based.py --path runs/<p>_b10_s0 --out runs/out
 ```
 

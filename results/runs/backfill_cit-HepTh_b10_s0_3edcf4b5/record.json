@@ -1,0 +1,163 @@
+{
+  "kind": "adv_gd",
+  "backfilled": true,
+  "pair": "cit-HepTh_b10_s0",
+  "status": "exploratory",
+  "note": "Backfilled from <pair>/adv_gd_result.json after the logging policy was introduced. git state, environment and argv at the time of the run are unknown and recorded as null; input digests were taken at backfill time, not at run time. Metrics are as the driver saved them. This is a salvaged result, not a reproducible record.",
+  "supersedes": null,
+  "started_utc": null,
+  "argv": null,
+  "git": null,
+  "env": null,
+  "seed": 0,
+  "beta": 0.1,
+  "dataset": "hepth",
+  "phases": "123",
+  "config": {
+    "csls_k": 10,
+    "disc_hidden": 2048,
+    "disc_layers": 2,
+    "disc_dropout": 0.1,
+    "disc_input_dropout": 0.1,
+    "disc_leaky": 0.2,
+    "label_smooth": 0.2,
+    "adv_epochs": 5,
+    "adv_steps": 2000,
+    "refine_rounds": 5,
+    "ortho_beta": 0.01,
+    "normalize": "none",
+    "n_restarts": 4
+  },
+  "gae_epochs": null,
+  "theta": 0.5,
+  "eccen_support": "all",
+  "n_restarts": 4,
+  "selection": "mean_match_cosine",
+  "selected_seed": 3,
+  "restarts": [
+    {
+      "seed": 0,
+      "anchors": 282,
+      "mean_cosine": 0.8451295495033264
+    },
+    {
+      "seed": 1,
+      "anchors": 257,
+      "mean_cosine": 0.8237968683242798
+    },
+    {
+      "seed": 2,
+      "anchors": 857,
+      "mean_cosine": 0.9583258628845215
+    },
+    {
+      "seed": 3,
+      "anchors": 854,
+      "mean_cosine": 0.9588266611099243
+    }
+  ],
+  "refine_history": [
+    {
+      "round": 0,
+      "anchors": 512,
+      "mean_cosine": 0.8864084482192993
+    },
+    {
+      "round": 1,
+      "anchors": 789,
+      "mean_cosine": 0.9462176561355591
+    },
+    {
+      "round": 2,
+      "anchors": 842,
+      "mean_cosine": 0.9580645561218262
+    },
+    {
+      "round": 3,
+      "anchors": 855,
+      "mean_cosine": 0.9587535262107849
+    },
+    {
+      "round": 4,
+      "anchors": 855,
+      "mean_cosine": 0.9588147401809692
+    },
+    {
+      "round": 5,
+      "anchors": 854,
+      "mean_cosine": 0.9588266611099243
+    }
+  ],
+  "matchable_nodes": 27444,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 316950,
+    "edges_u": 316696,
+    "shared_edges": 284853,
+    "retention_a": 0.8996976879515165,
+    "retention_u": 0.8989766808124104,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.8085867976212442,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.0006609555201672018,
+    "jaccard": 0.8166821008449138,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27602,
+    "nodes_u": 27584,
+    "isolated_dropped_a": 167,
+    "isolated_dropped_u": 185,
+    "matchable_nodes": 27444
+  },
+  "pair_dir": "runs\\cit-HepTh_b10_s0",
+  "inputs": [
+    {
+      "path": "runs\\cit-HepTh_b10_s0\\G1.edgelist",
+      "bytes": 3865090,
+      "sha256": "cfc462e1cbed220f13912bec4575aaa3c8764cb4399a443786aedc28c43d5c39"
+    },
+    {
+      "path": "runs\\cit-HepTh_b10_s0\\G2.edgelist",
+      "bytes": 3862084,
+      "sha256": "1305285d1b6a20e8782db726e3c11a844b7c1974140426a6cc5658f086e72dd1"
+    },
+    {
+      "path": "runs\\cit-HepTh_b10_s0\\mapping.txt",
+      "bytes": 334660,
+      "sha256": "1e1a78509733acc1cf9c1853efc535964787d319196a4755742d5599ccab0b4c"
+    },
+    {
+      "path": "runs\\cit-HepTh_b10_s0\\stats.json",
+      "bytes": 633,
+      "sha256": "7f1b985c15dae321f58503971be14c6ffa9a94e955a1eea68a3b86d6e39d3c2f"
+    }
+  ],
+  "outputs": [],
+  "metrics": {
+    "auc_g1": 0.9957519075,
+    "auc_g2": 0.99547338,
+    "anchors_found": 854,
+    "anchors_correct": 829,
+    "anchor_precision": 0.9707259953161592,
+    "paper_correct": 753,
+    "paper_found": 755,
+    "mapped": 25727,
+    "correct": 25059,
+    "chi": 0.9130957586357674,
+    "gamma": 0.9740350604423369
+  },
+  "seconds": 182.4,
+  "status_exit": "ok",
+  "record_incomplete": [
+    "git",
+    "env",
+    "argv",
+    "started_utc"
+  ],
+  "run_id": "backfill_cit-HepTh_b10_s0_3edcf4b5",
+  "config_sha256": "3edcf4b5"
+}

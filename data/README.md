@@ -50,16 +50,31 @@ logic matches on them.
 
 ## Generated pairs
 
-`data/generated/` holds pairs cut from a single parent graph by
-`src/beta_noise_generator/perturbation.py`, with exact ground truth and a known β. It is
-gitignored — regenerate from the parent and the seed recorded in `stats.json`
-rather than committing it. `data/raw/` is for parent graphs and is also ignored.
+Nothing generated is written under `data/` — this directory holds source datasets
+only. `src/beta_noise_generator/perturbation.py` writes pairs cut from a single
+parent graph, with exact ground truth and a known β, into `runs/` at the repo root.
+That directory is gitignored — regenerate from the parent and the seed recorded in
+`stats.json` rather than committing it.
 
-Generated directories do **not** load under the baseline scripts unless their
-name contains `labeled_dev`; pass `--compat-name` to the generator for that.
+The baseline scripts build their dataset path as `os.path.join(--path,
+'labeled_dev')`, so a generated pair loads only if it sits in a directory of
+exactly that name; pass `--compat-layout` to the generator to write that nesting.
 
 ## Not in this repo
 
 `gplus_combined.txt/` (Google+, 1.3 GB, 107,614 nodes) sits at the repo root and is
 gitignored. It is a single directed edge list, not a pair, so using it for matching means
 generating the pair yourself by perturbation.
+
+`data/cit-HepTH/` (arXiv HEP-Th citations, 27,770 nodes, 352,807 directed edges) is
+present on disk and gitignored. It is the parent graph for every Adv-GD run, chosen
+because the Li et al. paper reports HepTh in its Table 2. Download it from
+<https://snap.stanford.edu/data/cit-HepTh.html>; only `cit-HepTh.txt` is used.
+
+Two cautions. The archive also unpacks `cit-HepTh-abstracts/`, roughly 29,000 tiny `.abs`
+files -- do not glob or `du` the directory, it is slow enough to look like a hang. And the
+edge list is directed and contains both directions for some pairs; the loader reads it as
+undirected, which is what the paper's node counts imply.
+
+Like Google+, it is a single graph, not a pair: `src/adv_gd/sweep.py --generate` cuts the
+pairs from it.

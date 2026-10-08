@@ -1,0 +1,6 @@
+phase 1: GAE embeddings
+  reusing Z1.npz (27,602 nodes, 600 epochs)
+  reusing Z2.npz (27,584 nodes, 600 epochs)
+  reconstruction AUC  G1 0.9958  G2 0.9955
+phase 2: adversarial alignment
+adversarial training on top 5,000 / 5,000 degree nodes
