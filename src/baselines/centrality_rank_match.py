@@ -75,7 +75,6 @@ def run(pair: Path, dataset: str, measures: list[str] | None = None,
     measures = measures or sorted(MEASURES)
     params = DATASETS[dataset]
     Ga, Gu, truth, stats = load_pair(pair)
-    nodes_a = sorted(Ga.nodes())
 
     results = {}
     for measure in measures:
@@ -110,7 +109,15 @@ def run(pair: Path, dataset: str, measures: list[str] | None = None,
                 }
                 if "3" in phases:
                     n_anch = params["n_anch"]
-                    anchor_nodes = nodes_a[:min(n_anch, len(nodes_a))]
+                    # Top-ranked pairs, in RANK order -- mapping_full's keys
+                    # are already in descending-rank order (rank_mapping zips
+                    # the two rank-sorted lists together), and must be read
+                    # that way rather than re-sorted by node id: G^a and G^u
+                    # can have different node counts (noise adds/drops
+                    # nodes), so the zip silently drops G^a's lowest-ranked
+                    # nodes from mapping_full -- indexing by id order can
+                    # land on exactly one of those dropped nodes and KeyError.
+                    anchor_nodes = list(mapping_full.keys())[:min(n_anch, len(mapping_full))]
                     anchors = [(a, mapping_full[a]) for a in anchor_nodes]
                     candidates = {a: [mapping_full[a]] for a in anchor_nodes}
                     mapping = propagate(Ga, Gu, anchors, candidates,
@@ -186,6 +193,41 @@ def self_test(verbose: bool = True) -> bool:
             continue
         print(f"  [PASS] {measure}: full bijection, pure chi "
               f"{score['chi']:.4f} ({score['correct']}/{len(nodes)})",
+              file=sys.stderr)
+
+    # Regression check for the mismatched-node-count KeyError: a real pair
+    # has G^a and G^u with DIFFERENT node counts (noise adds/drops nodes), so
+    # rank_mapping's zip silently drops G^a's lowest-ranked nodes from
+    # mapping_full's keys. Anchor selection must read mapping_full's own
+    # keys (rank order) rather than re-deriving anchor nodes from a
+    # node-id-sorted list of G^a, or it can pick one of the dropped nodes
+    # and KeyError -- exactly what happened on a real beta>0 sweep cell
+    # before this was caught.
+    Gb = G.copy()
+    Gb.remove_nodes_from(list(Gb.nodes())[:5])  # G^a now has 5 more nodes than G^b
+    for measure in sorted(MEASURES):
+        mapping_full = rank_mapping(G, Gb, measure)
+        assert len(mapping_full) < G.number_of_nodes(), (
+            "test setup error: mapping_full should be truncated to G^b's "
+            "smaller node count, or this check is not exercising the bug")
+        n_anch = min(50, len(mapping_full))
+        anchor_nodes_by_rank = list(mapping_full.keys())[:n_anch]      # correct
+        anchor_nodes_by_id = sorted(G.nodes())[:n_anch]                # the old, buggy approach
+        try:
+            _ = [(a, mapping_full[a]) for a in anchor_nodes_by_rank]
+        except KeyError as exc:
+            print(f"  [FAIL] {measure}: rank-order anchor selection "
+                  f"KeyError: {exc}", file=sys.stderr)
+            ok = False
+            continue
+        if not any(a not in mapping_full for a in anchor_nodes_by_id):
+            print(f"  [WARN] {measure}: this run of the regression check "
+                  f"did not actually land on a dropped node by chance -- "
+                  f"not a failure, but weaker evidence than usual",
+                  file=sys.stderr)
+    if ok:
+        print(f"  [PASS] anchor selection survives mismatched node counts "
+              f"({G.number_of_nodes()} vs {Gb.number_of_nodes()} nodes)",
               file=sys.stderr)
 
     print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
