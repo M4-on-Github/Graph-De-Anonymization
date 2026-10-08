@@ -9,6 +9,16 @@
 # frozen manifest like Report 1's grid.py/report1_cell.py) -- see sweep.py's
 # docstring for why that is safe across array tasks.
 #
+# --constraint excludes pleiades-1-3 (feature "1080Ti"): its Pascal-era GPUs
+# are compute capability 6.1, and the container's torch wheel (cu130) ships
+# kernels starting at sm_75 -- a task landing there dies immediately with
+# `CUDA error: no kernel image is available for execution on the device`.
+# Confirmed via `sinfo -N -o "%N %f %G" -p pleiades`: pleiades-0-17/-0-23 are
+# RTX6000ADA, pleiades-1-10 is QUADRORTX6000 (both new enough), pleiades-1-3
+# is the lone 1080Ti node -- this whitelists the two known-good families
+# rather than excluding by hostname, so it stays correct if the cluster's
+# node set changes.
+#
 # Do not call directly — submit_adv_gd_suite.sh sets --array, --output,
 # --error and appends the sweep flags (--betas, --pair-seeds, --align-seeds,
 # --skip-adversarial, etc.).
@@ -19,6 +29,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --gres=gpu:1
+#SBATCH --constraint=RTX6000ADA|QUADRORTX6000
 #SBATCH --time=04:00:00
 #SBATCH -J gda_adv
 
