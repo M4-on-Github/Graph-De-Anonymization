@@ -56,6 +56,7 @@ DEFAULTS = {
     "ortho_beta": 0.01,      # strength of the orthogonalization pull on W
     "normalize": "none",     # embedding preprocessing; see _preprocess
     "n_restarts": 4,         # independent adversarial runs; see _search
+    "skip_adversarial": False,  # ablation: see _search's docstring
 }
 
 # Paper-specified, section 3.1 and 4.2.
@@ -312,7 +313,21 @@ def _search(Za_t: torch.Tensor, Zu_t: torch.Tensor, adv_a, adv_u, anch_a,
     """
     if verbose and label:
         print(f"  {label}  (seed {seed})", file=sys.stderr)
-    W = train_mapping(Za_t[adv_a], Zu_t[adv_u], cfg, seed=seed, verbose=verbose)
+    if cfg.get("skip_adversarial"):
+        # Ablation: isolates whether the adversarial step (equations 4-5) earns
+        # its keep, or whether unsupervised CSLS + Procrustes bootstrapping from
+        # a neutral starting point gets there on its own. W starts at the
+        # identity rather than trained -- there is no other seed-free way to
+        # propose a *first* W without training something, and identity is the
+        # only choice that injects no information. If the two embedding spaces
+        # happen to already be close to co-rotated (GAE has no reason to prefer
+        # any particular rotation, so in general they will not be), the refine
+        # loop below can still walk itself to a good W from there; see
+        # `adv_gd_protocol.md`'s ablation section for what was measured.
+        dim = Za_t.shape[1]
+        W = torch.eye(dim, device=Za_t.device)
+    else:
+        W = train_mapping(Za_t[adv_a], Zu_t[adv_u], cfg, seed=seed, verbose=verbose)
 
     history, pairs = [], []
     for rnd in range(cfg["refine_rounds"] + 1):
@@ -341,6 +356,12 @@ def align(Za: np.ndarray, nodes_a: list, Zu: np.ndarray, nodes_u: list,
     caller never has to know the embedding row order.
     """
     cfg = {**DEFAULTS, **(cfg or {})}
+    if cfg["skip_adversarial"] and cfg["n_restarts"] > 1:
+        # No training means no randomness: every restart would start from the
+        # same identity W and refine identically. Restarts exist to pick a mode
+        # out of training's bimodality (see `align`'s docstring below); there is
+        # nothing to pick among here.
+        cfg["n_restarts"] = 1
     dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
     Za_t = _preprocess(torch.as_tensor(Za, dtype=torch.float32, device=dev),
                        cfg["normalize"])
@@ -488,6 +509,22 @@ def self_test(verbose: bool = True) -> bool:
     else:
         print(f"  [PASS] unrelated spaces do not align ({bad_hits}/{n} matches)",
               file=sys.stderr)
+
+    # The ablation path: identity-started refinement must run to completion
+    # and return a plain, scoreable result, even though it is not expected to
+    # recover an arbitrary rotation. (That is a finding to report, not a bug.)
+    cfg_noadv = {**DEFAULTS, "skip_adversarial": True, "refine_rounds": 5,
+                 "csls_k": DEFAULTS["csls_k"]}
+    W0, pairs0, hist0 = _search(A, B, np.arange(n), np.arange(n),
+                                np.arange(n), np.arange(n), cfg_noadv,
+                                seed=0, verbose=False)
+    if not isinstance(W0, torch.Tensor) or W0.shape != (d, d):
+        print("  [FAIL] skip_adversarial did not return a usable W",
+              file=sys.stderr)
+        ok = False
+    else:
+        print(f"  [PASS] skip_adversarial ran to completion "
+              f"({len(pairs0)} anchors, identity-started)", file=sys.stderr)
 
     print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
     return ok

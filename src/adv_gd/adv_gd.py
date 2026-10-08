@@ -143,7 +143,10 @@ def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
     # is killed partway is still data about where it got to. See
     # `docs/experiment_logging_policy.md`.
     resolved = {**DEFAULTS, **(cfg or {})}
-    rec = RunRecord("adv_gd", pair.name, status, note) if record else None
+    # Separate kind for the ablation so `collect.py --kind` and index.jsonl can
+    # tell the two apart without parsing `note` or `config`.
+    kind = "adv_gd_no_adversary" if resolved.get("skip_adversarial") else "adv_gd"
+    rec = RunRecord(kind, pair.name, status, note) if record else None
     if rec:
         rec.set(seed=seed, gae_seed=gae_seed, beta=stats["beta"],
                 dataset=dataset, phases=phases,
@@ -303,6 +306,12 @@ def main(argv=None) -> int:
                     help="Phase 1 training epochs. The paper states none.")
     ap.add_argument("--n-restarts", type=int, default=None,
                     help="Adversarial runs to select among by mean cosine.")
+    ap.add_argument("--skip-adversarial", action="store_true",
+                    help="Ablation: start Phase 2 at W=identity and skip "
+                         "adversarial training (equations 4-5), going "
+                         "straight to CSLS + Procrustes refinement. Isolates "
+                         "whether the adversarial step is doing the work the "
+                         "paper claims. Forces n_restarts to 1.")
     ap.add_argument("--phases", type=str, default="123",
                     choices=("12", "123"),
                     help="Stop after alignment, or run propagation too.")
@@ -323,11 +332,17 @@ def main(argv=None) -> int:
         val = getattr(args, flag)
         if val is not None:
             cfg[key] = val
+    if args.skip_adversarial:
+        cfg["skip_adversarial"] = True
+
+    note = args.note
+    if args.skip_adversarial and "ablation" not in note.lower():
+        note = (note + " [ablation: skip_adversarial]").strip()
 
     run(Path(args.pair), args.dataset, seed=args.seed, refresh=args.refresh,
         cfg=cfg or None, phases=args.phases, theta=args.theta,
         eccen_support=args.eccen_support, gae_epochs=args.gae_epochs,
-        status=args.status, note=args.note, record=not args.no_record,
+        status=args.status, note=note, record=not args.no_record,
         gae_seed=args.gae_seed)
     return 0
 

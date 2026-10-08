@@ -98,6 +98,7 @@ def build_plan(args) -> list[dict]:
                     "n_restarts": args.n_restarts,
                     "theta": args.theta,
                     "eccen_support": args.eccen_support,
+                    "skip_adversarial": args.skip_adversarial,
                 })
     return cells
 
@@ -149,11 +150,13 @@ def run_cell(cell: dict, args) -> int:
               file=sys.stderr)
         return 2
 
-    cfg = {"n_restarts": cell["n_restarts"]}
+    cfg = {"n_restarts": cell["n_restarts"],
+           "skip_adversarial": cell["skip_adversarial"]}
     note = (args.note or
             f"sweep task {cell['task_id']}: nominal beta={cell['beta_nominal']} "
             f"({cell['beta_mode']}, generated at {cell['beta_generated']}), "
-            f"align seed {cell['align_seed']}, gae seed {cell['gae_seed']}")
+            f"align seed {cell['align_seed']}, gae seed {cell['gae_seed']}"
+            + (" [ablation: skip_adversarial]" if cell["skip_adversarial"] else ""))
 
     t0 = time.time()
     out = run(pair, cell["dataset"], seed=cell["align_seed"], cfg=cfg,
@@ -195,6 +198,12 @@ def main(argv=None) -> int:
                          "cosine. This is model selection, not replication.")
     ap.add_argument("--theta", type=float, default=0.5)
     ap.add_argument("--eccen-support", default="all", choices=("all", "nonzero"))
+    ap.add_argument("--skip-adversarial", action="store_true",
+                    help="Ablation sweep: W starts at identity, no adversarial "
+                         "training. Recorded under kind=adv_gd_no_adversary so "
+                         "it never mixes with the full method's records. See "
+                         "alignment.py's `_search` for why n_restarts is forced "
+                         "to 1 when this is set.")
     ap.add_argument("--out", default=None,
                     help="Pair root. Defaults to runs/sweep_<beta-mode>/, "
                          "which must differ per mode: pair names round beta to "
@@ -279,6 +288,7 @@ def _self_test() -> int:
         dataset="hepth", betas=[0.1, 0.2], beta_mode="divergence",
         pair_seeds=[0], align_seeds=[0, 1, 2, 3], gae_seed=0,
         gae_epochs=600, n_restarts=4, theta=0.5, eccen_support="all",
+        skip_adversarial=False,
         out=str(REPO_ROOT / "runs" / "sweep_divergence"))
     cells = build_plan(ns)
     assert len(cells) == 8, len(cells)
