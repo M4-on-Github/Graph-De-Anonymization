@@ -22,7 +22,16 @@
 #SBATCH -J gda_generate
 
 set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]:-$0}")/common.sh"
+# sbatch copies this script into /var/spool/slurmd/jobNNN/ before running it,
+# so dirname "$0" is the spool dir, not this directory. Under a real job the
+# repo is SLURM_SUBMIT_DIR (set by sbatch to the submitter's cwd, which
+# submit_report1.sh guarantees is the repo root); only fall back to the
+# dirname trick when run directly, outside SLURM.
+if [ -n "${SLURM_JOB_ID:-}" ] && [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
+    source "$SLURM_SUBMIT_DIR/scripts/moes-cluster-scripts/common.sh"
+else
+    source "$(dirname "${BASH_SOURCE[0]:-$0}")/common.sh"
+fi
 banner "Report 1 — generate HepTh noise pairs"
 
 # Everything after the script name is passed through to grid.py, so the submit
