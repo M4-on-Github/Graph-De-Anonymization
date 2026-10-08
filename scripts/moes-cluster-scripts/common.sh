@@ -32,6 +32,34 @@ if [ ! -d "$REPO/src/adv_gd" ]; then
     exit 1
 fi
 
+# stage_sif_locally
+#
+# apptainer mmaps the .sif's squashfs directly; with --limit 24 concurrent
+# tasks on a node all mmapping the same copy over NFS from $DATA_DIR, an NFS
+# hiccup under that load surfaces as SIGBUS (signal 7, exit 135) on the mmap'd
+# page fault -- observed in production on job 49921, always *after* the cell's
+# own python had already returned 0 and written its record (confirmed against
+# results/runs/index.jsonl), never during computation. Fix: copy the image
+# once per node onto node-local tmpfs (/tmp here is tmpfs, not NFS -- checked
+# via `mount`) and mmap that copy instead. flock serializes the first task on
+# a node that finds no local copy yet; every task after it just stat()s and
+# moves on.
+LOCAL_SIF_DIR="/tmp/${USER}-gda-sif"
+LOCAL_SIF="$LOCAL_SIF_DIR/$(basename "$SIF")"
+
+stage_sif_locally() {
+    mkdir -p "$LOCAL_SIF_DIR"
+    (
+        flock -x 200
+        local want
+        want="$(stat -c%s "$SIF")"
+        if [ ! -f "$LOCAL_SIF" ] || [ "$(stat -c%s "$LOCAL_SIF" 2>/dev/null)" != "$want" ]; then
+            cp "$SIF" "$LOCAL_SIF.tmp"
+            mv "$LOCAL_SIF.tmp" "$LOCAL_SIF"
+        fi
+    ) 200>"$LOCAL_SIF_DIR/.stage.lock"
+}
+
 # in_container <python args...>
 #
 # Only the repo and this project's NAS directory are bound, not the whole of
@@ -52,6 +80,7 @@ in_container() {
         echo "       Or point GDA_SIF at an existing image." >&2
         exit 1
     fi
+    stage_sif_locally
     apptainer exec \
         --containall \
         ${GDA_NV:+--nv} \
@@ -63,7 +92,7 @@ in_container() {
         --env PYTHONUNBUFFERED=1 \
         --env PYTHONHASHSEED="${PYTHONHASHSEED:-0}" \
         --env MPLBACKEND=Agg \
-        "$SIF" \
+        "$LOCAL_SIF" \
         python3 "$@"
 }
 
