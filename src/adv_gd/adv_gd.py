@@ -194,7 +194,12 @@ def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
                                "correct", "chi", "gamma")})
                 rec.finish(exit_status, error, console.getvalue(), verbose)
                 out["run_id"] = rec.run_id
-    (pair / "adv_gd_result.json").write_text(json.dumps(out, indent=2))
+    # Filename must encode run type and align seed: this pair directory is
+    # shared by the full method, the skip_adversarial ablation, and every
+    # align-seed repeat of each, and a fixed "adv_gd_result.json" name let
+    # concurrent SLURM array tasks silently overwrite each other's output.
+    result_name = f"adv_gd_result_{kind}_seed{seed}.json"
+    (pair / result_name).write_text(json.dumps(out, indent=2))
     return out
 
 
