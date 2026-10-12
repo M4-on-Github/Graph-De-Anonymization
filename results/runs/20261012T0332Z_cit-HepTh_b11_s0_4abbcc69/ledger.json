@@ -1,0 +1,17 @@
+{
+  "run_id": "20261012T0332Z_cit-HepTh_b11_s0_4abbcc69",
+  "started_utc": "2026-10-12T03:32:03+00:00",
+  "kind": "baseline_centrality_pagerank",
+  "pair": "cit-HepTh_b11_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.105573,
+  "n_restarts": null,
+  "anchor_precision": null,
+  "chi": 0.0032086341427842195,
+  "gamma": 0.06089965397923876,
+  "seconds": 566.0,
+  "git": "47d66f9c75f0+dirty",
+  "note": "Adv-GD suite: index-rank-matching baseline (docs/some-context.txt section 2)"
+}

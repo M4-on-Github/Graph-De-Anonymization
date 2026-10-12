@@ -1,0 +1,303 @@
+{
+  "kind": "adv_gd",
+  "pair": "cit-HepTh_b05_s0",
+  "status": "confirmatory",
+  "note": "Adv-GD suite: full method",
+  "supersedes": null,
+  "started_utc": "2026-10-12T02:38:35+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/sweep.py",
+    "--task-id",
+    "4",
+    "--betas",
+    "0.0",
+    "0.1",
+    "0.2",
+    "0.3",
+    "0.4",
+    "0.5",
+    "--pair-seeds",
+    "0",
+    "--beta-mode",
+    "divergence",
+    "--out",
+    "runs/sweep_divergence",
+    "--align-seeds",
+    "0",
+    "1",
+    "2",
+    "3",
+    "--status",
+    "confirmatory",
+    "--note",
+    "Adv-GD suite: full method"
+  ],
+  "git": {
+    "head": "47d66f9c75f0",
+    "head_full": "47d66f9c75f07717037364e1d7fde1f2a7a56b1c",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      ".gitignore",
+      "results/runs/20261012T0219Z_cit-HepTh_b00_s0_bffa6815/",
+      "results/runs/20261012T0219Z_cit-HepTh_b05_s0_ce6a3795/",
+      "results/runs/20261012T0220Z_cit-HepTh_b00_s0_d03e6f48/",
+      "results/runs/20261012T0220Z_cit-HepTh_b05_s0_c5f9f7aa/",
+      "results/runs/20261012T0220Z_cit-HepTh_b11_s0_2cba9de1/",
+      "results/runs/20261012T0220Z_cit-HepTh_b16_s0_837f559b/",
+      "results/runs/20261012T0220Z_cit-HepTh_b23_s0_fa872e1e/",
+      "results/runs/20261012T0220Z_cit-HepTh_b29_s0_0acecb81/",
+      "results/runs/20261012T0230Z_cit-HepTh_b00_s0_6f07676e/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261012T0219Z_cit-HepTh_b00_s0_bffa6815",
+        "tree": true,
+        "files": 3,
+        "bytes": 4733,
+        "listing_sha256": "35035d578bf9778a2778d167db883c7958e1f39c317493eab8f202dd1e528275"
+      },
+      {
+        "path": "results/runs/20261012T0219Z_cit-HepTh_b05_s0_ce6a3795",
+        "tree": true,
+        "files": 3,
+        "bytes": 7104,
+        "listing_sha256": "13057592d7c35560c3cdb41e2cb12537f953c4cc4c2f0368fd2ac2d7eb2397ad"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b00_s0_d03e6f48",
+        "tree": true,
+        "files": 4,
+        "bytes": 11169,
+        "listing_sha256": "d6f07de71e8ef230b85fd8f63a335e3bcb2badb5151aca30c42f9449990ed32d"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b05_s0_c5f9f7aa",
+        "tree": true,
+        "files": 4,
+        "bytes": 11499,
+        "listing_sha256": "0d58e2e9a63a31c4b66be888d21486ee5e6748df9533a6e1e34220a0fedf1931"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b11_s0_2cba9de1",
+        "tree": true,
+        "files": 3,
+        "bytes": 7804,
+        "listing_sha256": "33da9889cc1ca8327af54e22f35e035f36197c242e95e7aefb2dd2556d145096"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b16_s0_837f559b",
+        "tree": true,
+        "files": 3,
+        "bytes": 8513,
+        "listing_sha256": "7934c1f42d0713c7178112d413cc38818a1e058081c0462cd57064dad6178ff6"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b23_s0_fa872e1e",
+        "tree": true,
+        "files": 3,
+        "bytes": 9241,
+        "listing_sha256": "05cf3dddcac8f1593ff914766f600bb642934b7f0aa237e425b0266660c77c9e"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b29_s0_0acecb81",
+        "tree": true,
+        "files": 3,
+        "bytes": 9975,
+        "listing_sha256": "6e7c44bdcdf303e1b8440654f1c37dbaa5bd54c744c524cf28196ea7105d583e"
+      },
+      {
+        "path": "results/runs/20261012T0230Z_cit-HepTh_b00_s0_6f07676e",
+        "tree": true,
+        "files": 4,
+        "bytes": 18747,
+        "listing_sha256": "da2adbe2398b47730d8cf46c4387fd7cece6b84cbebb75347c072c773d8c256c"
+      }
+    ],
+    "diff_sha256": "3eaba0b6450c55884344f871b55a731f07d0bd056a6f4a5ba8e8efd657bf3ca8",
+    "diff_bytes": 5434
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-23",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": true,
+      "device": "NVIDIA RTX 6000 Ada Generation",
+      "capability": "8.9",
+      "version": "13.0"
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b05_s0/G1.edgelist",
+      "bytes": 3735929,
+      "sha256": "a9e393fce3c77996f617450713d5d93aa329ea07d520c3f8a30bb8042c41441d"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b05_s0/G2.edgelist",
+      "bytes": 3735223,
+      "sha256": "4f813ae982e18a3b1135302cc2cb75b4512371d3b2e35a96ad77d6a7747db62f"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b05_s0/mapping.txt",
+      "bytes": 309106,
+      "sha256": "42b8c6a20690facd3aaae761845b0ca3896fa1caa79bff380dcf03eac1c318d7"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b05_s0/stats.json",
+      "bytes": 693,
+      "sha256": "bea8a08a2d9311e311425a1def49f31a6123949d444a1c40e7e36deb335cecce"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b05_s0/out_mapping_20261012T0238Z_cit-HepTh_b05_s0_9b068680.txt",
+      "bytes": 294334,
+      "sha256": "55c7b12c17112c86b8b1e8d5b8b6af86e11ab21aaff57a398dd4c7e9f9e7ba79"
+    }
+  ],
+  "metrics": {
+    "auc_g1": 0.9959420425,
+    "auc_g2": 0.995894385,
+    "anchors_found": 874,
+    "anchors_correct": 864,
+    "anchor_precision": 0.988558352402746,
+    "paper_correct": 753,
+    "paper_found": 755,
+    "mapped": 26287,
+    "correct": 26027,
+    "chi": 0.9428364426734287,
+    "gamma": 0.9901091794423099
+  },
+  "seed": 0,
+  "gae_seed": 0,
+  "beta": 0.051317,
+  "dataset": "hepth",
+  "phases": "123",
+  "params": {
+    "dim": 32,
+    "n_adv": 5000,
+    "n_anch": 1000,
+    "m": 10000
+  },
+  "config": {
+    "csls_k": 10,
+    "disc_hidden": 2048,
+    "disc_layers": 2,
+    "disc_dropout": 0.1,
+    "disc_input_dropout": 0.1,
+    "disc_leaky": 0.2,
+    "label_smooth": 0.2,
+    "adv_epochs": 5,
+    "adv_steps": 2000,
+    "refine_rounds": 5,
+    "ortho_beta": 0.01,
+    "normalize": "none",
+    "n_restarts": 4,
+    "skip_adversarial": false
+  },
+  "gae_epochs": 600,
+  "theta": 0.5,
+  "eccen_support": "all",
+  "n_restarts": 4,
+  "selection": "mean_match_cosine",
+  "matchable_nodes": 27605,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 334228,
+    "edges_u": 333977,
+    "shared_edges": 316847,
+    "retention_a": 0.9487432050754361,
+    "retention_u": 0.9480307137686816,
+    "retention_predicted": 0.9486829999999999,
+    "overlap_ratio": 0.8994053110407766,
+    "overlap_predicted": 0.8999994344889999,
+    "overlap_sigma": 0.0005054465894246433,
+    "jaccard": 0.9017782432732426,
+    "jaccard_predicted": 0.9023757819953447,
+    "beta": 0.051317,
+    "beta_nominal": 0.1,
+    "beta_mode": "divergence",
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27695,
+    "nodes_u": 27674,
+    "isolated_dropped_a": 74,
+    "isolated_dropped_u": 95,
+    "matchable_nodes": 27605
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/sweep_divergence/cit-HepTh_b05_s0",
+  "run_id": "20261012T0238Z_cit-HepTh_b05_s0_9b068680",
+  "config_sha256": "9b068680",
+  "selected_seed": 0,
+  "restarts": [
+    {
+      "seed": 0,
+      "anchors": 874,
+      "mean_cosine": 0.959274411201477
+    },
+    {
+      "seed": 1,
+      "anchors": 871,
+      "mean_cosine": 0.9591721296310425
+    },
+    {
+      "seed": 2,
+      "anchors": 744,
+      "mean_cosine": 0.938481330871582
+    },
+    {
+      "seed": 3,
+      "anchors": 869,
+      "mean_cosine": 0.9579487442970276
+    }
+  ],
+  "refine_history": [
+    {
+      "round": 0,
+      "anchors": 683,
+      "mean_cosine": 0.923217236995697
+    },
+    {
+      "round": 1,
+      "anchors": 835,
+      "mean_cosine": 0.9537928104400635
+    },
+    {
+      "round": 2,
+      "anchors": 871,
+      "mean_cosine": 0.9588177800178528
+    },
+    {
+      "round": 3,
+      "anchors": 873,
+      "mean_cosine": 0.959225058555603
+    },
+    {
+      "round": 4,
+      "anchors": 874,
+      "mean_cosine": 0.9592716097831726
+    },
+    {
+      "round": 5,
+      "anchors": 874,
+      "mean_cosine": 0.959274411201477
+    }
+  ],
+  "status_exit": "ok",
+  "seconds": 506.6,
+  "finished_utc": "2026-10-12T02:47:02+00:00"
+}

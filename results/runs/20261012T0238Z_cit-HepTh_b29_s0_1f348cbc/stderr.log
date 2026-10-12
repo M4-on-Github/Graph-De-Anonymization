@@ -1,0 +1,27 @@
+pair cit-HepTh_b29_s0  beta=0.292893  G1 27,146n  G2 27,172n
+  anchors: 372 mutual cosine nearest neighbours among top 1,000 degree nodes
+  sweep   1  stage 0  +0 -> 372 mapped  13s
+  sweep   2  stage 1  +158 -> 530 mapped  25s
+  sweep   3  stage 1  +92 -> 622 mapped  38s
+  sweep   4  stage 1  +62 -> 684 mapped  51s
+  sweep   5  stage 1  +27 -> 711 mapped  64s
+  sweep   6  stage 1  +24 -> 735 mapped  78s
+  sweep   7  stage 1  +19 -> 754 mapped  91s
+  sweep   8  stage 1  +16 -> 770 mapped  104s
+  sweep   9  stage 1  +8 -> 778 mapped  117s
+  sweep  10  stage 1  +8 -> 786 mapped  131s
+  sweep  11  stage 1  +16 -> 802 mapped  144s
+  sweep  12  stage 1  +23 -> 825 mapped  157s
+  sweep  13  stage 1  +19 -> 844 mapped  170s
+  sweep  14  stage 1  +17 -> 861 mapped  183s
+  sweep  15  stage 1  +16 -> 877 mapped  197s
+  sweep  16  stage 1  +12 -> 889 mapped  210s
+  sweep  17  stage 1  +9 -> 898 mapped  223s
+  sweep  18  stage 1  +9 -> 907 mapped  236s
+  sweep  19  stage 1  +8 -> 915 mapped  250s
+  sweep  20  stage 1  +6 -> 921 mapped  263s
+  sweep  21  stage 1  +6 -> 927 mapped  276s
+  sweep  22  stage 1  +4 -> 931 mapped  289s
+  sweep  23  stage 1  +1 -> 932 mapped  301s
+  sweep  24  stage 1  +1 -> 933 mapped  313s
+  sweep  25  stage 1  +0 -> 933 mapped  325s

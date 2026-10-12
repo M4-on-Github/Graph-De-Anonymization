@@ -1,0 +1,26 @@
+pair cit-HepTh_b11_s0  beta=0.105573  measure=k_core
+  sweep   1  stage 0  +0 -> 1,000 mapped  14s
+  sweep   2  stage 1  +306 -> 1,306 mapped  27s
+  sweep   3  stage 1  +293 -> 1,599 mapped  41s
+  sweep   4  stage 1  +154 -> 1,753 mapped  56s
+  sweep   5  stage 1  +111 -> 1,864 mapped  71s
+  sweep   6  stage 1  +115 -> 1,979 mapped  86s
+  sweep   7  stage 1  +139 -> 2,118 mapped  100s
+  sweep   8  stage 1  +184 -> 2,302 mapped  116s
+  sweep   9  stage 1  +215 -> 2,517 mapped  131s
+  sweep  10  stage 1  +272 -> 2,789 mapped  146s
+  sweep  11  stage 1  +317 -> 3,106 mapped  162s
+  sweep  12  stage 1  +420 -> 3,526 mapped  179s
+  sweep  13  stage 1  +544 -> 4,070 mapped  196s
+  sweep  14  stage 1  +798 -> 4,868 mapped  214s
+  sweep  15  stage 1  +1,191 -> 6,059 mapped  233s
+  sweep  16  stage 1  +1,852 -> 7,911 mapped  254s
+  sweep  17  stage 1  +2,556 -> 10,467 mapped  277s
+  sweep  18  stage 1  +5,181 -> 15,648 mapped  304s
+  sweep  19  stage 1  +6,006 -> 21,654 mapped  329s
+  sweep  20  stage 1  +1,979 -> 23,633 mapped  340s
+  sweep  21  stage 1  +456 -> 24,089 mapped  346s
+  sweep  22  stage 1  +123 -> 24,212 mapped  352s
+  sweep  23  stage 1  +17 -> 24,229 mapped  357s
+  sweep  24  stage 1  +1 -> 24,230 mapped  362s
+  sweep  25  stage 1  +0 -> 24,230 mapped  367s

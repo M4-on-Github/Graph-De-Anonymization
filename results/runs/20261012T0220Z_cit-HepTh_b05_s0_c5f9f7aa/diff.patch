@@ -1,0 +1,26 @@
+diff --git a/.gitignore b/.gitignore
+index 73b3fae..9425a57 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -47,6 +47,7 @@ proposal.pdf
+ # them; git ignoring a file does not hide it from the filesystem.
+ CLAUDE.md
+ SeedFree_Li.etal.pdf
++docs/some-context.txt
+ 
+ # OS cruft
+ .DS_Store
+diff --git a/results/runs/index.jsonl b/results/runs/index.jsonl
+index 9253f62..f996483 100644
+--- a/results/runs/index.jsonl
++++ b/results/runs/index.jsonl
+@@ -6,3 +6,9 @@
+ {"run_id": "20261008T0314Z_cit-HepTh_b10_s0_3bfae568", "started_utc": "2026-10-08T03:14:20+00:00", "kind": "perturbation", "pair": "cit-HepTh_b10_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.1, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 7.3, "git": "26e58ba39f30+dirty", "note": "provenance wiring check: 5% node sample"}
+ {"run_id": "20261008T0314Z_cit-HepTh_b10_s0_1361c608", "started_utc": "2026-10-08T03:14:32+00:00", "kind": "perturbation", "pair": "cit-HepTh_b10_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.1, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 5.5, "git": "26e58ba39f30+dirty", "note": "provenance wiring check: deliberate collision, 2% sample"}
+ {"run_id": "20261008T0314Z_probe_reject_b10_s0_df2a676d", "started_utc": "2026-10-08T03:14:55+00:00", "kind": "perturbation", "pair": "probe_reject_b10_s0", "status": "confirmatory", "status_exit": "verify_failed", "seed": 0, "beta": 0.1, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 7.9, "git": "26e58ba39f30+dirty", "note": "unit check of the rejected-draw record path"}
++{"run_id": "20261012T0219Z_cit-HepTh_b00_s0_bffa6815", "started_utc": "2026-10-12T02:19:37+00:00", "kind": "perturbation", "pair": "cit-HepTh_b00_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.0, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 2.2, "git": "47d66f9c75f0+dirty", "note": "sweep cell for nominal beta=0.0 in divergence mode"}
++{"run_id": "20261012T0219Z_cit-HepTh_b05_s0_ce6a3795", "started_utc": "2026-10-12T02:19:51+00:00", "kind": "perturbation", "pair": "cit-HepTh_b05_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.051317, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 2.3, "git": "47d66f9c75f0+dirty", "note": "sweep cell for nominal beta=0.1 in divergence mode"}
++{"run_id": "20261012T0220Z_cit-HepTh_b11_s0_2cba9de1", "started_utc": "2026-10-12T02:20:03+00:00", "kind": "perturbation", "pair": "cit-HepTh_b11_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.105573, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 2.1, "git": "47d66f9c75f0+dirty", "note": "sweep cell for nominal beta=0.2 in divergence mode"}
++{"run_id": "20261012T0220Z_cit-HepTh_b16_s0_837f559b", "started_utc": "2026-10-12T02:20:15+00:00", "kind": "perturbation", "pair": "cit-HepTh_b16_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.16334, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 2.2, "git": "47d66f9c75f0+dirty", "note": "sweep cell for nominal beta=0.3 in divergence mode"}
++{"run_id": "20261012T0220Z_cit-HepTh_b23_s0_fa872e1e", "started_utc": "2026-10-12T02:20:26+00:00", "kind": "perturbation", "pair": "cit-HepTh_b23_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.225403, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 2.2, "git": "47d66f9c75f0+dirty", "note": "sweep cell for nominal beta=0.4 in divergence mode"}
++{"run_id": "20261012T0220Z_cit-HepTh_b29_s0_0acecb81", "started_utc": "2026-10-12T02:20:37+00:00", "kind": "perturbation", "pair": "cit-HepTh_b29_s0", "status": "confirmatory", "status_exit": "ok", "seed": 0, "beta": 0.292893, "n_restarts": 1, "anchor_precision": null, "chi": null, "gamma": null, "seconds": 1.9, "git": "47d66f9c75f0+dirty", "note": "sweep cell for nominal beta=0.5 in divergence mode"}

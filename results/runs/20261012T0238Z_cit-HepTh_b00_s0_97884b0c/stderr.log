@@ -1,0 +1,9 @@
+pair cit-HepTh_b00_s0  beta=0.0  measure=degree
+  sweep   1  stage 0  +0 -> 1,000 mapped  77s
+  sweep   2  stage 1  +8,622 -> 9,622 mapped  146s
+  sweep   3  stage 1  +12,005 -> 21,627 mapped  181s
+  sweep   4  stage 1  +4,283 -> 25,910 mapped  191s
+  sweep   5  stage 1  +604 -> 26,514 mapped  194s
+  sweep   6  stage 1  +73 -> 26,587 mapped  196s
+  sweep   7  stage 1  +9 -> 26,596 mapped  197s
+  sweep   8  stage 1  +0 -> 26,596 mapped  198s

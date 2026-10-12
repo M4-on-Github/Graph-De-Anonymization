@@ -1,0 +1,12 @@
+diff --git a/.gitignore b/.gitignore
+index 73b3fae..9425a57 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -47,6 +47,7 @@ proposal.pdf
+ # them; git ignoring a file does not hide it from the filesystem.
+ CLAUDE.md
+ SeedFree_Li.etal.pdf
++docs/some-context.txt
+ 
+ # OS cruft
+ .DS_Store

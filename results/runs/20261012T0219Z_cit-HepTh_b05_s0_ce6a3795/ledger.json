@@ -1,0 +1,17 @@
+{
+  "run_id": "20261012T0219Z_cit-HepTh_b05_s0_ce6a3795",
+  "started_utc": "2026-10-12T02:19:51+00:00",
+  "kind": "perturbation",
+  "pair": "cit-HepTh_b05_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.051317,
+  "n_restarts": 1,
+  "anchor_precision": null,
+  "chi": null,
+  "gamma": null,
+  "seconds": 2.3,
+  "git": "47d66f9c75f0+dirty",
+  "note": "sweep cell for nominal beta=0.1 in divergence mode"
+}

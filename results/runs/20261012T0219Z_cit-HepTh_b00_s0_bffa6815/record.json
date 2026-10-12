@@ -1,0 +1,145 @@
+{
+  "kind": "perturbation",
+  "pair": "cit-HepTh_b00_s0",
+  "status": "confirmatory",
+  "note": "sweep cell for nominal beta=0.0 in divergence mode",
+  "supersedes": null,
+  "started_utc": "2026-10-12T02:19:37+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/beta_noise_generator/perturbation.py",
+    "--parent",
+    "/home/mmyatmau/Graph-De-Anonymization/data/cit-HepTH/cit-HepTh.txt",
+    "--beta",
+    "0.0",
+    "--beta-nominal",
+    "0.0",
+    "--beta-mode",
+    "divergence",
+    "--seed",
+    "0",
+    "--out",
+    "runs/sweep_divergence",
+    "--status",
+    "confirmatory",
+    "--note",
+    "sweep cell for nominal beta=0.0 in divergence mode"
+  ],
+  "git": {
+    "head": "47d66f9c75f0",
+    "head_full": "47d66f9c75f07717037364e1d7fde1f2a7a56b1c",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      ".gitignore"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [],
+    "diff_sha256": "4a0d202de566ca63238dca0ef3fa992fcdc930a514e6146f6f78b8aabf52db56",
+    "diff_bytes": 280
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "data/cit-HepTH/cit-HepTh.txt",
+      "bytes": 5576851,
+      "sha256": "556bd671a7a0e15bd6921d22d9599a17b53b41c6a46b766fbaf768f1d39643b2"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/G1.edgelist",
+      "bytes": 3943859,
+      "sha256": "85a8d677f562462fd2dc96427ac7d1822a9cbe21bcb4a43a74ee91d32c34a744"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/G2.edgelist",
+      "bytes": 3943027,
+      "sha256": "616141d292afa62f6d2475c09b76deac7e73e908e551e183f5845a50bee1899e"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/mapping.txt",
+      "bytes": 311008,
+      "sha256": "1fa71fcf33bc5531db865de037b153192d1380c536fd4ab2d855a58a1b1dc290"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/stats.json",
+      "bytes": 563,
+      "sha256": "6a78f20762eae80721f017368f2d6c4964c2a687b3fed7aa9686e68f818713ff"
+    }
+  ],
+  "metrics": {
+    "overlap_ratio": 1.0,
+    "overlap_predicted": 1.0,
+    "overlap_sigma": 0.0,
+    "jaccard": 1.0,
+    "retention_a": 1.0,
+    "retention_u": 1.0,
+    "matchable_nodes": 27769,
+    "edges_a": 352285,
+    "edges_u": 352285,
+    "parent_edges": 352285
+  },
+  "seed": 0,
+  "beta": 0.0,
+  "beta_nominal": 0.0,
+  "beta_mode": "divergence",
+  "mode": "bernoulli",
+  "permute": true,
+  "node_sample": null,
+  "compat_layout": false,
+  "n_restarts": 1,
+  "selection": "none (single draw, accepted on (1-beta)^2 overlap check)",
+  "selected_seed": 0,
+  "parent": "/home/mmyatmau/Graph-De-Anonymization/data/cit-HepTH/cit-HepTh.txt",
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 352285,
+    "edges_u": 352285,
+    "shared_edges": 352285,
+    "retention_a": 1.0,
+    "retention_u": 1.0,
+    "retention_predicted": 1.0,
+    "overlap_ratio": 1.0,
+    "overlap_predicted": 1.0,
+    "overlap_sigma": 0.0,
+    "jaccard": 1.0,
+    "jaccard_predicted": 1.0,
+    "beta": 0.0,
+    "beta_nominal": 0.0,
+    "beta_mode": "divergence",
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27769,
+    "nodes_u": 27769,
+    "isolated_dropped_a": 0,
+    "isolated_dropped_u": 0,
+    "matchable_nodes": 27769
+  },
+  "matchable_nodes": 27769,
+  "verify_passed": true,
+  "verify_message": "overlap 1.0000 vs predicted 1.0000 (delta 0.0000, tol 0.0100)",
+  "overwrote_existing": null,
+  "out_dir": "runs/sweep_divergence/cit-HepTh_b00_s0",
+  "run_id": "20261012T0219Z_cit-HepTh_b00_s0_bffa6815",
+  "config_sha256": "bffa6815",
+  "status_exit": "ok",
+  "seconds": 2.2,
+  "finished_utc": "2026-10-12T02:19:39+00:00"
+}

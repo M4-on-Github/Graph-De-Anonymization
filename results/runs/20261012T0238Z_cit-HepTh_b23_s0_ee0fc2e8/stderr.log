@@ -1,0 +1,14 @@
+pair cit-HepTh_b23_s0  beta=0.225403  measure=degree
+  sweep   1  stage 0  +0 -> 1,000 mapped  47s
+  sweep   2  stage 1  +223 -> 1,223 mapped  91s
+  sweep   3  stage 1  +92 -> 1,315 mapped  138s
+  sweep   4  stage 1  +31 -> 1,346 mapped  185s
+  sweep   5  stage 1  +12 -> 1,358 mapped  232s
+  sweep   6  stage 1  +9 -> 1,367 mapped  279s
+  sweep   7  stage 1  +8 -> 1,375 mapped  327s
+  sweep   8  stage 1  +8 -> 1,383 mapped  375s
+  sweep   9  stage 1  +4 -> 1,387 mapped  423s
+  sweep  10  stage 1  +7 -> 1,394 mapped  467s
+  sweep  11  stage 1  +4 -> 1,398 mapped  510s
+  sweep  12  stage 1  +2 -> 1,400 mapped  553s
+  sweep  13  stage 1  +0 -> 1,400 mapped  596s

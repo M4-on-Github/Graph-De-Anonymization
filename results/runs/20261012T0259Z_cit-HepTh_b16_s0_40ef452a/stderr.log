@@ -1,0 +1,51 @@
+phase 1: GAE embeddings
+  reusing Z1.npz (27,463 nodes, 600 epochs)
+  reusing Z2.npz (27,479 nodes, 600 epochs)
+  reconstruction AUC  G1 0.9956  G2 0.9958
+phase 2: adversarial alignment
+adversarial training on top 5,000 / 5,000 degree nodes
+  restart 1/1  (seed 0)
+    refine 0/5  anchors 186  mean cosine 0.4915
+    refine 1/5  anchors 196  mean cosine 0.6656
+    refine 2/5  anchors 207  mean cosine 0.7146
+    refine 3/5  anchors 218  mean cosine 0.7416
+    refine 4/5  anchors 220  mean cosine 0.7634
+    refine 5/5  anchors 219  mean cosine 0.7798
+phase 3: propagation
+  sweep   1  stage 0  +0 -> 219 mapped  7s
+  sweep   2  stage 1  +204 -> 423 mapped  13s
+  sweep   3  stage 1  +241 -> 664 mapped  19s
+  sweep   4  stage 1  +199 -> 863 mapped  25s
+  sweep   5  stage 1  +135 -> 998 mapped  31s
+  sweep   6  stage 1  +142 -> 1,140 mapped  38s
+  sweep   7  stage 1  +136 -> 1,276 mapped  44s
+  sweep   8  stage 1  +109 -> 1,385 mapped  51s
+  sweep   9  stage 1  +99 -> 1,484 mapped  57s
+  sweep  10  stage 1  +86 -> 1,570 mapped  64s
+  sweep  11  stage 1  +82 -> 1,652 mapped  71s
+  sweep  12  stage 1  +47 -> 1,699 mapped  78s
+  sweep  13  stage 1  +24 -> 1,723 mapped  85s
+  sweep  14  stage 1  +39 -> 1,762 mapped  91s
+  sweep  15  stage 1  +31 -> 1,793 mapped  98s
+  sweep  16  stage 1  +18 -> 1,811 mapped  105s
+  sweep  17  stage 1  +12 -> 1,823 mapped  112s
+  sweep  18  stage 1  +9 -> 1,832 mapped  119s
+  sweep  19  stage 1  +14 -> 1,846 mapped  127s
+  sweep  20  stage 1  +11 -> 1,857 mapped  134s
+  sweep  21  stage 1  +13 -> 1,870 mapped  143s
+  sweep  22  stage 1  +10 -> 1,880 mapped  151s
+  sweep  23  stage 1  +11 -> 1,891 mapped  159s
+  sweep  24  stage 1  +8 -> 1,899 mapped  167s
+  sweep  25  stage 1  +5 -> 1,904 mapped  176s
+  sweep  26  stage 1  +8 -> 1,912 mapped  184s
+  sweep  27  stage 1  +7 -> 1,919 mapped  192s
+  sweep  28  stage 1  +7 -> 1,926 mapped  200s
+  sweep  29  stage 1  +1 -> 1,927 mapped  208s
+  sweep  30  stage 1  +1 -> 1,928 mapped  216s
+  sweep  31  stage 1  +1 -> 1,929 mapped  223s
+  sweep  32  stage 1  +0 -> 1,929 mapped  231s
+
+  anchors (ours)   0/219  precision 0.0000
+  anchors (paper)  652/670  precision 0.9731
+  de-anonymized    0/1,929 mapped  chi 0.0000  gamma 0.0000
+  233s total

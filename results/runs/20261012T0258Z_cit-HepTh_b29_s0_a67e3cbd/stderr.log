@@ -1,0 +1,25 @@
+pair cit-HepTh_b29_s0  beta=0.292893  measure=k_truss
+  sweep   1  stage 0  +0 -> 1,000 mapped  7s
+  sweep   2  stage 1  +283 -> 1,283 mapped  15s
+  sweep   3  stage 1  +266 -> 1,549 mapped  22s
+  sweep   4  stage 1  +174 -> 1,723 mapped  29s
+  sweep   5  stage 1  +140 -> 1,863 mapped  36s
+  sweep   6  stage 1  +125 -> 1,988 mapped  43s
+  sweep   7  stage 1  +107 -> 2,095 mapped  51s
+  sweep   8  stage 1  +94 -> 2,189 mapped  58s
+  sweep   9  stage 1  +76 -> 2,265 mapped  66s
+  sweep  10  stage 1  +77 -> 2,342 mapped  74s
+  sweep  11  stage 1  +68 -> 2,410 mapped  82s
+  sweep  12  stage 1  +64 -> 2,474 mapped  91s
+  sweep  13  stage 1  +53 -> 2,527 mapped  99s
+  sweep  14  stage 1  +42 -> 2,569 mapped  107s
+  sweep  15  stage 1  +36 -> 2,605 mapped  115s
+  sweep  16  stage 1  +30 -> 2,635 mapped  123s
+  sweep  17  stage 1  +17 -> 2,652 mapped  132s
+  sweep  18  stage 1  +13 -> 2,665 mapped  140s
+  sweep  19  stage 1  +8 -> 2,673 mapped  148s
+  sweep  20  stage 1  +10 -> 2,683 mapped  157s
+  sweep  21  stage 1  +4 -> 2,687 mapped  165s
+  sweep  22  stage 1  +2 -> 2,689 mapped  173s
+  sweep  23  stage 1  +1 -> 2,690 mapped  182s
+  sweep  24  stage 1  +0 -> 2,690 mapped  190s

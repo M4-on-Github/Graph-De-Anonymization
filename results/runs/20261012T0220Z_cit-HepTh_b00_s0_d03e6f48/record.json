@@ -1,0 +1,190 @@
+{
+  "kind": "baseline_structural_fingerprint",
+  "pair": "cit-HepTh_b00_s0",
+  "status": "confirmatory",
+  "note": "Adv-GD suite: structural-fingerprint baseline",
+  "supersedes": null,
+  "started_utc": "2026-10-12T02:20:51+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/baselines/sweep_baselines.py",
+    "--task-id",
+    "0",
+    "--betas",
+    "0.0",
+    "0.1",
+    "0.2",
+    "0.3",
+    "0.4",
+    "0.5",
+    "--pair-seeds",
+    "0",
+    "--beta-mode",
+    "divergence",
+    "--out",
+    "runs/sweep_divergence",
+    "--method",
+    "structural_fingerprint",
+    "--status",
+    "confirmatory",
+    "--note",
+    "Adv-GD suite: structural-fingerprint baseline"
+  ],
+  "git": {
+    "head": "47d66f9c75f0",
+    "head_full": "47d66f9c75f07717037364e1d7fde1f2a7a56b1c",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      ".gitignore",
+      "results/runs/20261012T0219Z_cit-HepTh_b00_s0_bffa6815/",
+      "results/runs/20261012T0219Z_cit-HepTh_b05_s0_ce6a3795/",
+      "results/runs/20261012T0220Z_cit-HepTh_b11_s0_2cba9de1/",
+      "results/runs/20261012T0220Z_cit-HepTh_b16_s0_837f559b/",
+      "results/runs/20261012T0220Z_cit-HepTh_b23_s0_fa872e1e/",
+      "results/runs/20261012T0220Z_cit-HepTh_b29_s0_0acecb81/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261012T0219Z_cit-HepTh_b00_s0_bffa6815",
+        "tree": true,
+        "files": 3,
+        "bytes": 4733,
+        "listing_sha256": "35035d578bf9778a2778d167db883c7958e1f39c317493eab8f202dd1e528275"
+      },
+      {
+        "path": "results/runs/20261012T0219Z_cit-HepTh_b05_s0_ce6a3795",
+        "tree": true,
+        "files": 3,
+        "bytes": 7104,
+        "listing_sha256": "13057592d7c35560c3cdb41e2cb12537f953c4cc4c2f0368fd2ac2d7eb2397ad"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b11_s0_2cba9de1",
+        "tree": true,
+        "files": 3,
+        "bytes": 7804,
+        "listing_sha256": "33da9889cc1ca8327af54e22f35e035f36197c242e95e7aefb2dd2556d145096"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b16_s0_837f559b",
+        "tree": true,
+        "files": 3,
+        "bytes": 8513,
+        "listing_sha256": "7934c1f42d0713c7178112d413cc38818a1e058081c0462cd57064dad6178ff6"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b23_s0_fa872e1e",
+        "tree": true,
+        "files": 3,
+        "bytes": 9241,
+        "listing_sha256": "05cf3dddcac8f1593ff914766f600bb642934b7f0aa237e425b0266660c77c9e"
+      },
+      {
+        "path": "results/runs/20261012T0220Z_cit-HepTh_b29_s0_0acecb81",
+        "tree": true,
+        "files": 3,
+        "bytes": 9975,
+        "listing_sha256": "6e7c44bdcdf303e1b8440654f1c37dbaa5bd54c744c524cf28196ea7105d583e"
+      }
+    ],
+    "diff_sha256": "fd97855c485e0bc11001b5b4b7612f5588d78c0b0f5e34000e2ad969eb96e05c",
+    "diff_bytes": 4091
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/G1.edgelist",
+      "bytes": 3943859,
+      "sha256": "85a8d677f562462fd2dc96427ac7d1822a9cbe21bcb4a43a74ee91d32c34a744"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/G2.edgelist",
+      "bytes": 3943027,
+      "sha256": "616141d292afa62f6d2475c09b76deac7e73e908e551e183f5845a50bee1899e"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/mapping.txt",
+      "bytes": 311008,
+      "sha256": "1fa71fcf33bc5531db865de037b153192d1380c536fd4ab2d855a58a1b1dc290"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/stats.json",
+      "bytes": 563,
+      "sha256": "6a78f20762eae80721f017368f2d6c4964c2a687b3fed7aa9686e68f818713ff"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/out_mapping_baseline_structural_fingerprint_20261012T0220Z_cit-HepTh_b00_s0_d03e6f48.txt",
+      "bytes": 298556,
+      "sha256": "9b44d2ed6680e15050114154dc535174ee4d7c701a8cb2e299008af9bac0c795"
+    }
+  ],
+  "metrics": {
+    "anchors_found": 591,
+    "anchors_correct": 503,
+    "anchor_precision": 0.8510998307952623,
+    "mapped": 26659,
+    "correct": 26569,
+    "chi": 0.9567863444848572,
+    "gamma": 0.996624029408455
+  },
+  "seed": 0,
+  "beta": 0.0,
+  "dataset": "hepth",
+  "phases": "123",
+  "theta": 0.5,
+  "eccen_support": "all",
+  "n_anch": 1000,
+  "m": 10000,
+  "matchable_nodes": 27769,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 352285,
+    "edges_u": 352285,
+    "shared_edges": 352285,
+    "retention_a": 1.0,
+    "retention_u": 1.0,
+    "retention_predicted": 1.0,
+    "overlap_ratio": 1.0,
+    "overlap_predicted": 1.0,
+    "overlap_sigma": 0.0,
+    "jaccard": 1.0,
+    "jaccard_predicted": 1.0,
+    "beta": 0.0,
+    "beta_nominal": 0.0,
+    "beta_mode": "divergence",
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27769,
+    "nodes_u": 27769,
+    "isolated_dropped_a": 0,
+    "isolated_dropped_u": 0,
+    "matchable_nodes": 27769
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/sweep_divergence/cit-HepTh_b00_s0",
+  "run_id": "20261012T0220Z_cit-HepTh_b00_s0_d03e6f48",
+  "config_sha256": "d03e6f48",
+  "status_exit": "ok",
+  "seconds": 491.6,
+  "finished_utc": "2026-10-12T02:29:03+00:00"
+}
