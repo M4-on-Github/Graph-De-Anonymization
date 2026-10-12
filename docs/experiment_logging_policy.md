@@ -251,6 +251,28 @@ Found while reviewing this policy against what the code actually records, after 
 - **Selection by mean cosine is itself a modelling choice** that the paper specifies and we
   validated against ground truth on one dataset. Recording it per run is what will let a
   later disagreement be traced.
+- **`centrality_rank`'s per-measure chi swings sharply and non-monotonically across the beta
+  sweep, and this is expected behavior, not noise in the estimate or a bug.** Diagnosed
+  2026-10-12 from the 51440-51446 suite's aggregated results: e.g. `degree` scores pure chi
+  0.8667 at beta=0.1 and 0.0033 at beta=0.2, while `eigenvector` stays around 0.778 at the
+  same beta=0.2 point. Root cause is two compounding design properties of
+  `centrality_rank_match.py`, not a defect: (1) its Phase-3 anchors are *singleton*
+  candidates taken straight from the rank-zip (`candidates = {a: [mapping_full[a]]}`,
+  `centrality_rank_match.py:122`), unlike `structural_fingerprint`/`isorank`'s `TOP10`
+  CSLS candidate sets, so there is no fallback if the rank-matched guess is wrong; (2)
+  `propagate()` (`propagation.py:94-150`) is a mutual-best-match bootstrap gated by an
+  eccentricity threshold (`theta=0.5`) in both directions — seed anchors either reinforce
+  and the mapping snowballs outward, or they get rejected and propagation stalls/collapses.
+  This makes final chi a threshold (bootstrap-or-collapse) function of anchor quality, not
+  a smooth one. Different centrality measures cross that threshold at different betas
+  because their *rank order*'s sensitivity to edge noise differs: eigenvector/PageRank are
+  smooth, global, iterative measures whose top ranks shift gradually; degree/k-core/k-truss
+  are local/combinatorial and a single edge change can flip tie-breaks or cascade through
+  the core/truss decomposition, reordering many ranks at once. **Watch for:** do not read a
+  single beta's `centrality_rank` chi as a point estimate of that measure's robustness —
+  it is which side of a per-measure, per-seed bootstrap cliff that beta happens to land on.
+  The report's own low "pure" rank-matching numbers (0.10-0.83%) and reliance on the
+  integration step reflect the same mechanism.
 
 ## Citation
 
