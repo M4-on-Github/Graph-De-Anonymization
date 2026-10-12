@@ -186,6 +186,50 @@ are written for failures too.
    produced them — and it is exactly the kind of act that must not become routine, because
    the stamp now asserts something no record witnesses. Re-generate instead.
 
+## Seed taxonomy
+
+Four distinct seeds exist in this pipeline, and conflating any two of them has already
+cost us data once (the `--gae-seed`/`--seed` coupling that re-trained GAEs needlessly,
+and the beta-mode/deletion-rate conflation that silently miscompared against the paper).
+Naming them here so a reviewer doesn't have to reconstruct this from code.
+
+| Seed | Controls | Set by | Recorded where |
+|---|---|---|---|
+| **Pair seed** | which edges the generator deletes from each copy | `perturbation.py --seed`, threaded by `sweep.py --pair-seeds` | `pair_stats.seed` (nested; not a top-level record field) and the pair dir name (`..._s<N>`) |
+| **GAE seed** | Phase 1 embedding weight init | `adv_gd.py --gae-seed`, defaults to `seed` | top-level `gae_seed` field |
+| **Align (adversarial) seed** | Phase 2 discriminator/W init and batch sampling; this is the axis `sweep.py --align-seeds` sweeps, and the one that is bimodal (see `adv_gd_protocol.md`) | `adv_gd.py --seed` | top-level `seed` field |
+| **Restart index** | which of `n_restarts` independent Phase 2 runs a given cosine score belongs to | internal to `alignment.align`'s `_search`, not externally seeded | `restarts[]` (array of mean-cosine scores) and `selected_seed` |
+
+A number is only comparable across runs if every row of this table matches, not just the
+one the author happened to be varying.
+
+## Gaps found and fixed, 2026-10-12
+
+Found while reviewing this policy against what the code actually records, after the
+2026-10-12 Adv-GD suite had already been cancelled for the `beta_pct`/`PAPER_TABLE2` fix
+(see below) — fixed together rather than patched into a run in flight.
+
+- **`beta_mode` (nominal vs. divergence) was not a structured field anywhere a pair's own
+  `stats.json` could be read back.** `sweep.py` knows `beta_nominal`, `beta_generated` and
+  `beta_mode` at planning time (see its `cells` list) and threaded `beta_mode` into the
+  *downstream* Adv-GD/baseline run's free-text `note` ("sweep cell for nominal beta=...
+  in divergence mode"), but `perturbation.py`'s `record_pair` never wrote it into the
+  pair's `stats.json`. Previously, whether a pair's `beta` was a deletion rate or a
+  realized divergence was recoverable only from which `--out` root it landed in
+  (`runs/sweep_divergence/` vs `runs/sweep_nominal/`) — a directory-naming convention,
+  the exact class of implicit fact this policy's "pair directory name does not identify
+  the pair" section already warns about. This is also the root cause class behind the
+  `beta_pct`/`PAPER_TABLE2` lookup bug fixed in `adv_gd.py` on 2026-10-12: the code had to
+  re-derive the realized divergence from `overlap_ratio` because the mode that produced
+  the pair was never recorded on the pair itself. **Fixed:** `perturbation.py` now accepts
+  `--beta-mode`/`--beta-nominal`, writes both into `stats.json` via `make_pair`/
+  `record_pair`, and `sweep.py`'s `generate()` passes them through on every cell.
+- **`argv` was checked and is already correct** — `RunRecord.__init__` defaults `argv` to
+  `sys.argv` of the caller when not passed explicitly, so `adv_gd.py`'s call site (which
+  does not pass `argv`) still records its own true invocation. Confirmed by inspecting a
+  real `record.json`, which already carries the right `argv`. No fix needed; this entry
+  in an earlier draft of this section was a false alarm.
+
 ## What this does not cover, and what to watch for
 
 - **One pair per beta.** Every Adv-GD figure we have rests on a single noise draw. Logging

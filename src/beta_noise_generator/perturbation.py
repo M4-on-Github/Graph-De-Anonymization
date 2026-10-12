@@ -230,10 +230,19 @@ def check_overlap(stats: dict, tol: float | None = None) -> tuple[bool, str]:
 
 
 def make_pair(G: nx.Graph, beta: float, seed: int = 0, mode: str = "bernoulli",
-              permute: bool = True) -> dict:
+              permute: bool = True, beta_nominal: float | None = None,
+              beta_mode: str = "nominal") -> dict:
     """Cut one parent graph into (G^a, G^u) plus exact ground truth.
 
     Returns a dict with `Ga`, `Gu`, `pairs` (ground truth over V^a cap V^u) and `stats`.
+
+    `beta_nominal`/`beta_mode` make the pair self-describing: whether `beta` is a
+    literal deletion rate ("nominal") or was pre-transformed so the realized
+    divergence between the two copies equals the caller's target ("divergence",
+    see `adv_gd/sweep.py`'s `divergence_beta`). Without this recorded on the pair
+    itself, interpreting `beta` requires knowing which `--out` root the pair
+    happened to land in -- exactly the implicit fact that produced the
+    `beta_pct`/`PAPER_TABLE2` lookup bug this field exists to prevent a repeat of.
     """
     m_parent = G.number_of_edges()
     Ga = perturb(G, beta, np.random.default_rng([seed, 1]), mode)
@@ -245,6 +254,8 @@ def make_pair(G: nx.Graph, beta: float, seed: int = 0, mode: str = "bernoulli",
     common = sorted(set(Ga.nodes()) & set(Gu.nodes()), key=_sort_key)
     stats.update({
         "beta": beta,
+        "beta_nominal": beta_nominal if beta_nominal is not None else beta,
+        "beta_mode": beta_mode,
         "seed": seed,
         "mode": mode,
         "permuted": permute,
@@ -378,7 +389,8 @@ LEDGER_METRICS = ("overlap_ratio", "overlap_predicted", "overlap_sigma",
 
 def record_pair(parent: Path, name: str, beta: float, seed: int, args,
                 pair: dict, outdir: Path | None, passed: bool, msg: str,
-                status: str, note: str, overwrote: str | None = None) -> str:
+                status: str, note: str, overwrote: str | None = None,
+                beta_nominal: float | None = None, beta_mode: str = "nominal") -> str:
     """Write a run record for one generated pair.
 
     Generation is recorded as `confirmatory` by default, which is not a pose:
@@ -387,9 +399,20 @@ def record_pair(parent: Path, name: str, beta: float, seed: int, args,
     that. A pair that fails the check is recorded too, with `verify_passed`
     false and no outputs, because a protocol that misses its own prediction is
     the most interesting thing the generator can tell us.
+
+    `beta_nominal`/`beta_mode` make the pair self-describing: whether `beta` is
+    a deletion rate taken literally ("nominal") or was pre-transformed so the
+    realized divergence between the two copies equals the caller's target
+    ("divergence", see `adv_gd/sweep.py`'s `divergence_beta`). Previously this
+    was recoverable only from which `--out` root the pair landed in -- the
+    class of implicit fact this policy's pair-naming section already warns
+    about, and the root cause of the `beta_pct`/`PAPER_TABLE2` lookup bug this
+    field is meant to make structurally visible instead of re-derived.
     """
     rec = RunRecord("perturbation", name, status, note)
-    rec.set(seed=seed, beta=beta, mode=args.mode,
+    rec.set(seed=seed, beta=beta,
+            beta_nominal=beta_nominal if beta_nominal is not None else beta,
+            beta_mode=beta_mode, mode=args.mode,
             permute=not args.no_permute, node_sample=args.node_sample,
             compat_layout=args.compat_layout,
             # No restarts and nothing selected: one draw, kept or rejected on a
@@ -439,8 +462,8 @@ def existing_pair_conflict(case_dir: Path, pair: dict,
         return "unreadable stats.json already present"
     now = pair["stats"]
     differs = {k: (prev.get(k), now.get(k)) for k in
-               ("beta", "seed", "mode", "permuted", "parent_nodes",
-                "parent_edges")
+               ("beta", "beta_nominal", "beta_mode", "seed", "mode",
+                "permuted", "parent_nodes", "parent_edges")
                if prev.get(k) != now.get(k)}
     if not differs:
         return None
@@ -456,6 +479,18 @@ def main(argv=None) -> int:
                          "single file (SNAP's gplus_combined.txt unpacks that way).")
     ap.add_argument("--beta", type=float, nargs="+", default=[0.1, 0.2, 0.3, 0.4, 0.5],
                     help="Edge deletion rate(s). Paper sweeps 0.1-0.5. Default: all five.")
+    ap.add_argument("--beta-mode", choices=("nominal", "divergence"), default="nominal",
+                    help="Whether --beta is a literal per-copy deletion rate "
+                         "('nominal') or was already transformed by the caller "
+                         "so the realized divergence between the two copies "
+                         "equals the target beta ('divergence', see "
+                         "adv_gd/sweep.py's divergence_beta). This generator "
+                         "does not transform beta itself -- it only records "
+                         "which reading the caller intends.")
+    ap.add_argument("--beta-nominal", type=float, nargs="+", default=None,
+                    help="The nominal beta each --beta value stands for, same "
+                         "order and length as --beta. Defaults to --beta "
+                         "itself, i.e. nominal mode.")
     ap.add_argument("--repeats", type=int, default=1,
                     help="Pairs per beta, each with its own seed. Paper averages 5.")
     ap.add_argument("--seed", type=int, default=0, help="Base RNG seed.")
@@ -498,17 +533,22 @@ def main(argv=None) -> int:
         print("parent graph has no edges", file=sys.stderr)
         return 1
 
+    if args.beta_nominal is not None and len(args.beta_nominal) != len(args.beta):
+        ap.error("--beta-nominal must have the same count as --beta")
+
     parent_path = resolve_edgelist_path(args.parent)
     stem = parent_path.stem.replace(".", "_")
     out_root = Path(args.out)
     failures = 0
 
-    for beta in args.beta:
+    for i, beta in enumerate(args.beta):
+        beta_nominal = args.beta_nominal[i] if args.beta_nominal is not None else beta
         for r in range(args.repeats):
             seed = args.seed + r
             name = f"{stem}_b{round(beta * 100):02d}_s{seed}"
             pair = make_pair(G, beta, seed=seed, mode=args.mode,
-                             permute=not args.no_permute)
+                             permute=not args.no_permute,
+                             beta_nominal=beta_nominal, beta_mode=args.beta_mode)
             passed, msg = check_overlap(pair["stats"])
             if not passed:
                 failures += 1
@@ -518,7 +558,8 @@ def main(argv=None) -> int:
                     # pair attempted, not per pair kept.
                     if not args.no_record:
                         record_pair(parent_path, name, beta, seed, args, pair,
-                                    None, False, msg, args.status, args.note)
+                                    None, False, msg, args.status, args.note,
+                                    beta_nominal=beta_nominal, beta_mode=args.beta_mode)
                     continue
 
             case_dir = out_root / name
@@ -533,7 +574,8 @@ def main(argv=None) -> int:
                                 else case_dir, pair)
             run_id = (record_pair(parent_path, name, beta, seed, args, pair,
                                   outdir, passed, msg, args.status, args.note,
-                                  conflict)
+                                  conflict, beta_nominal=beta_nominal,
+                                  beta_mode=args.beta_mode)
                       if not args.no_record else "unrecorded")
             s = pair["stats"]
             print(f"{outdir.relative_to(REPO_ROOT) if outdir.is_relative_to(REPO_ROOT) else outdir}"

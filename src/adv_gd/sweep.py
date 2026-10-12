@@ -125,6 +125,8 @@ def generate(args, cells: list[dict]) -> int:
         cmd = [sys.executable, str(GENERATOR),
                "--parent", str(PARENTS[c["dataset"]]),
                "--beta", str(c["beta_generated"]),
+               "--beta-nominal", str(c["beta_nominal"]),
+               "--beta-mode", c["beta_mode"],
                "--seed", str(c["pair_seed"]),
                "--out", str(args.out),
                "--status", "confirmatory",
