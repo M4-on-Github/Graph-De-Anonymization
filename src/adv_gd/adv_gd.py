@@ -136,7 +136,13 @@ def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
     params = DATASETS[dataset]
     gae_seed = seed if gae_seed is None else gae_seed
     Ga, Gu, truth, stats = load_pair(pair)
-    beta_pct = int(round(stats["beta"] * 100))
+    # stats["beta"] is the per-copy edge-deletion rate fed to the generator,
+    # not the paper's beta: the paper's beta is the realized divergence
+    # between the two copies, 1 - overlap_ratio (= 1-(1-beta)^2 in
+    # expectation). Looking PAPER_TABLE2 up by the deletion rate instead of
+    # the realized divergence missed on every divergence-mode pair (e.g.
+    # deletion rate 0.051 -> realized divergence ~10%, not 5%).
+    beta_pct = int(round((1.0 - stats["overlap_ratio"]) * 100))
 
     # The record is built before any work, because everything identifying the
     # run is known now, and finished in a `finally`, because a run that fails or
