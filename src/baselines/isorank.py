@@ -3,17 +3,49 @@ alignment by power-iterating a product-graph eigenproblem, with no learned
 embedding and no training.
 
 IsoRank's recurrence treats "node i in G1 matches node j in G2" as a kind of
-PageRank mass that flows along edges in both graphs at once:
+PageRank mass that flows along edges in both graphs at once. Singh et al.'s
+element-wise form is
 
-    R <- alpha * A1n @ R @ A2n^T + (1 - alpha) * R0
+    R[i, j] = sum_{u in N(i)} sum_{v in N(j)} R[u, v] / (|N(u)| |N(v)|)
 
-where A1n/A2n are row-normalized adjacency matrices and R0 is the prior (here
-uniform, since this is the seed-free setting -- classic IsoRank is usually
-given a sequence- or attribute-based prior, which does not exist for these
-synthetic perturbation pairs). At convergence, R[i, j] is high when i and j
-are "topologically similar": high-R neighbours of i's neighbours tend to map
-to high-R neighbours of j's neighbours, recursively. alpha=0.6 and 20 rounds
-are Singh et al.'s own defaults, both exposed as CLI flags.
+-- each neighbour pair (u, v) *distributes* its score over its own
+neighbourhoods, dividing by the NEIGHBOUR's degree. In matrix form, with the
+prior mixed in:
+
+    R <- alpha * A1n @ R @ A2n^T + (1 - alpha) * R0,   Akn = Ak @ Dk^-1
+
+i.e. A1n/A2n are COLUMN-normalized (column-stochastic) adjacency matrices,
+and R0 is the prior (here uniform, since this is the seed-free setting --
+classic IsoRank is usually given a sequence- or attribute-based prior, which
+does not exist for these synthetic perturbation pairs). alpha=0.6 and 20
+rounds are Singh et al.'s own defaults, both exposed as CLI flags.
+
+Bug fixed 2026-10-18: this file previously ROW-normalized (D^-1 A), which
+divides by the degree of i and j themselves and so *averages* the neighbour
+scores instead of distributing them. Averaging a constant returns the same
+constant, so a uniform R0 was an exact fixed point: R never moved off
+1/(n1*n2), every "argmax" was a floating-point tie-break, and the old
+"hub collapse" reading of the resulting 2404/2500-shared-argmax rows on the
+beta=0 HepTh pair was a misdiagnosis of a signal-free matrix. Every
+baseline_isorank record before this date was produced by that bug.
+
+What a uniform prior can and cannot give (derivation, not tuning): starting
+from R0 = c 1 1^T, the recurrence keeps R inside
+span{ (A1n^k 1)(A2n^k 1)^T : k = 0..rounds } -- a short sum of rank-1
+outer products of k-step walk-count vectors. R is therefore a Gram-like
+kernel between nodes' walk-centrality profiles, NOT a pairwise "my
+neighbours match your neighbours" signal. Two consequences:
+  * per-row argmax collapses onto the one or two G2 nodes with the largest
+    profile (genuine hub collapse, by construction), so argmax diversity is
+    not a quality measure here and should not be read as one;
+  * the greedy one-to-one extraction below is what carries the signal: on a
+    near-rank-1 positive matrix it reduces to rank-matching both graphs on
+    their walk-centrality profiles, and on an exactly isomorphic, randomly
+    relabelled copy it recovers the true permutation (checked in
+    `self_test`), up to nodes whose profiles tie exactly.
+So with no prior, this baseline is best understood as a walk-centrality
+rank-matching method -- a legitimate seed-free topology floor, but expect it
+to degrade quickly under edge noise, like the other rank-matching baselines.
 
 Scalability restriction (deliberate, documented, not a bug): dense IsoRank
 is O(n1^2 * n2^2) per iteration because R is a full n1 x n2 matrix and the
@@ -53,10 +85,14 @@ from common import (DATASETS, RunRecord, capture_stderr, candidate_sets,  # noqa
 KIND = "baseline_isorank"
 
 
-def row_normalize(A: np.ndarray) -> np.ndarray:
-    row_sums = A.sum(axis=1, keepdims=True)
-    row_sums[row_sums == 0] = 1.0  # isolated node after the top-M restriction: leave its row all-zero
-    return A / row_sums
+def column_normalize(A: np.ndarray) -> np.ndarray:
+    """A @ D^-1: divide column u by deg(u), so every non-isolated column sums
+    to 1 (column-stochastic). This is Singh et al.'s 1/|N(u)| factor; see the
+    module docstring for why the row-normalized D^-1 A is wrong here.
+    """
+    col_sums = A.sum(axis=0, keepdims=True)
+    col_sums[col_sums == 0] = 1.0  # isolated node after the top-M restriction: leave its column all-zero
+    return A / col_sums
 
 
 def isorank_scores(G1: nx.Graph, nodes1: list, G2: nx.Graph, nodes2: list,
@@ -68,8 +104,8 @@ def isorank_scores(G1: nx.Graph, nodes1: list, G2: nx.Graph, nodes2: list,
     """
     A1 = nx.to_numpy_array(G1, nodelist=nodes1)
     A2 = nx.to_numpy_array(G2, nodelist=nodes2)
-    A1n = row_normalize(A1)
-    A2n = row_normalize(A2)
+    A1n = column_normalize(A1)
+    A2n = column_normalize(A2)
 
     n1, n2 = len(nodes1), len(nodes2)
     R0 = np.full((n1, n2), 1.0 / (n1 * n2), dtype=np.float64)
@@ -78,7 +114,10 @@ def isorank_scores(G1: nx.Graph, nodes1: list, G2: nx.Graph, nodes2: list,
         R = alpha * (A1n @ R @ A2n.T) + (1 - alpha) * R0
         total = R.sum()
         if total > 0:
-            R /= total  # renormalize to the probability simplex each round, or R decays/blows up geometrically with alpha<1/>1 respectively
+            # Column-stochastic A1n/A2n conserve R's total mass except what
+            # isolated nodes (all-zero columns) drop; renormalize so R stays
+            # on the probability simplex either way.
+            R /= total
         if verbose and (t + 1) % 5 == 0:
             print(f"    IsoRank round {t + 1}/{rounds}  "
                   f"max R={R.max():.3e}", file=sys.stderr)
@@ -215,62 +254,80 @@ def run(pair: Path, dataset: str, m: int = 2500, alpha: float = 0.6,
 
 
 def self_test(verbose: bool = True) -> bool:
-    """Property-based checks of the recurrence and the extraction step.
+    """Checks of the recurrence against Singh et al.'s own equation, and of
+    the whole pipeline against a case with a known answer.
 
-    This deliberately does NOT assert that IsoRank recovers a known
-    permutation. Investigating a self-relabelling failure case during
-    development surfaced a real, well-documented property of seed-free
-    IsoRank: with a uniform prior R0 (no external similarity information),
-    the bilinear recursion R <- alpha * A1n R A2n^T + (1-alpha) R0 has no
-    term that distinguishes one row from another beyond each graph's own
-    stationary (eigenvector-centrality-like) distribution, so after only a
-    handful of rounds most rows converge toward the SAME best-scoring
-    column -- a "hub collapse" where almost every node in G1 is best matched
-    to whichever handful of nodes have the highest centrality in G2. Direct
-    measurement: matching a 120-node random graph to ITSELF with the true
-    identity mapping already collapses to 2-12 distinct best-matching
-    columns across all 120 rows, even at round 1. This is exactly why
-    Singh et al.'s IsoRank is normally given an informative, non-uniform
-    R0 (e.g. sequence similarity for proteins) -- without one, as here,
-    pure topology is not enough to break the symmetry, and this baseline's
-    anchor/candidate quality should be expected to be poor on real pairs.
-    That is itself the point of including it: it is the seed-free-topology
-    floor that Adv-GD's learned embeddings have to clear.
-
-    What IS checked, because it is independent of this degeneracy and would
-    catch a real implementation bug:
-      1. Analytic invariant: with uniform R0, one round of the recurrence is
-         a no-op (R1 == R0), because row-normalized A1n/A2n map the all-ones
-         vector to itself, so A1n @ R0 @ A2n.T == R0 exactly. If row
-         normalization, the matrix products, or the per-round renormalize
-         are wrong, this breaks.
-      2. Greedy extraction, on a small hand-built R with an unambiguous
-         unique maximum per row/column (not produced by isorank_scores, so
-         it is not subject to the collapse above), recovers exactly that
-         assignment.
+    The previous version of this test asserted that one round from a uniform
+    R0 is a no-op. That is exactly the bug the module docstring describes --
+    under the correct normalization a uniform prior is a fixed point only on
+    a regular graph -- so the test was enshrining it. Checks now:
+      1. Element-wise equation: one application of the matrix recurrence
+         equals Singh et al.'s sum_{u~i} sum_{v~j} R[u,v]/(deg u * deg v),
+         computed by explicit loops, on non-regular graphs and a random R.
+         A row/column normalization mix-up fails this by O(1).
+      2. Uniform prior is not a fixed point on a non-regular graph, and one
+         round equals its closed form
+         normalize(alpha*c*(A1n 1)(A2n 1)^T + (1-alpha)*c*1 1^T).
+      3. Greedy extraction on a hand-built R with an unambiguous maximum per
+         row/column recovers that assignment exactly.
+      4. Gold standard: IsoRank on a graph and a randomly relabelled
+         isomorphic copy, followed by greedy extraction, recovers the true
+         permutation on >= 99% of nodes (the module docstring explains why
+         this holds under a uniform prior). The relabelling is random so
+         that sorted-id order carries no information; under the old row
+         normalization this check scored ~0%.
+    Per-row argmax diversity is printed but deliberately not asserted: with a
+    uniform prior it collapses by construction (module docstring).
     """
     ok = True
 
-    # 1. uniform-prior invariance
-    G = nx.gnm_random_graph(60, 150, seed=1)
-    G = nx.relabel_nodes(G, {n: str(n) for n in G.nodes()})
-    nodes_g = sorted(G.nodes())
-    H = nx.gnm_random_graph(50, 120, seed=2)
-    H = nx.relabel_nodes(H, {n: str(n) for n in H.nodes()})
-    nodes_h = sorted(H.nodes())
+    def _graph(G):
+        G = nx.relabel_nodes(G, {n: f"n{n:04d}" for n in G.nodes()})
+        G.remove_nodes_from([n for n in list(G) if G.degree(n) == 0])
+        return G, sorted(G.nodes())
 
-    R1 = isorank_scores(G, nodes_g, H, nodes_h, alpha=0.6, rounds=1, verbose=False)
-    R0 = np.full(R1.shape, 1.0 / (len(nodes_g) * len(nodes_h)))
-    max_diff = np.abs(R1 - R0).max()
-    if max_diff > 1e-9:
-        print(f"  [FAIL] one round with uniform R0 should be a no-op; "
-              f"max |R1 - R0| = {max_diff:.3e}", file=sys.stderr)
+    G, nodes_g = _graph(nx.gnm_random_graph(60, 150, seed=1))
+    H, nodes_h = _graph(nx.gnm_random_graph(50, 120, seed=2))
+    alpha = 0.6
+
+    # 1. element-wise Singh et al. equation vs. the matrix form
+    A1n = column_normalize(nx.to_numpy_array(G, nodelist=nodes_g))
+    A2n = column_normalize(nx.to_numpy_array(H, nodelist=nodes_h))
+    rng = np.random.default_rng(0)
+    Rr = rng.uniform(size=(len(nodes_g), len(nodes_h)))
+    ig = {u: k for k, u in enumerate(nodes_g)}
+    ih = {v: k for k, v in enumerate(nodes_h)}
+    ref = np.array([[sum(Rr[ig[u], ih[v]] / (G.degree(u) * H.degree(v))
+                         for u in G[i] for v in H[j])
+                     for j in nodes_h] for i in nodes_g])
+    diff = np.abs(A1n @ Rr @ A2n.T - ref).max()
+    if diff > 1e-12:
+        print(f"  [FAIL] matrix recurrence != Singh et al. element-wise "
+              f"equation; max diff {diff:.3e}", file=sys.stderr)
         ok = False
     else:
-        print(f"  [PASS] uniform-prior invariance holds (max diff {max_diff:.1e})",
-              file=sys.stderr)
+        print(f"  [PASS] matrix recurrence matches Singh et al.'s element-wise "
+              f"equation (max diff {diff:.1e})", file=sys.stderr)
 
-    # 2. greedy extraction on an unambiguous hand-built matrix
+    # 2. uniform prior is not a fixed point; round 1 equals its closed form
+    R1 = isorank_scores(G, nodes_g, H, nodes_h, alpha=alpha, rounds=1, verbose=False)
+    c = 1.0 / (len(nodes_g) * len(nodes_h))
+    closed = (alpha * c * np.outer(A1n.sum(axis=1), A2n.sum(axis=1))
+              + (1 - alpha) * c)
+    closed /= closed.sum()
+    moved = np.abs(R1 - c).max()
+    off = np.abs(R1 - closed).max()
+    if moved < 1e-3 * c or off > 1e-15:
+        print(f"  [FAIL] round 1 from uniform R0: max |R1 - R0| = {moved:.3e} "
+              f"(must be clearly nonzero), max |R1 - closed form| = {off:.3e}",
+              file=sys.stderr)
+        ok = False
+    else:
+        print(f"  [PASS] uniform R0 is not a fixed point (max |R1 - R0| = "
+              f"{moved:.3e} = {moved / c:.2f} x R0) and round 1 matches its "
+              f"closed form (max diff {off:.1e})", file=sys.stderr)
+
+    # 3. greedy extraction on an unambiguous hand-built matrix
     rng = np.random.default_rng(3)
     n = 8
     perm_true = rng.permutation(n)
@@ -289,14 +346,28 @@ def self_test(verbose: bool = True) -> bool:
         print(f"  [PASS] greedy extraction recovers an unambiguous assignment exactly",
               file=sys.stderr)
 
-    # informational: quantify the collapse on a self-match, so a reader of
-    # the test output sees the same evidence that motivated checks 1 and 2
-    R_self = isorank_scores(G, nodes_g, G, nodes_g, alpha=0.6, rounds=10, verbose=False)
-    distinct_cols = len({int(R_self[i].argmax()) for i in range(len(nodes_g))})
-    print(f"  [INFO] matching a {len(nodes_g)}-node graph to itself (true identity "
-          f"mapping) collapses to only {distinct_cols} distinct best-matching "
-          f"columns across all rows after 10 rounds -- expected hub-collapse, "
-          f"not a bug", file=sys.stderr)
+    # 4. gold standard: randomly relabelled isomorphic copy
+    for name, base in (("gnm(300, 900)", nx.gnm_random_graph(300, 900, seed=1)),
+                       ("barabasi_albert(300, 3)",
+                        nx.barabasi_albert_graph(300, 3, seed=1))):
+        Gi, nodes_i = _graph(base)
+        perm = np.random.default_rng(7).permutation(len(nodes_i))
+        truth = {u: f"m{perm[k]:04d}" for k, u in enumerate(nodes_i)}
+        Hi = nx.relabel_nodes(Gi, truth)
+        nodes_j = sorted(Hi.nodes())
+        R = isorank_scores(Gi, nodes_i, Hi, nodes_j, alpha=alpha, rounds=20,
+                           verbose=False)
+        got = dict(greedy_extraction(R, nodes_i, nodes_j))
+        acc = sum(got.get(u) == truth[u] for u in nodes_i) / len(nodes_i)
+        distinct = len(set(R.argmax(axis=1).tolist()))
+        tag = "PASS" if acc >= 0.99 else "FAIL"
+        ok &= acc >= 0.99
+        print(f"  [{tag}] {name} vs. a randomly relabelled isomorphic copy: "
+              f"greedy extraction recovers {acc:.4f} of the true permutation "
+              f"(need >= 0.99)", file=sys.stderr)
+        print(f"  [INFO]   per-row argmax hits only {distinct}/{len(nodes_i)} "
+              f"distinct columns -- the expected uniform-prior collapse, "
+              f"not a failure", file=sys.stderr)
 
     print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
     return ok

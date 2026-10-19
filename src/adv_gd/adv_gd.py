@@ -10,7 +10,9 @@ propagation and reports chi and gamma.
 
 Embeddings are cached as Z1.npz / Z2.npz inside the pair directory, because
 Phase 1 costs about two minutes per graph and Phase 2 is where the parameters
-actually get swept.
+actually get swept. Tasks sharing a pair directory serialize on Z1.npz.lock /
+Z2.npz.lock, so each embedding is trained once and every task uses that one
+(see `embed_cached`).
 
 CLI:
     python src/adv_gd/adv_gd.py --pair runs/cit-HepTh_b10_s0 --dataset hepth
@@ -20,14 +22,24 @@ CLI:
 from __future__ import annotations
 
 import argparse
+import fcntl
+import hashlib
 import json
 import os
 import sys
 import time
+import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
-import networkx as nx
-import numpy as np
+# cuBLAS reads this when it creates its first handle, so it has to be in the
+# environment before the first CUDA matmul; torch.use_deterministic_algorithms
+# refuses every cuBLAS call without it. Set before torch is imported to be safe.
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+
+import networkx as nx  # noqa: E402
+import numpy as np     # noqa: E402
+import torch           # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -78,6 +90,80 @@ def load_pair(pair: Path) -> tuple[nx.Graph, nx.Graph, dict, dict]:
     return Ga, Gu, truth, stats
 
 
+def _load_cache(G: nx.Graph, path: Path, want: dict,
+                verbose: bool) -> tuple[np.ndarray, list] | None:
+    """(Z, nodes) from `path` if it holds an embedding of G built as `want`."""
+    if not path.exists():
+        return None
+    blob = np.load(path, allow_pickle=True)
+    nodes = [str(x) for x in blob["nodes"]]
+    cached = {k: int(blob[k]) for k in ("epochs", "dim", "seed") if k in blob}
+    if set(nodes) != set(G.nodes()):
+        print(f"  {path.name} is for a different graph; re-embedding",
+              file=sys.stderr)
+        return None
+    if cached != want:
+        print(f"  {path.name} was built as {cached or 'unrecorded'}, "
+              f"need {want}; re-embedding", file=sys.stderr)
+        return None
+    if verbose:
+        print(f"  reusing {path.name} ({len(nodes):,} nodes, "
+              f"{want['epochs']} epochs)", file=sys.stderr)
+    return blob["Z"], nodes
+
+
+@contextmanager
+def _cache_lock(path: Path):
+    """Hold an exclusive fcntl lock on `<path>.lock` for the duration.
+
+    /home and /data are NFSv4 mounted with local_lock=none, so the lock is held
+    on the server and excludes tasks on other nodes too; it is released when
+    the holder's file is closed, including by a killed process. The lock file
+    is never deleted: unlinking it while one task waits on it would let a
+    third lock a fresh inode alongside the second.
+    """
+    with open(path.with_name(path.name + ".lock"), "a") as fh:
+        fcntl.lockf(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.lockf(fh, fcntl.LOCK_UN)
+
+
+def _revalidate_dir(d: Path) -> None:
+    """Make this NFS client stop trusting its cached lookups in `d`.
+
+    Taking the lock does not refresh the directory. Measured here on
+    2026-10-18: a task that had looked for a cache, blocked on the lock, and
+    acquired it the moment a task on another node renamed the cache into place
+    still saw no file for 19-20 s, until the directory's attribute cache timed
+    out -- long enough to train a second embedding. Creating a file in the
+    directory makes the server report its change attribute, which drops those
+    cached misses; with this the file was visible at once.
+    """
+    probe = d / f".{uuid.uuid4().hex}.revalidate"
+    probe.touch()
+    probe.unlink()
+
+
+@contextmanager
+def _deterministic_torch():
+    """torch.use_deterministic_algorithms(True) for the duration, then restored."""
+    prev = torch.are_deterministic_algorithms_enabled()
+    prev_warn = torch.is_deterministic_algorithms_warn_only_enabled()
+    torch.use_deterministic_algorithms(True)
+    try:
+        yield
+    finally:
+        torch.use_deterministic_algorithms(prev, warn_only=prev_warn)
+
+
+def z_sha256(Z: np.ndarray) -> str:
+    """Hash of the embedding's exact float32 contents, for the run record."""
+    return hashlib.sha256(np.ascontiguousarray(Z, dtype=np.float32)
+                          .tobytes()).hexdigest()
+
+
 def embed_cached(G: nx.Graph, path: Path, dim: int, seed: int, refresh: bool,  # noqa: E501
                  epochs: int = GAE_EPOCHS,
                  verbose: bool = True) -> tuple[np.ndarray, list]:
@@ -90,32 +176,47 @@ def embed_cached(G: nx.Graph, path: Path, dim: int, seed: int, refresh: bool,  #
     from 0.82 to 0.97, so quietly reusing the wrong one would invalidate the
     run without any sign of it. Older caches carry no settings, so they are
     rejected rather than trusted.
+
+    Concurrency. The align-seed repeats and the ablation of one sweep cell run
+    as concurrent array tasks on one pair directory. Before 2026-10-18 they all
+    missed the empty cache together, each trained its own GAE, each ran Phase 2
+    on its own in-memory copy, and the last os.replace decided which copy
+    stayed on disk. CUDA training was not bit-reproducible, so those repeats
+    silently used different embeddings (cit-HepTh_b16_s0: four align seeds,
+    four auc_g1 values). Now a task that misses takes the cache's lock, looks
+    again, and trains only if it is still missing; the others wait and load
+    what it wrote. That -- not the deterministic mode below -- is what gives
+    every task of a sweep the same embedding: the job constraint admits two GPU
+    architectures, and determinism holds only per device and torch build.
     """
-    if path.exists() and not refresh:
-        blob = np.load(path, allow_pickle=True)
-        nodes = [str(x) for x in blob["nodes"]]
-        cached = {k: int(blob[k]) for k in ("epochs", "dim", "seed")
-                  if k in blob}
-        want = {"epochs": epochs, "dim": dim, "seed": seed}
-        if set(nodes) != set(G.nodes()):
-            print(f"  {path.name} is for a different graph; re-embedding",
-                  file=sys.stderr)
-        elif cached != want:
-            print(f"  {path.name} was built as {cached or 'unrecorded'}, "
-                  f"need {want}; re-embedding", file=sys.stderr)
-        else:
-            if verbose:
-                print(f"  reusing {path.name} ({len(nodes):,} nodes, "
-                      f"{epochs} epochs)", file=sys.stderr)
-            return blob["Z"], nodes
-    Z, nodes = gae_embed(G, dim=dim, epochs=epochs, seed=seed, verbose=verbose)
-    # Write-then-rename. Several cluster jobs can share a pair directory, and a
-    # direct savez to the final path lets one job read another's half-written
-    # file. os.replace is atomic within a filesystem.
-    tmp = path.with_suffix(f".{os.getpid()}.tmp.npz")
-    np.savez_compressed(tmp, Z=Z, nodes=np.array(nodes, dtype=object),
-                        epochs=epochs, dim=dim, seed=seed)
-    os.replace(tmp, path)
+    want = {"epochs": epochs, "dim": dim, "seed": seed}
+    if not refresh:
+        hit = _load_cache(G, path, want, verbose=verbose)
+        if hit is not None:
+            return hit
+    with _cache_lock(path):
+        if not refresh:
+            _revalidate_dir(path.parent)
+            hit = _load_cache(G, path, want, verbose=False)
+            if hit is not None:
+                if verbose:
+                    print(f"  {path.name} was written by another task while "
+                          f"this one waited; reusing it", file=sys.stderr)
+                return hit
+        with _deterministic_torch():
+            Z, nodes = gae_embed(G, dim=dim, epochs=epochs, seed=seed,
+                                 verbose=verbose)
+        # Write-then-rename, still under the lock: the fast path above reads
+        # without it, and must never see a half-written file. The temporary
+        # name was once keyed on os.getpid(), but `apptainer --containall`
+        # gives every task its own PID namespace, so concurrent tasks were all
+        # pid 13-15: two of them wrote the same Z2.13.tmp.npz, one renamed the
+        # other's file (possibly half-written) into place, and the second
+        # os.replace died with FileNotFoundError (reproduced 2026-10-18).
+        tmp = path.with_name(f"{path.stem}.{uuid.uuid4().hex}.tmp.npz")
+        np.savez_compressed(tmp, Z=Z, nodes=np.array(nodes, dtype=object),
+                            epochs=epochs, dim=dim, seed=seed)
+        os.replace(tmp, path)
     return Z, nodes
 
 
@@ -194,7 +295,8 @@ def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
                         refine_history=out.get("refine_history"),
                         config=out.get("config", resolved))
                 rec.metric(**{k: out.get(k) for k in
-                              ("auc_g1", "auc_g2", "anchors_found",
+                              ("auc_g1", "auc_g2", "z1_sha256", "z2_sha256",
+                               "anchors_found",
                                "anchors_correct", "anchor_precision",
                                "paper_correct", "paper_found", "mapped",
                                "correct", "chi", "gamma")})
@@ -241,6 +343,10 @@ def _run_phases(pair: Path, params: dict, Ga, Gu, truth: dict, stats: dict,
         "gae_epochs": gae_epochs,
         "auc_g1": auc_a,
         "auc_g2": auc_u,
+        # Which embedding this run actually used. Two runs of one pair that
+        # disagree here did not share Phase 1, whatever their gae_seed says.
+        "z1_sha256": z_sha256(Za),
+        "z2_sha256": z_sha256(Zu),
         "anchors_found": score["found"],
         "anchors_correct": score["correct"],
         "anchor_precision": score["precision"],

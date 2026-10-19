@@ -1,0 +1,521 @@
+diff --git a/.gitignore b/.gitignore
+index 73b3fae..9425a57 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -47,6 +47,7 @@ proposal.pdf
+ # them; git ignoring a file does not hide it from the filesystem.
+ CLAUDE.md
+ SeedFree_Li.etal.pdf
++docs/some-context.txt
+ 
+ # OS cruft
+ .DS_Store
+diff --git a/src/adv_gd/adv_gd.py b/src/adv_gd/adv_gd.py
+index 2fb550b..938cf8e 100644
+--- a/src/adv_gd/adv_gd.py
++++ b/src/adv_gd/adv_gd.py
+@@ -10,7 +10,9 @@ propagation and reports chi and gamma.
+ 
+ Embeddings are cached as Z1.npz / Z2.npz inside the pair directory, because
+ Phase 1 costs about two minutes per graph and Phase 2 is where the parameters
+-actually get swept.
++actually get swept. Tasks sharing a pair directory serialize on Z1.npz.lock /
++Z2.npz.lock, so each embedding is trained once and every task uses that one
++(see `embed_cached`).
+ 
+ CLI:
+     python src/adv_gd/adv_gd.py --pair runs/cit-HepTh_b10_s0 --dataset hepth
+@@ -20,14 +22,24 @@ CLI:
+ from __future__ import annotations
+ 
+ import argparse
++import fcntl
++import hashlib
+ import json
+ import os
+ import sys
+ import time
++import uuid
++from contextlib import contextmanager
+ from pathlib import Path
+ 
+-import networkx as nx
+-import numpy as np
++# cuBLAS reads this when it creates its first handle, so it has to be in the
++# environment before the first CUDA matmul; torch.use_deterministic_algorithms
++# refuses every cuBLAS call without it. Set before torch is imported to be safe.
++os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
++
++import networkx as nx  # noqa: E402
++import numpy as np     # noqa: E402
++import torch           # noqa: E402
+ 
+ sys.path.insert(0, str(Path(__file__).resolve().parent))
+ 
+@@ -78,6 +90,80 @@ def load_pair(pair: Path) -> tuple[nx.Graph, nx.Graph, dict, dict]:
+     return Ga, Gu, truth, stats
+ 
+ 
++def _load_cache(G: nx.Graph, path: Path, want: dict,
++                verbose: bool) -> tuple[np.ndarray, list] | None:
++    """(Z, nodes) from `path` if it holds an embedding of G built as `want`."""
++    if not path.exists():
++        return None
++    blob = np.load(path, allow_pickle=True)
++    nodes = [str(x) for x in blob["nodes"]]
++    cached = {k: int(blob[k]) for k in ("epochs", "dim", "seed") if k in blob}
++    if set(nodes) != set(G.nodes()):
++        print(f"  {path.name} is for a different graph; re-embedding",
++              file=sys.stderr)
++        return None
++    if cached != want:
++        print(f"  {path.name} was built as {cached or 'unrecorded'}, "
++              f"need {want}; re-embedding", file=sys.stderr)
++        return None
++    if verbose:
++        print(f"  reusing {path.name} ({len(nodes):,} nodes, "
++              f"{want['epochs']} epochs)", file=sys.stderr)
++    return blob["Z"], nodes
++
++
++@contextmanager
++def _cache_lock(path: Path):
++    """Hold an exclusive fcntl lock on `<path>.lock` for the duration.
++
++    /home and /data are NFSv4 mounted with local_lock=none, so the lock is held
++    on the server and excludes tasks on other nodes too; it is released when
++    the holder's file is closed, including by a killed process. The lock file
++    is never deleted: unlinking it while one task waits on it would let a
++    third lock a fresh inode alongside the second.
++    """
++    with open(path.with_name(path.name + ".lock"), "a") as fh:
++        fcntl.lockf(fh, fcntl.LOCK_EX)
++        try:
++            yield
++        finally:
++            fcntl.lockf(fh, fcntl.LOCK_UN)
++
++
++def _revalidate_dir(d: Path) -> None:
++    """Make this NFS client stop trusting its cached lookups in `d`.
++
++    Taking the lock does not refresh the directory. Measured here on
++    2026-10-18: a task that had looked for a cache, blocked on the lock, and
++    acquired it the moment a task on another node renamed the cache into place
++    still saw no file for 19-20 s, until the directory's attribute cache timed
++    out -- long enough to train a second embedding. Creating a file in the
++    directory makes the server report its change attribute, which drops those
++    cached misses; with this the file was visible at once.
++    """
++    probe = d / f".{uuid.uuid4().hex}.revalidate"
++    probe.touch()
++    probe.unlink()
++
++
++@contextmanager
++def _deterministic_torch():
++    """torch.use_deterministic_algorithms(True) for the duration, then restored."""
++    prev = torch.are_deterministic_algorithms_enabled()
++    prev_warn = torch.is_deterministic_algorithms_warn_only_enabled()
++    torch.use_deterministic_algorithms(True)
++    try:
++        yield
++    finally:
++        torch.use_deterministic_algorithms(prev, warn_only=prev_warn)
++
++
++def z_sha256(Z: np.ndarray) -> str:
++    """Hash of the embedding's exact float32 contents, for the run record."""
++    return hashlib.sha256(np.ascontiguousarray(Z, dtype=np.float32)
++                          .tobytes()).hexdigest()
++
++
+ def embed_cached(G: nx.Graph, path: Path, dim: int, seed: int, refresh: bool,  # noqa: E501
+                  epochs: int = GAE_EPOCHS,
+                  verbose: bool = True) -> tuple[np.ndarray, list]:
+@@ -90,32 +176,47 @@ def embed_cached(G: nx.Graph, path: Path, dim: int, seed: int, refresh: bool,  #
+     from 0.82 to 0.97, so quietly reusing the wrong one would invalidate the
+     run without any sign of it. Older caches carry no settings, so they are
+     rejected rather than trusted.
++
++    Concurrency. The align-seed repeats and the ablation of one sweep cell run
++    as concurrent array tasks on one pair directory. Before 2026-10-18 they all
++    missed the empty cache together, each trained its own GAE, each ran Phase 2
++    on its own in-memory copy, and the last os.replace decided which copy
++    stayed on disk. CUDA training was not bit-reproducible, so those repeats
++    silently used different embeddings (cit-HepTh_b16_s0: four align seeds,
++    four auc_g1 values). Now a task that misses takes the cache's lock, looks
++    again, and trains only if it is still missing; the others wait and load
++    what it wrote. That -- not the deterministic mode below -- is what gives
++    every task of a sweep the same embedding: the job constraint admits two GPU
++    architectures, and determinism holds only per device and torch build.
+     """
+-    if path.exists() and not refresh:
+-        blob = np.load(path, allow_pickle=True)
+-        nodes = [str(x) for x in blob["nodes"]]
+-        cached = {k: int(blob[k]) for k in ("epochs", "dim", "seed")
+-                  if k in blob}
+-        want = {"epochs": epochs, "dim": dim, "seed": seed}
+-        if set(nodes) != set(G.nodes()):
+-            print(f"  {path.name} is for a different graph; re-embedding",
+-                  file=sys.stderr)
+-        elif cached != want:
+-            print(f"  {path.name} was built as {cached or 'unrecorded'}, "
+-                  f"need {want}; re-embedding", file=sys.stderr)
+-        else:
+-            if verbose:
+-                print(f"  reusing {path.name} ({len(nodes):,} nodes, "
+-                      f"{epochs} epochs)", file=sys.stderr)
+-            return blob["Z"], nodes
+-    Z, nodes = gae_embed(G, dim=dim, epochs=epochs, seed=seed, verbose=verbose)
+-    # Write-then-rename. Several cluster jobs can share a pair directory, and a
+-    # direct savez to the final path lets one job read another's half-written
+-    # file. os.replace is atomic within a filesystem.
+-    tmp = path.with_suffix(f".{os.getpid()}.tmp.npz")
+-    np.savez_compressed(tmp, Z=Z, nodes=np.array(nodes, dtype=object),
+-                        epochs=epochs, dim=dim, seed=seed)
+-    os.replace(tmp, path)
++    want = {"epochs": epochs, "dim": dim, "seed": seed}
++    if not refresh:
++        hit = _load_cache(G, path, want, verbose=verbose)
++        if hit is not None:
++            return hit
++    with _cache_lock(path):
++        if not refresh:
++            _revalidate_dir(path.parent)
++            hit = _load_cache(G, path, want, verbose=False)
++            if hit is not None:
++                if verbose:
++                    print(f"  {path.name} was written by another task while "
++                          f"this one waited; reusing it", file=sys.stderr)
++                return hit
++        with _deterministic_torch():
++            Z, nodes = gae_embed(G, dim=dim, epochs=epochs, seed=seed,
++                                 verbose=verbose)
++        # Write-then-rename, still under the lock: the fast path above reads
++        # without it, and must never see a half-written file. The temporary
++        # name was once keyed on os.getpid(), but `apptainer --containall`
++        # gives every task its own PID namespace, so concurrent tasks were all
++        # pid 13-15: two of them wrote the same Z2.13.tmp.npz, one renamed the
++        # other's file (possibly half-written) into place, and the second
++        # os.replace died with FileNotFoundError (reproduced 2026-10-18).
++        tmp = path.with_name(f"{path.stem}.{uuid.uuid4().hex}.tmp.npz")
++        np.savez_compressed(tmp, Z=Z, nodes=np.array(nodes, dtype=object),
++                            epochs=epochs, dim=dim, seed=seed)
++        os.replace(tmp, path)
+     return Z, nodes
+ 
+ 
+@@ -194,7 +295,8 @@ def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
+                         refine_history=out.get("refine_history"),
+                         config=out.get("config", resolved))
+                 rec.metric(**{k: out.get(k) for k in
+-                              ("auc_g1", "auc_g2", "anchors_found",
++                              ("auc_g1", "auc_g2", "z1_sha256", "z2_sha256",
++                               "anchors_found",
+                                "anchors_correct", "anchor_precision",
+                                "paper_correct", "paper_found", "mapped",
+                                "correct", "chi", "gamma")})
+@@ -241,6 +343,10 @@ def _run_phases(pair: Path, params: dict, Ga, Gu, truth: dict, stats: dict,
+         "gae_epochs": gae_epochs,
+         "auc_g1": auc_a,
+         "auc_g2": auc_u,
++        # Which embedding this run actually used. Two runs of one pair that
++        # disagree here did not share Phase 1, whatever their gae_seed says.
++        "z1_sha256": z_sha256(Za),
++        "z2_sha256": z_sha256(Zu),
+         "anchors_found": score["found"],
+         "anchors_correct": score["correct"],
+         "anchor_precision": score["precision"],
+diff --git a/src/adv_gd/sweep.py b/src/adv_gd/sweep.py
+index 2e5b5a5..8879bda 100644
+--- a/src/adv_gd/sweep.py
++++ b/src/adv_gd/sweep.py
+@@ -70,9 +70,10 @@ def build_plan(args) -> list[dict]:
+ 
+     Ordered beta-major so that consecutive task ids share a pair, and therefore
+     a Phase 1 embedding cache: cell 0 pays for the GAEs and cells 1..k-1 of the
+-    same beta read them. On a cluster that runs the array concurrently this
+-    saves nothing (they all miss the cache at once) and is still the right order
+-    for a serial loop, which is how a GPU-poor run of this will happen.
++    same beta read them. On a cluster that runs the array concurrently, the
++    cells of one beta queue on the cache's lock while the first trains (see
++    `adv_gd.embed_cached`); before 2026-10-18 they all missed the cache at once
++    and each trained, and used, its own embedding.
+     """
+     stem = PARENTS[args.dataset].stem.replace(".", "_")
+     root = Path(args.out)
+diff --git a/src/baselines/isorank.py b/src/baselines/isorank.py
+index 83efff5..c427ae0 100644
+--- a/src/baselines/isorank.py
++++ b/src/baselines/isorank.py
+@@ -3,17 +3,49 @@ alignment by power-iterating a product-graph eigenproblem, with no learned
+ embedding and no training.
+ 
+ IsoRank's recurrence treats "node i in G1 matches node j in G2" as a kind of
+-PageRank mass that flows along edges in both graphs at once:
+-
+-    R <- alpha * A1n @ R @ A2n^T + (1 - alpha) * R0
+-
+-where A1n/A2n are row-normalized adjacency matrices and R0 is the prior (here
+-uniform, since this is the seed-free setting -- classic IsoRank is usually
+-given a sequence- or attribute-based prior, which does not exist for these
+-synthetic perturbation pairs). At convergence, R[i, j] is high when i and j
+-are "topologically similar": high-R neighbours of i's neighbours tend to map
+-to high-R neighbours of j's neighbours, recursively. alpha=0.6 and 20 rounds
+-are Singh et al.'s own defaults, both exposed as CLI flags.
++PageRank mass that flows along edges in both graphs at once. Singh et al.'s
++element-wise form is
++
++    R[i, j] = sum_{u in N(i)} sum_{v in N(j)} R[u, v] / (|N(u)| |N(v)|)
++
++-- each neighbour pair (u, v) *distributes* its score over its own
++neighbourhoods, dividing by the NEIGHBOUR's degree. In matrix form, with the
++prior mixed in:
++
++    R <- alpha * A1n @ R @ A2n^T + (1 - alpha) * R0,   Akn = Ak @ Dk^-1
++
++i.e. A1n/A2n are COLUMN-normalized (column-stochastic) adjacency matrices,
++and R0 is the prior (here uniform, since this is the seed-free setting --
++classic IsoRank is usually given a sequence- or attribute-based prior, which
++does not exist for these synthetic perturbation pairs). alpha=0.6 and 20
++rounds are Singh et al.'s own defaults, both exposed as CLI flags.
++
++Bug fixed 2026-10-18: this file previously ROW-normalized (D^-1 A), which
++divides by the degree of i and j themselves and so *averages* the neighbour
++scores instead of distributing them. Averaging a constant returns the same
++constant, so a uniform R0 was an exact fixed point: R never moved off
++1/(n1*n2), every "argmax" was a floating-point tie-break, and the old
++"hub collapse" reading of the resulting 2404/2500-shared-argmax rows on the
++beta=0 HepTh pair was a misdiagnosis of a signal-free matrix. Every
++baseline_isorank record before this date was produced by that bug.
++
++What a uniform prior can and cannot give (derivation, not tuning): starting
++from R0 = c 1 1^T, the recurrence keeps R inside
++span{ (A1n^k 1)(A2n^k 1)^T : k = 0..rounds } -- a short sum of rank-1
++outer products of k-step walk-count vectors. R is therefore a Gram-like
++kernel between nodes' walk-centrality profiles, NOT a pairwise "my
++neighbours match your neighbours" signal. Two consequences:
++  * per-row argmax collapses onto the one or two G2 nodes with the largest
++    profile (genuine hub collapse, by construction), so argmax diversity is
++    not a quality measure here and should not be read as one;
++  * the greedy one-to-one extraction below is what carries the signal: on a
++    near-rank-1 positive matrix it reduces to rank-matching both graphs on
++    their walk-centrality profiles, and on an exactly isomorphic, randomly
++    relabelled copy it recovers the true permutation (checked in
++    `self_test`), up to nodes whose profiles tie exactly.
++So with no prior, this baseline is best understood as a walk-centrality
++rank-matching method -- a legitimate seed-free topology floor, but expect it
++to degrade quickly under edge noise, like the other rank-matching baselines.
+ 
+ Scalability restriction (deliberate, documented, not a bug): dense IsoRank
+ is O(n1^2 * n2^2) per iteration because R is a full n1 x n2 matrix and the
+@@ -53,10 +85,14 @@ from common import (DATASETS, RunRecord, capture_stderr, candidate_sets,  # noqa
+ KIND = "baseline_isorank"
+ 
+ 
+-def row_normalize(A: np.ndarray) -> np.ndarray:
+-    row_sums = A.sum(axis=1, keepdims=True)
+-    row_sums[row_sums == 0] = 1.0  # isolated node after the top-M restriction: leave its row all-zero
+-    return A / row_sums
++def column_normalize(A: np.ndarray) -> np.ndarray:
++    """A @ D^-1: divide column u by deg(u), so every non-isolated column sums
++    to 1 (column-stochastic). This is Singh et al.'s 1/|N(u)| factor; see the
++    module docstring for why the row-normalized D^-1 A is wrong here.
++    """
++    col_sums = A.sum(axis=0, keepdims=True)
++    col_sums[col_sums == 0] = 1.0  # isolated node after the top-M restriction: leave its column all-zero
++    return A / col_sums
+ 
+ 
+ def isorank_scores(G1: nx.Graph, nodes1: list, G2: nx.Graph, nodes2: list,
+@@ -68,8 +104,8 @@ def isorank_scores(G1: nx.Graph, nodes1: list, G2: nx.Graph, nodes2: list,
+     """
+     A1 = nx.to_numpy_array(G1, nodelist=nodes1)
+     A2 = nx.to_numpy_array(G2, nodelist=nodes2)
+-    A1n = row_normalize(A1)
+-    A2n = row_normalize(A2)
++    A1n = column_normalize(A1)
++    A2n = column_normalize(A2)
+ 
+     n1, n2 = len(nodes1), len(nodes2)
+     R0 = np.full((n1, n2), 1.0 / (n1 * n2), dtype=np.float64)
+@@ -78,7 +114,10 @@ def isorank_scores(G1: nx.Graph, nodes1: list, G2: nx.Graph, nodes2: list,
+         R = alpha * (A1n @ R @ A2n.T) + (1 - alpha) * R0
+         total = R.sum()
+         if total > 0:
+-            R /= total  # renormalize to the probability simplex each round, or R decays/blows up geometrically with alpha<1/>1 respectively
++            # Column-stochastic A1n/A2n conserve R's total mass except what
++            # isolated nodes (all-zero columns) drop; renormalize so R stays
++            # on the probability simplex either way.
++            R /= total
+         if verbose and (t + 1) % 5 == 0:
+             print(f"    IsoRank round {t + 1}/{rounds}  "
+                   f"max R={R.max():.3e}", file=sys.stderr)
+@@ -215,62 +254,80 @@ def run(pair: Path, dataset: str, m: int = 2500, alpha: float = 0.6,
+ 
+ 
+ def self_test(verbose: bool = True) -> bool:
+-    """Property-based checks of the recurrence and the extraction step.
+-
+-    This deliberately does NOT assert that IsoRank recovers a known
+-    permutation. Investigating a self-relabelling failure case during
+-    development surfaced a real, well-documented property of seed-free
+-    IsoRank: with a uniform prior R0 (no external similarity information),
+-    the bilinear recursion R <- alpha * A1n R A2n^T + (1-alpha) R0 has no
+-    term that distinguishes one row from another beyond each graph's own
+-    stationary (eigenvector-centrality-like) distribution, so after only a
+-    handful of rounds most rows converge toward the SAME best-scoring
+-    column -- a "hub collapse" where almost every node in G1 is best matched
+-    to whichever handful of nodes have the highest centrality in G2. Direct
+-    measurement: matching a 120-node random graph to ITSELF with the true
+-    identity mapping already collapses to 2-12 distinct best-matching
+-    columns across all 120 rows, even at round 1. This is exactly why
+-    Singh et al.'s IsoRank is normally given an informative, non-uniform
+-    R0 (e.g. sequence similarity for proteins) -- without one, as here,
+-    pure topology is not enough to break the symmetry, and this baseline's
+-    anchor/candidate quality should be expected to be poor on real pairs.
+-    That is itself the point of including it: it is the seed-free-topology
+-    floor that Adv-GD's learned embeddings have to clear.
+-
+-    What IS checked, because it is independent of this degeneracy and would
+-    catch a real implementation bug:
+-      1. Analytic invariant: with uniform R0, one round of the recurrence is
+-         a no-op (R1 == R0), because row-normalized A1n/A2n map the all-ones
+-         vector to itself, so A1n @ R0 @ A2n.T == R0 exactly. If row
+-         normalization, the matrix products, or the per-round renormalize
+-         are wrong, this breaks.
+-      2. Greedy extraction, on a small hand-built R with an unambiguous
+-         unique maximum per row/column (not produced by isorank_scores, so
+-         it is not subject to the collapse above), recovers exactly that
+-         assignment.
++    """Checks of the recurrence against Singh et al.'s own equation, and of
++    the whole pipeline against a case with a known answer.
++
++    The previous version of this test asserted that one round from a uniform
++    R0 is a no-op. That is exactly the bug the module docstring describes --
++    under the correct normalization a uniform prior is a fixed point only on
++    a regular graph -- so the test was enshrining it. Checks now:
++      1. Element-wise equation: one application of the matrix recurrence
++         equals Singh et al.'s sum_{u~i} sum_{v~j} R[u,v]/(deg u * deg v),
++         computed by explicit loops, on non-regular graphs and a random R.
++         A row/column normalization mix-up fails this by O(1).
++      2. Uniform prior is not a fixed point on a non-regular graph, and one
++         round equals its closed form
++         normalize(alpha*c*(A1n 1)(A2n 1)^T + (1-alpha)*c*1 1^T).
++      3. Greedy extraction on a hand-built R with an unambiguous maximum per
++         row/column recovers that assignment exactly.
++      4. Gold standard: IsoRank on a graph and a randomly relabelled
++         isomorphic copy, followed by greedy extraction, recovers the true
++         permutation on >= 99% of nodes (the module docstring explains why
++         this holds under a uniform prior). The relabelling is random so
++         that sorted-id order carries no information; under the old row
++         normalization this check scored ~0%.
++    Per-row argmax diversity is printed but deliberately not asserted: with a
++    uniform prior it collapses by construction (module docstring).
+     """
+     ok = True
+ 
+-    # 1. uniform-prior invariance
+-    G = nx.gnm_random_graph(60, 150, seed=1)
+-    G = nx.relabel_nodes(G, {n: str(n) for n in G.nodes()})
+-    nodes_g = sorted(G.nodes())
+-    H = nx.gnm_random_graph(50, 120, seed=2)
+-    H = nx.relabel_nodes(H, {n: str(n) for n in H.nodes()})
+-    nodes_h = sorted(H.nodes())
+-
+-    R1 = isorank_scores(G, nodes_g, H, nodes_h, alpha=0.6, rounds=1, verbose=False)
+-    R0 = np.full(R1.shape, 1.0 / (len(nodes_g) * len(nodes_h)))
+-    max_diff = np.abs(R1 - R0).max()
+-    if max_diff > 1e-9:
+-        print(f"  [FAIL] one round with uniform R0 should be a no-op; "
+-              f"max |R1 - R0| = {max_diff:.3e}", file=sys.stderr)
++    def _graph(G):
++        G = nx.relabel_nodes(G, {n: f"n{n:04d}" for n in G.nodes()})
++        G.remove_nodes_from([n for n in list(G) if G.degree(n) == 0])
++        return G, sorted(G.nodes())
++
++    G, nodes_g = _graph(nx.gnm_random_graph(60, 150, seed=1))
++    H, nodes_h = _graph(nx.gnm_random_graph(50, 120, seed=2))
++    alpha = 0.6
++
++    # 1. element-wise Singh et al. equation vs. the matrix form
++    A1n = column_normalize(nx.to_numpy_array(G, nodelist=nodes_g))
++    A2n = column_normalize(nx.to_numpy_array(H, nodelist=nodes_h))
++    rng = np.random.default_rng(0)
++    Rr = rng.uniform(size=(len(nodes_g), len(nodes_h)))
++    ig = {u: k for k, u in enumerate(nodes_g)}
++    ih = {v: k for k, v in enumerate(nodes_h)}
++    ref = np.array([[sum(Rr[ig[u], ih[v]] / (G.degree(u) * H.degree(v))
++                         for u in G[i] for v in H[j])
++                     for j in nodes_h] for i in nodes_g])
++    diff = np.abs(A1n @ Rr @ A2n.T - ref).max()
++    if diff > 1e-12:
++        print(f"  [FAIL] matrix recurrence != Singh et al. element-wise "
++              f"equation; max diff {diff:.3e}", file=sys.stderr)
+         ok = False
+     else:
+-        print(f"  [PASS] uniform-prior invariance holds (max diff {max_diff:.1e})",
++        print(f"  [PASS] matrix recurrence matches Singh et al.'s element-wise "
++              f"equation (max diff {diff:.1e})", file=sys.stderr)
++
++    # 2. uniform prior is not a fixed point; round 1 equals its closed form
++    R1 = isorank_scores(G, nodes_g, H, nodes_h, alpha=alpha, rounds=1, verbose=False)
++    c = 1.0 / (len(nodes_g) * len(nodes_h))
++    closed = (alpha * c * np.outer(A1n.sum(axis=1), A2n.sum(axis=1))
++              + (1 - alpha) * c)
++    closed /= closed.sum()
++    moved = np.abs(R1 - c).max()
++    off = np.abs(R1 - closed).max()
++    if moved < 1e-3 * c or off > 1e-15:
++        print(f"  [FAIL] round 1 from uniform R0: max |R1 - R0| = {moved:.3e} "
++              f"(must be clearly nonzero), max |R1 - closed form| = {off:.3e}",
+               file=sys.stderr)
++        ok = False
++    else:
++        print(f"  [PASS] uniform R0 is not a fixed point (max |R1 - R0| = "
++              f"{moved:.3e} = {moved / c:.2f} x R0) and round 1 matches its "
++              f"closed form (max diff {off:.1e})", file=sys.stderr)
+ 
+-    # 2. greedy extraction on an unambiguous hand-built matrix
++    # 3. greedy extraction on an unambiguous hand-built matrix
+     rng = np.random.default_rng(3)
+     n = 8
+     perm_true = rng.permutation(n)
+@@ -289,14 +346,28 @@ def self_test(verbose: bool = True) -> bool:
+         print(f"  [PASS] greedy extraction recovers an unambiguous assignment exactly",
+               file=sys.stderr)
+ 
+-    # informational: quantify the collapse on a self-match, so a reader of
+-    # the test output sees the same evidence that motivated checks 1 and 2
+-    R_self = isorank_scores(G, nodes_g, G, nodes_g, alpha=0.6, rounds=10, verbose=False)
+-    distinct_cols = len({int(R_self[i].argmax()) for i in range(len(nodes_g))})
+-    print(f"  [INFO] matching a {len(nodes_g)}-node graph to itself (true identity "
+-          f"mapping) collapses to only {distinct_cols} distinct best-matching "
+-          f"columns across all rows after 10 rounds -- expected hub-collapse, "
+-          f"not a bug", file=sys.stderr)
++    # 4. gold standard: randomly relabelled isomorphic copy
++    for name, base in (("gnm(300, 900)", nx.gnm_random_graph(300, 900, seed=1)),
++                       ("barabasi_albert(300, 3)",
++                        nx.barabasi_albert_graph(300, 3, seed=1))):
++        Gi, nodes_i = _graph(base)
++        perm = np.random.default_rng(7).permutation(len(nodes_i))
++        truth = {u: f"m{perm[k]:04d}" for k, u in enumerate(nodes_i)}
++        Hi = nx.relabel_nodes(Gi, truth)
++        nodes_j = sorted(Hi.nodes())
++        R = isorank_scores(Gi, nodes_i, Hi, nodes_j, alpha=alpha, rounds=20,
++                           verbose=False)
++        got = dict(greedy_extraction(R, nodes_i, nodes_j))
++        acc = sum(got.get(u) == truth[u] for u in nodes_i) / len(nodes_i)
++        distinct = len(set(R.argmax(axis=1).tolist()))
++        tag = "PASS" if acc >= 0.99 else "FAIL"
++        ok &= acc >= 0.99
++        print(f"  [{tag}] {name} vs. a randomly relabelled isomorphic copy: "
++              f"greedy extraction recovers {acc:.4f} of the true permutation "
++              f"(need >= 0.99)", file=sys.stderr)
++        print(f"  [INFO]   per-row argmax hits only {distinct}/{len(nodes_i)} "
++              f"distinct columns -- the expected uniform-prior collapse, "
++              f"not a failure", file=sys.stderr)
+ 
+     print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
+     return ok

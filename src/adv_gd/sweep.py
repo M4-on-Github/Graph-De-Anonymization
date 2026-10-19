@@ -70,9 +70,10 @@ def build_plan(args) -> list[dict]:
 
     Ordered beta-major so that consecutive task ids share a pair, and therefore
     a Phase 1 embedding cache: cell 0 pays for the GAEs and cells 1..k-1 of the
-    same beta read them. On a cluster that runs the array concurrently this
-    saves nothing (they all miss the cache at once) and is still the right order
-    for a serial loop, which is how a GPU-poor run of this will happen.
+    same beta read them. On a cluster that runs the array concurrently, the
+    cells of one beta queue on the cache's lock while the first trains (see
+    `adv_gd.embed_cached`); before 2026-10-18 they all missed the cache at once
+    and each trained, and used, its own embedding.
     """
     stem = PARENTS[args.dataset].stem.replace(".", "_")
     root = Path(args.out)

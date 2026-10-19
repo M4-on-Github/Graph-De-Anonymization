@@ -47,6 +47,7 @@ proposal.pdf
 # them; git ignoring a file does not hide it from the filesystem.
 CLAUDE.md
 SeedFree_Li.etal.pdf
+docs/some-context.txt
 
 # OS cruft
 .DS_Store
