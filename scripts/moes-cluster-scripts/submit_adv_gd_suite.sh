@@ -39,6 +39,14 @@
 #   --pair-seeds "L"    Pair noise draws (default "0").
 #   --align-seeds "L"   Adv-GD alignment seeds, full method only (default
 #                        matches adv_gd/sweep.py's own default "0 1 2 3").
+#   --beta-mode M       nominal | divergence (default divergence, matching
+#                        this script's original behavior). nominal deletes
+#                        each copy at the stated beta (edges diverge by
+#                        ~2*beta) -- the paper's own definition. The two
+#                        modes write to disjoint pair roots
+#                        (runs/sweep_<mode>/) so they can never collide or
+#                        silently mix; --pair-root overrides that default.
+#   --pair-root DIR     Override the pair root (default runs/sweep_<mode>/).
 #
 # Everything written outside the repo goes under
 # /data/$USER/Graph-De-Anonymization/ -- logs under logs/, same as Report 1.
@@ -56,7 +64,8 @@ LIMIT=12
 BETAS="0.0 0.1 0.2 0.3 0.4 0.5"
 PAIR_SEEDS="0"
 ALIGN_SEEDS="0 1 2 3"
-PAIR_ROOT="runs/sweep_divergence"
+BETA_MODE="divergence"
+PAIR_ROOT=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -67,6 +76,8 @@ while [[ $# -gt 0 ]]; do
         --betas)        BETAS="$2"; shift 2 ;;
         --pair-seeds)   PAIR_SEEDS="$2"; shift 2 ;;
         --align-seeds)  ALIGN_SEEDS="$2"; shift 2 ;;
+        --beta-mode)    BETA_MODE="$2"; shift 2 ;;
+        --pair-root)    PAIR_ROOT="$2"; shift 2 ;;
         -h|--help)
             sed -n '2,/^set -/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
             exit 0 ;;
@@ -78,6 +89,10 @@ case "$ONLY" in ""|pairs|adv_gd|ablation|structural|isorank|centrality_rank|comp
     *) echo "ERROR: --only must be pairs, adv_gd, ablation, structural, isorank, centrality_rank or composite_centrality" >&2
        exit 1 ;;
 esac
+case "$BETA_MODE" in nominal|divergence) ;;
+    *) echo "ERROR: --beta-mode must be nominal or divergence" >&2; exit 1 ;;
+esac
+[ -z "$PAIR_ROOT" ] && PAIR_ROOT="runs/sweep_${BETA_MODE}"
 
 mkdir -p "$LOGS_DIR"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -110,7 +125,7 @@ if [ "$GENERATE" = true ] && { [ -z "$ONLY" ] || [ "$ONLY" = pairs ]; }; then
     GEN_OUT="$LOGS_DIR/adv_gd_gen_${STAMP}.out"
     JOBID=$(run sbatch --parsable -o "$GEN_OUT" -e "$GEN_OUT" \
             "$SCRIPTS/00_generate_adv_gd_pairs_job.sh" \
-            --betas $BETAS --pair-seeds $PAIR_SEEDS --beta-mode divergence \
+            --betas $BETAS --pair-seeds $PAIR_SEEDS --beta-mode "$BETA_MODE" \
             --out "$PAIR_ROOT")
     echo "pair generation: job ${JOBID:-<dry-run>}"
     PAIR_DEP="${JOBID:+--dependency=afterok:$JOBID}"
@@ -124,7 +139,7 @@ submit_array() {
             --array="0-$((n - 1))%$LIMIT" ${PAIR_DEP:+$PAIR_DEP} \
             -o "$out" -e "$out" \
             "$script" --betas $BETAS --pair-seeds $PAIR_SEEDS \
-            --beta-mode divergence --out "$PAIR_ROOT" "$@")
+            --beta-mode "$BETA_MODE" --out "$PAIR_ROOT" "$@")
     echo "$name: $n cells, job ${JOBID:-<dry-run>}"
 }
 
