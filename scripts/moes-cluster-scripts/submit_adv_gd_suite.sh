@@ -47,6 +47,13 @@
 #                        (runs/sweep_<mode>/) so they can never collide or
 #                        silently mix; --pair-root overrides that default.
 #   --pair-root DIR     Override the pair root (default runs/sweep_<mode>/).
+#   --status S          exploratory | confirmatory (default confirmatory,
+#                        matching this script's original behavior). Per
+#                        docs/experiment_logging_policy.md, confirmatory means
+#                        re-running against a stated prior numeric expectation
+#                        -- pass --status exploratory for first-look runs
+#                        (e.g. an initial pair-seed variance check) that have
+#                        no such prior to confirm or refute.
 #
 # Everything written outside the repo goes under
 # /data/$USER/Graph-De-Anonymization/ -- logs under logs/, same as Report 1.
@@ -66,6 +73,7 @@ PAIR_SEEDS="0"
 ALIGN_SEEDS="0 1 2 3"
 BETA_MODE="divergence"
 PAIR_ROOT=""
+STATUS="confirmatory"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -78,6 +86,7 @@ while [[ $# -gt 0 ]]; do
         --align-seeds)  ALIGN_SEEDS="$2"; shift 2 ;;
         --beta-mode)    BETA_MODE="$2"; shift 2 ;;
         --pair-root)    PAIR_ROOT="$2"; shift 2 ;;
+        --status)       STATUS="$2"; shift 2 ;;
         -h|--help)
             sed -n '2,/^set -/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
             exit 0 ;;
@@ -91,6 +100,9 @@ case "$ONLY" in ""|pairs|adv_gd|ablation|structural|isorank|centrality_rank|comp
 esac
 case "$BETA_MODE" in nominal|divergence) ;;
     *) echo "ERROR: --beta-mode must be nominal or divergence" >&2; exit 1 ;;
+esac
+case "$STATUS" in exploratory|confirmatory) ;;
+    *) echo "ERROR: --status must be exploratory or confirmatory" >&2; exit 1 ;;
 esac
 [ -z "$PAIR_ROOT" ] && PAIR_ROOT="runs/sweep_${BETA_MODE}"
 
@@ -145,36 +157,36 @@ submit_array() {
 
 if [ -z "$ONLY" ] || [ "$ONLY" = adv_gd ]; then
     submit_array adv_gd_full gda_adv "$SCRIPTS/30_adv_gd_job.sh" "$N_FULL" \
-        --align-seeds $ALIGN_SEEDS --status confirmatory \
+        --align-seeds $ALIGN_SEEDS --status "$STATUS" \
         --note "Adv-GD suite: full method"
 fi
 
 if [ -z "$ONLY" ] || [ "$ONLY" = ablation ]; then
     submit_array adv_gd_ablation gda_abl "$SCRIPTS/30_adv_gd_job.sh" "$N_SOLO" \
-        --align-seeds 0 --skip-adversarial --status confirmatory \
+        --align-seeds 0 --skip-adversarial --status "$STATUS" \
         --note "Adv-GD suite: skip_adversarial ablation"
 fi
 
 if [ -z "$ONLY" ] || [ "$ONLY" = structural ]; then
     submit_array baseline_structural gda_bl_sf "$SCRIPTS/31_baselines_job.sh" "$N_SOLO" \
-        --method structural_fingerprint --status confirmatory \
+        --method structural_fingerprint --status "$STATUS" \
         --note "Adv-GD suite: structural-fingerprint baseline"
 fi
 
 if [ -z "$ONLY" ] || [ "$ONLY" = isorank ]; then
     submit_array baseline_isorank gda_bl_ir "$SCRIPTS/31_baselines_job.sh" "$N_SOLO" \
-        --method isorank --status confirmatory \
+        --method isorank --status "$STATUS" \
         --note "Adv-GD suite: IsoRank baseline"
 fi
 
 if [ -z "$ONLY" ] || [ "$ONLY" = centrality_rank ]; then
     submit_array baseline_centrality_rank gda_bl_cr "$SCRIPTS/31_baselines_job.sh" "$N_SOLO" \
-        --method centrality_rank --status confirmatory \
+        --method centrality_rank --status "$STATUS" \
         --note "Adv-GD suite: index-rank-matching baseline (docs/some-context.txt section 2)"
 fi
 
 if [ -z "$ONLY" ] || [ "$ONLY" = composite_centrality ]; then
     submit_array ours_composite_centrality gda_bl_cc "$SCRIPTS/31_baselines_job.sh" "$N_SOLO" \
-        --method composite_centrality --status confirmatory \
+        --method composite_centrality --status "$STATUS" \
         --note "Adv-GD suite: this repo's own 6-feature + CSLS baseline"
 fi
