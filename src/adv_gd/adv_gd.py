@@ -237,13 +237,21 @@ def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
     params = DATASETS[dataset]
     gae_seed = seed if gae_seed is None else gae_seed
     Ga, Gu, truth, stats = load_pair(pair)
-    # stats["beta"] is the per-copy edge-deletion rate fed to the generator,
-    # not the paper's beta: the paper's beta is the realized divergence
-    # between the two copies, 1 - overlap_ratio (= 1-(1-beta)^2 in
-    # expectation). Looking PAPER_TABLE2 up by the deletion rate instead of
-    # the realized divergence missed on every divergence-mode pair (e.g.
-    # deletion rate 0.051 -> realized divergence ~10%, not 5%).
-    beta_pct = int(round((1.0 - stats["overlap_ratio"]) * 100))
+    # In divergence mode, stats["beta"] is a per-copy edge-deletion rate
+    # chosen so the two copies' REALIZED divergence hits a target percent --
+    # that realized divergence, 1 - overlap_ratio, is what the paper's beta
+    # means, so divergence-mode pairs must be looked up in PAPER_TABLE2 by
+    # it, not by the deletion rate (e.g. deletion rate 0.051 -> realized
+    # divergence ~10%, not 5%). In nominal mode, stats["beta"] already IS
+    # the paper's own beta (Li et al. delete beta from each copy directly),
+    # so the table must be looked up by it as-is; using the realized
+    # divergence there instead (as this code did before 2026-10-19) missed
+    # on every nominal-mode pair just as badly, the other way (e.g. nominal
+    # beta=0.1 -> realized divergence ~19%, looked up as 19% instead of 10%).
+    if stats.get("beta_mode") == "nominal":
+        beta_pct = int(round(stats["beta"] * 100))
+    else:
+        beta_pct = int(round((1.0 - stats["overlap_ratio"]) * 100))
 
     # The record is built before any work, because everything identifying the
     # run is known now, and finished in a `finally`, because a run that fails or
