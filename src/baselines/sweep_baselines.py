@@ -125,7 +125,11 @@ def main(argv=None) -> int:
                     help="Nominal noise levels, as the paper states them; "
                          "--beta-mode converts them. 0.0 is the control cell.")
     ap.add_argument("--beta-mode", choices=("nominal", "divergence"),
-                    default="divergence")
+                    default="nominal",
+                    help="nominal (default) is the paper's own noise model; "
+                         "divergence is the easier one kept for the existing "
+                         "runs/sweep_divergence/ set. See adv_gd_protocol.md, "
+                         "'--beta-mode chooses what beta means'.")
     ap.add_argument("--pair-seeds", type=int, nargs="+", default=[0])
     ap.add_argument("--theta", type=float, default=0.5)
     ap.add_argument("--eccen-support", default="all", choices=("all", "nonzero"))
@@ -140,8 +144,8 @@ def main(argv=None) -> int:
     ap.add_argument("--csls-k", type=int, default=DEFAULTS["csls_k"],
                     help="composite_centrality only.")
     ap.add_argument("--out", default=None,
-                    help="Pair root. Default runs/sweep_divergence or "
-                         "runs/sweep_nominal depending on --beta-mode -- "
+                    help="Pair root. Default runs/sweep_nominal or "
+                         "runs/sweep_divergence depending on --beta-mode -- "
                          "the SAME root adv_gd/sweep.py uses, so pairs are "
                          "shared across Adv-GD and these baselines.")
     ap.add_argument("--status", choices=("exploratory", "confirmatory"),

@@ -11,8 +11,9 @@ and a reader looking for "what else was tried" should not have to go digging
 inside the Adv-GD package for it.
 
 What they share with `src/adv_gd/` is only the data and the scoring: all of
-them read pair directories from the same root (`runs/sweep_divergence/`,
-written by `src/adv_gd/sweep.py --generate`) and all hand their anchors and
+them read pair directories from the same root (`runs/sweep_nominal/` by
+default, `runs/sweep_divergence/` under `--beta-mode divergence`, written by
+`src/adv_gd/sweep.py --generate`) and all hand their anchors and
 candidate sets to the same Phase-3 propagator
 (`src.adv_gd.propagation.propagate`), so a number from any of these files is
 comparable to Adv-GD's own row in the same table, not a differently-shaped

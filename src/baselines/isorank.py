@@ -65,7 +65,7 @@ top-10 R-matches per node, reusing `common.candidate_sets` exactly as the
 other baselines and Adv-GD itself do, so scoring is on equal footing.
 
 CLI:
-    python src/baselines/isorank.py --pair runs/sweep_divergence/cit-HepTh_b10_s0 --dataset hepth
+    python src/baselines/isorank.py --pair runs/sweep_nominal/cit-HepTh_b10_s0 --dataset hepth
 """
 from __future__ import annotations
 

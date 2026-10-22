@@ -33,7 +33,7 @@ large r and so a penalised CSLS score, which is exactly the failure mode
 fingerprint, all equally "nearest" to each other).
 
 CLI:
-    python src/baselines/composite_centrality.py --pair runs/sweep_divergence/cit-HepTh_b10_s0 --dataset hepth
+    python src/baselines/composite_centrality.py --pair runs/sweep_nominal/cit-HepTh_b10_s0 --dataset hepth
 """
 from __future__ import annotations
 

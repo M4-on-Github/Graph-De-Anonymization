@@ -4,8 +4,8 @@
 #
 # Six arrays, all depending on one pair-generation job (--dependency=afterok),
 # all over the SAME beta x pair_seed grid, into the SAME pair root
-# (runs/sweep_divergence/) so every method's numbers come from the identical
-# pairs:
+# (runs/sweep_<mode>/, runs/sweep_nominal/ by default) so every method's
+# numbers come from the identical pairs:
 #
 #   0  generate pairs (adv_gd/sweep.py --generate)                    (1 job)
 #   1  full Adv-GD: beta x pair_seed x align_seed                     (array)
@@ -46,13 +46,17 @@
 #                        dir (Z1.npz/Z2.npz) is stamped with the seed, so a run
 #                        with a different seed retrains and OVERWRITES it --
 #                        give each GAE seed its own --pair-root.
-#   --beta-mode M       nominal | divergence (default divergence, matching
-#                        this script's original behavior). nominal deletes
-#                        each copy at the stated beta (edges diverge by
-#                        ~2*beta) -- the paper's own definition. The two
-#                        modes write to disjoint pair roots
-#                        (runs/sweep_<mode>/) so they can never collide or
-#                        silently mix; --pair-root overrides that default.
+#   --beta-mode M       nominal | divergence (default nominal). nominal
+#                        deletes each copy at the stated beta (edges diverge
+#                        by ~2*beta) -- the paper's own definition.
+#                        divergence deletes at 1-sqrt(1-beta) so the copies
+#                        diverge by beta, an easier model kept for the
+#                        existing runs/sweep_divergence/ set; do not compare
+#                        its numbers to the paper's Table 2 at the same beta
+#                        (see src/adv_gd/adv_gd_protocol.md). The two modes
+#                        write to disjoint pair roots (runs/sweep_<mode>/) so
+#                        they can never collide or silently mix; --pair-root
+#                        overrides that default.
 #   --pair-root DIR     Override the pair root (default runs/sweep_<mode>/).
 #   --status S          exploratory | confirmatory (default confirmatory,
 #                        matching this script's original behavior). Per
@@ -78,7 +82,7 @@ LIMIT=12
 BETAS="0.0 0.1 0.2 0.3 0.4 0.5"
 PAIR_SEEDS="0"
 ALIGN_SEEDS="0 1 2 3"
-BETA_MODE="divergence"
+BETA_MODE="nominal"
 PAIR_ROOT=""
 STATUS="confirmatory"
 GAE_SEED=""

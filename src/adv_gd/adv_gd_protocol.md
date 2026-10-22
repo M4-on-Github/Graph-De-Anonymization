@@ -220,9 +220,17 @@ than the paper's at the same beta. Measured on HepTh, that change moves chi from
 0.913 to 0.943 (see the noise-model section below). `nominal` reproduces our own
 earlier numbers and is the like-for-like comparison to Table 2: the paper's
 beta=0.1 is the nominal pair `cit-HepTh_b10_s0` (0.81 overlap), chi 0.913
-against ~0.97. **The two modes are not comparable to each other.** `sweep.py`'s
-`--beta-mode` default is still `divergence`, so pass `--beta-mode nominal` for
-cells that are comparable to the paper.
+against ~0.97. **The two modes are not comparable to each other.** `nominal` is
+the paper's model and, since 2026-10-22, the default everywhere (`sweep.py`,
+`sweep_baselines.py`, `submit_adv_gd_suite.sh`, Report 1's `grid.py` and
+`report1_cell.py`; the generator already was), so cells are comparable to the
+paper unless `--beta-mode divergence` is passed. `divergence` is kept behind
+that explicit flag for the existing `runs/sweep_divergence/` set. Nominal beta
+0.0-0.5 generates the pairs `b00`/`b10`/`b20`/`b30`/`b40`/`b50`; divergence mode
+at the same nominal betas generates `b00`/`b05`/`b11`/`b16`/`b23`/`b29`.
+**Divergence-mode numbers must not be compared to the paper's Table 2 at the
+same beta label:** our divergence beta=0.1 pair differs by ~10% of edges, the
+paper's beta=0.1 by ~19%.
 
 **The two modes generate into separate roots.** `runs/sweep_nominal/` and
 `runs/sweep_divergence/`, because a pair directory is named

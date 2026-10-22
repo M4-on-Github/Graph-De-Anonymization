@@ -13,7 +13,7 @@
 # Do not call directly — submit_report1.sh runs it as step 0. To run it alone:
 #   sbatch -p pleiades --cpus-per-task=2 --mem=32G --time=2:00:00 \
 #          --output=/data/$USER/Graph-De-Anonymization/logs/gda_generate_%j.out \
-#          scripts/moes-cluster-scripts/00_generate_pairs_job.sh --beta-mode divergence
+#          scripts/moes-cluster-scripts/00_generate_pairs_job.sh --beta-mode nominal
 # ─────────────────────────────────────────────────────────────────────────────
 #SBATCH -p pleiades
 #SBATCH --cpus-per-task=2

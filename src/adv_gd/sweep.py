@@ -12,10 +12,11 @@ is; the short version:
   re-training Phase 1 per cell costs ~3.5 GPU-minutes (98-112 s per GAE, two
   GAEs) to vary something the question is not about;
 - one cell per process, so a death at cell 14 of 20 costs one cell;
-- `--beta-mode nominal` is the paper's own definition of beta (its section
-  4.1: edge overlap (1 - beta)^2) and is the like-for-like comparison to Table
-  2; `divergence` generates at beta' = 1 - sqrt(1 - beta), an easier noise
-  model than the paper's, and is still the default;
+- `--beta-mode nominal` (the default) is the paper's own definition of beta
+  (its section 4.1: edge overlap (1 - beta)^2) and is the like-for-like
+  comparison to Table 2; `divergence` generates at beta' = 1 - sqrt(1 - beta),
+  an easier noise model than the paper's, kept for the existing
+  `runs/sweep_divergence/` set;
 - the two beta modes generate into separate roots, because pair directory names
   round beta to whole percent and would collide.
 
@@ -188,13 +189,13 @@ def main(argv=None) -> int:
                     default=[0.1, 0.2, 0.3, 0.4, 0.5],
                     help="Nominal noise levels, as the paper states them.")
     ap.add_argument("--beta-mode", choices=("nominal", "divergence"),
-                    default="divergence",
-                    help="nominal: delete at beta from each copy (copies "
-                         "diverge by ~2*beta). divergence: delete at "
-                         "1-sqrt(1-beta), so the copies diverge by beta, an "
-                         "easier model than the paper's. nominal is the "
-                         "paper's own definition (its section 4.1: overlap "
-                         "(1-beta)^2).")
+                    default="nominal",
+                    help="nominal (default): delete at beta from each copy "
+                         "(copies diverge by ~2*beta); the paper's own "
+                         "definition (its section 4.1: overlap (1-beta)^2). "
+                         "divergence: delete at 1-sqrt(1-beta), so the copies "
+                         "diverge by beta, an easier model than the paper's; "
+                         "kept for the existing runs/sweep_divergence/ set.")
     ap.add_argument("--pair-seeds", type=int, nargs="+", default=[0],
                     help="Noise draws per beta. More than one is the only way "
                          "to get an interval over the beta axis.")

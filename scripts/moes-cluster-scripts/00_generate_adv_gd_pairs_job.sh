@@ -3,8 +3,9 @@
 # Adv-GD suite — step 0: cut the HepTh pairs the whole suite runs on.
 #
 # Separate from Report 1's 00_generate_pairs_job.sh / grid.py on purpose: this
-# suite's pairs go into runs/sweep_divergence/ (flat layout, adv_gd/sweep.py's
-# root), not Report 1's runs/report1_*/ (--compat-layout, grid.py's root).
+# suite's pairs go into runs/sweep_<mode>/ (flat layout, adv_gd/sweep.py's
+# root; runs/sweep_nominal/ by default), not Report 1's runs/report1_*/
+# (--compat-layout, grid.py's root).
 # Same generator, same beta math underneath, different directory tree.
 #
 # One SLURM job for the whole beta x pair_seed grid (adv_gd/sweep.py --generate
@@ -16,8 +17,8 @@
 # alone:
 #   sbatch -p pleiades --cpus-per-task=2 --mem=8G --time=1:00:00 \
 #          scripts/moes-cluster-scripts/00_generate_adv_gd_pairs_job.sh \
-#          --betas 0.0 0.1 0.2 --pair-seeds 0 --beta-mode divergence \
-#          --out runs/sweep_divergence
+#          --betas 0.0 0.1 0.2 --pair-seeds 0 --beta-mode nominal \
+#          --out runs/sweep_nominal
 # ─────────────────────────────────────────────────────────────────────────────
 #SBATCH -p pleiades
 #SBATCH --cpus-per-task=2

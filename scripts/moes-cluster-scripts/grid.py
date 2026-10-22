@@ -20,14 +20,16 @@ that same file, and editing a default here cannot retarget a queued job.
     python3 grid.py --kind seed_free  --count
     python3 grid.py --kind seed_based --manifest /data/$USER/logs/sb.json
 
-Three axis conventions, each of which is a choice and not the paper's:
+Three axis conventions, the first the paper's own and the other two choices:
 
-- beta is a divergence by default (`--beta-mode divergence`): the pair is
-  generated at 1-sqrt(1-beta) per copy so that the two released graphs differ
-  by beta. `nominal` deletes at beta from each copy, so they differ by ~2*beta.
-  The two modes write into separate roots because pair directory names round
-  beta to whole percent and would collide -- the same argument as
-  `src/adv_gd/sweep.py`.
+- beta is the per-copy deletion rate by default (`--beta-mode nominal`, the
+  paper's section 4.1): each copy deletes beta of the edges, so the two
+  released graphs differ by ~2*beta. `divergence` generates at 1-sqrt(1-beta)
+  per copy so they differ by beta, an easier model than the paper's, kept for
+  the existing runs. The two modes write into separate roots because pair
+  directory names round beta to whole percent and would collide -- the same
+  argument as `src/adv_gd/sweep.py`. The two modes are explained once, in
+  `src/adv_gd/adv_gd_protocol.md` ("`--beta-mode` chooses what beta means").
 - beta=0.0 is in the default sweep as a control. It is the cell that says
   whether the reimplementation reproduces the report at all; a pair at beta=0
   is the parent graph twice over, relabelled, so anything below ~90% there is a
@@ -218,11 +220,13 @@ def main(argv=None):
         description="Enumerate the Report 1 cells on cit-HepTh.")
     ap.add_argument("--kind", choices=("pairs", "seed_based", "seed_free"),
                     help="Required except with --self-test.")
-    ap.add_argument("--beta-mode", choices=("divergence", "nominal"),
-                    default="divergence",
-                    help="divergence: generate at 1-sqrt(1-beta) so the two "
-                         "graphs differ by beta. nominal: delete at beta from "
-                         "each copy. Separate roots; see default_root.")
+    ap.add_argument("--beta-mode", choices=("nominal", "divergence"),
+                    default="nominal",
+                    help="nominal (default): delete at beta from each copy, "
+                         "the paper's own model. divergence: generate at "
+                         "1-sqrt(1-beta) so the two graphs differ by beta, an "
+                         "easier model kept for the existing runs. Separate "
+                         "roots; see default_root.")
     ap.add_argument("--betas", type=float, nargs="+",
                     default=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
                     help="0.0 is the control cell, not padding.")

@@ -408,8 +408,8 @@ def main(argv=None):
     # The grid flags, so a cell can be resolved without a manifest.
     grid_args = ap.add_argument_group("grid (only without --manifest)")
     grid_args.add_argument("--kind", choices=("seed_based", "seed_free"))
-    grid_args.add_argument("--beta-mode", choices=("divergence", "nominal"),
-                           default="divergence")
+    grid_args.add_argument("--beta-mode", choices=("nominal", "divergence"),
+                           default="nominal")
     grid_args.add_argument("--betas", type=float, nargs="+",
                            default=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5])
     grid_args.add_argument("--pair-seeds", type=int, nargs="+", default=[0, 1, 2])

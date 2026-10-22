@@ -35,7 +35,7 @@
 # flags and not a second copy of them here:
 #
 #   --betas 0.0 0.2 0.5 --pair-seeds 0 1 --thetas 0.5 --train-portions 0.2
-#   --beta-mode nominal --methods pagerank degree --top-ks 50
+#   --methods pagerank degree --top-ks 50
 #
 # Prerequisite: bash scripts/moes-cluster-scripts/build_container.sh
 # ─────────────────────────────────────────────────────────────────────────────

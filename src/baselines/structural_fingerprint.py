@@ -32,7 +32,7 @@ numbers and Adv-GD's is a difference in representation and matching, not in
 how generously each one was allowed to search.
 
 CLI:
-    python src/baselines/structural_fingerprint.py --pair runs/sweep_divergence/cit-HepTh_b10_s0 --dataset hepth
+    python src/baselines/structural_fingerprint.py --pair runs/sweep_nominal/cit-HepTh_b10_s0 --dataset hepth
 """
 from __future__ import annotations
 

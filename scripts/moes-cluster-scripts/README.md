@@ -102,20 +102,22 @@ code.
 | `00_generate_pairs_job.sh` | step 0: fetch the parent if needed, cut every pair in one process. |
 | `10_seed_based_job.sh`, `20_seed_free_job.sh` | one array task = one cell. |
 | `submit_report1.sh` | freezes the manifests and submits the three stages. |
-| `00_generate_adv_gd_pairs_job.sh` | Adv-GD suite, step 0: cut the HepTh pairs into `runs/sweep_divergence/` (flat layout) in one job for the whole grid. Idempotent. |
+| `00_generate_adv_gd_pairs_job.sh` | Adv-GD suite, step 0: cut the HepTh pairs into `runs/sweep_<mode>/` (flat layout; `runs/sweep_nominal/` by default) in one job for the whole grid. Idempotent. |
 | `30_adv_gd_job.sh` | Adv-GD suite: one `sweep.py` cell per array task, full Adv-GD or the `skip_adversarial` ablation. GPU only (RTX6000ADA or QUADRORTX6000); exports `GDA_NV=1` so `in_container` passes `--nv`. |
 | `31_baselines_job.sh` | Adv-GD suite: one `sweep_baselines.py` cell per array task; `--method` picks structural fingerprint, IsoRank, centrality rank-matching or composite centrality. CPU only. |
 | `submit_adv_gd_suite.sh` | Adv-GD suite: submits pair generation and the six arrays (full Adv-GD, the ablation, four baselines) that depend on it. `--dry-run` prints the `sbatch` commands. |
 
-## Three axis conventions, each a choice and not the paper's
+## Three axis conventions, the first the paper's and the other two a choice
 
-**β is a divergence, not a deletion rate.** `--beta-mode divergence` (the
-default) generates each pair at `1-sqrt(1-β)` per copy, so the two released
-graphs differ by β. `nominal` deletes at β from each copy and they differ by
-~2β. The two modes write into **separate roots** — `runs/report1_divergence/`
-and `runs/report1_nominal/` — because pair directory names round β to whole
-percent and nominal 0.05 collides with divergence 0.10. Same argument as
-`src/adv_gd/sweep.py`.
+**β is the paper's per-copy deletion rate.** `--beta-mode nominal` (the
+default) deletes β of the edges from each copy (the paper's §4.1), so the two
+released graphs differ by ~2β. `divergence` generates each pair at `1-sqrt(1-β)`
+per copy, so they differ by β: an easier model than the paper's, kept for the
+existing runs. The two modes write into **separate roots** —
+`runs/report1_nominal/` and `runs/report1_divergence/` — because pair directory
+names round β to whole percent and nominal 0.05 collides with divergence 0.10.
+Same argument as `src/adv_gd/sweep.py`; the two modes are explained once, in
+`src/adv_gd/adv_gd_protocol.md` ("`--beta-mode` chooses what beta means").
 
 **β=0 is in the default sweep as a control, not as padding.** A pair at β=0 is
 the parent graph twice over, relabelled. It is the cell that says whether the

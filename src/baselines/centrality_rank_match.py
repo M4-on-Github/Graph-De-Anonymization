@@ -26,7 +26,7 @@ much tighter restriction than the top-10 candidate sets the similarity
 baselines use.
 
 CLI:
-    python src/baselines/centrality_rank_match.py --pair runs/sweep_divergence/cit-HepTh_b10_s0 --dataset hepth
+    python src/baselines/centrality_rank_match.py --pair runs/sweep_nominal/cit-HepTh_b10_s0 --dataset hepth
 """
 from __future__ import annotations
 
