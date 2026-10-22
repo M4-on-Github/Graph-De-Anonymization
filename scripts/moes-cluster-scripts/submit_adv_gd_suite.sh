@@ -58,13 +58,12 @@
 #                        they can never collide or silently mix; --pair-root
 #                        overrides that default.
 #   --pair-root DIR     Override the pair root (default runs/sweep_<mode>/).
-#   --status S          exploratory | confirmatory (default confirmatory,
-#                        matching this script's original behavior). Per
-#                        docs/experiment_logging_policy.md, confirmatory means
-#                        re-running against a stated prior numeric expectation
-#                        -- pass --status exploratory for first-look runs
-#                        (e.g. an initial pair-seed variance check) that have
-#                        no such prior to confirm or refute.
+#   --status S          exploratory | confirmatory (default exploratory).
+#                        Pass confirmatory explicitly, and only when a numeric
+#                        expectation for the cells it labels was written down
+#                        before submitting (docs/experiment_logging_policy.md).
+#                        The label goes on every stage of the call, so use
+#                        --only when the expectation covers just one method.
 #
 # Everything written outside the repo goes under
 # /data/$USER/Graph-De-Anonymization/ -- logs under logs/, same as Report 1.
@@ -84,7 +83,7 @@ PAIR_SEEDS="0"
 ALIGN_SEEDS="0 1 2 3"
 BETA_MODE="nominal"
 PAIR_ROOT=""
-STATUS="confirmatory"
+STATUS="exploratory"
 GAE_SEED=""
 
 while [[ $# -gt 0 ]]; do

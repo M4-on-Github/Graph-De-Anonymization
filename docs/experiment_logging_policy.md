@@ -151,8 +151,9 @@ lost.
 **Exploratory or confirmatory?** `status`, one of `exploratory` or `confirmatory`, plus a
 free-text `note`. Set it before the run, not after. This is the cheapest available guard
 against reporting a cell found by searching as though it had been predicted; it is weaker
-than pre-registration and better than nothing. A sweep is exploratory. A re-run of one
-setting to confirm a specific prior expectation is confirmatory. If in doubt it is
+than pre-registration and better than nothing. A sweep is exploratory unless a numeric
+expectation for its cells was written down before it ran. The records that expectation
+covers are then confirmatory, and the rest of the sweep is exploratory. If in doubt it is
 exploratory. Pair-generation records are confirmatory by design: the generator checks each
 pair's measured edge overlap against the (1-beta)^2 prediction (`check_overlap`) and records
 the outcome in `verify_passed`, so every pair has a numeric expectation stated in advance.
