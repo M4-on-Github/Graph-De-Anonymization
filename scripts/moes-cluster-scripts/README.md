@@ -61,8 +61,14 @@ bash .../submit_report1.sh --betas 0.2 --pair-seeds 0 --train-portions 0.20
 python3 scripts/moes-cluster-scripts/collect.py --kind report1_seed_based \
         --summary beta_nominal theta
 python3 scripts/moes-cluster-scripts/collect.py \
+        --kind report1_seed_based report1_seed_free_rank report1_seed_free_integrated \
         --out /data/$USER/Graph-De-Anonymization/report1.csv
 ```
+
+With no `--kind` it takes every kind in the archive, and `--summary` averages
+`accuracy_report` if any selected row has it, else `chi`. Records another
+record names in `supersedes` are left out unless `--include-superseded`;
+`corrections.jsonl` is overlaid, and the `corrected` column says where.
 
 `collect.py` reads `results/runs/*/record.json`, not `index.jsonl`: the ledger
 line is Adv-GD shaped (`chi`, `gamma`, `anchor_precision`) and carries no

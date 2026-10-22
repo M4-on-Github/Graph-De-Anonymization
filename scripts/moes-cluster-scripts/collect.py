@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tabulate the Report 1 run records into a CSV, and summarise one axis.
+"""Tabulate run records into a CSV, and summarise one axis.
 
 A study here is N runs with N records plus a small script that reads them --
 not a bespoke JSON shape that only its own writer understands. This is that
@@ -13,11 +13,18 @@ you grep to see that a run exists.
 
 Records are immutable, so label fixes live in `results/runs/corrections.jsonl`
 (docs/experiment_logging_policy.md, Rule 7). They are overlaid on each record
-in memory, later lines winning; no record file is written.
+in memory, later lines winning; no record file is written. A row's `corrected`
+column names the fields it got that way.
 
-    python3 collect.py --kind report1_seed_based
+A run found invalid is never deleted: a new record names it in `supersedes`
+(Rule 1). Records named that way are left out by default; the naming record is
+looked for in the whole archive, even if `--kind` or `--ok-only` drops it from
+the output. `--include-superseded` keeps them, with `superseded_by` filled in.
+
+    python3 collect.py                                # every record, as CSV
+    python3 collect.py --summary kind                 # mean chi per kind
     python3 collect.py --kind report1_seed_based --summary beta_nominal theta
-    python3 collect.py --out /data/$USER/report1.csv
+    python3 collect.py --include-superseded --out /data/$USER/all.csv
 
 Python 3.6 compatible, like grid.py: it runs on the head node, outside the
 container, with no third-party imports.
@@ -45,10 +52,18 @@ COLUMNS = [
     "accuracy_report", "precision_extracted",
     "final_mapped", "final_correct",
     "seconds", "git", "note",
+    # Appended, so a reader that indexes the older columns by position still
+    # works. `chi` is the Adv-GD suite's headline number; the Report 1 kinds
+    # have `accuracy_report` instead. `superseded_by` and `corrected` are
+    # semicolon-joined, empty when there is nothing to say.
+    "chi", "superseded_by", "corrected",
 ]
 METRIC_KEYS = {"extracted", "new_pairs", "correct", "correct_heldout",
                "accuracy_report", "precision_extracted", "final_mapped",
-               "final_correct"}
+               "final_correct", "chi"}
+# What `--summary` averages when `--value` is not given: the first of these any
+# selected row has. A fixed default matches nothing on one half of the archive.
+VALUE_DEFAULTS = ("accuracy_report", "chi")
 
 
 def load_corrections(archive):
@@ -88,12 +103,25 @@ def apply_corrections(rec, corrections):
                                             rec.get(field), old),
                   file=sys.stderr)
         rec[field] = new
-        fields.append(field)
+        if field not in fields:
+            fields.append(field)
     return fields
 
 
-def rows(archive, kinds=None, include_failed=True):
+def superseded_ids(rec):
+    """The run_ids `rec` names in `supersedes`. A str in practice; a list is
+    tolerated so a hand-written record cannot crash the whole table."""
+    sup = rec.get("supersedes")
+    if isinstance(sup, str):
+        return [sup] if sup else []
+    if isinstance(sup, (list, tuple)):
+        return [x for x in sup if isinstance(x, str) and x]
+    return []
+
+
+def rows(archive, kinds=None, include_failed=True, include_superseded=False):
     corrections = load_corrections(archive)
+    recs = []
     for rec_path in sorted(archive.glob("*/record.json")):
         try:
             rec = json.loads(rec_path.read_text())
@@ -101,13 +129,34 @@ def rows(archive, kinds=None, include_failed=True):
             print("  skipping unreadable {}: {}".format(rec_path, exc),
                   file=sys.stderr)
             continue
-        corrected = apply_corrections(rec, corrections)
+        recs.append((rec, apply_corrections(rec, corrections)))
+
+    # Both checks below read every record, before --kind or --ok-only drop any,
+    # so they hold whatever the filters are.
+    seen = set(rec.get("run_id") for rec, _ in recs)
+    for run_id in sorted(set(corrections) - seen):
+        fields = sorted(set(c[0] for c in corrections[run_id]))
+        print("  correction for {} ({}): no record has that run_id in {}"
+              .format(run_id, ", ".join(fields), archive), file=sys.stderr)
+    # {old run_id: [run_ids that supersede it]}. A chain A <- B <- C needs no
+    # walking: A and B each have a superseder, so both are out.
+    superseded_by = {}
+    for rec, _ in recs:
+        for old in superseded_ids(rec):
+            superseded_by.setdefault(old, []).append(rec.get("run_id"))
+
+    hidden = 0
+    for rec, corrected in recs:
         if kinds and rec.get("kind") not in kinds:
             continue
         if not include_failed and rec.get("status_exit") != "ok":
             continue
+        by = [x for x in superseded_by.get(rec.get("run_id"), ()) if x]
+        if by and not include_superseded:
+            hidden += 1
+            continue
         metrics = rec.get("metrics") or {}
-        row = {"_corrected": bool(corrected)}
+        row = {}
         for col in COLUMNS:
             if col in METRIC_KEYS:
                 row[col] = metrics.get(col)
@@ -115,6 +164,10 @@ def rows(archive, kinds=None, include_failed=True):
                 g = rec.get("git") or {}
                 row[col] = (g.get("head", "") +
                             ("+dirty" if g.get("dirty") else ""))
+            elif col == "superseded_by":
+                row[col] = ";".join(by)
+            elif col == "corrected":
+                row[col] = ";".join(corrected)
             else:
                 row[col] = rec.get(col)
         # seed_draw is the seed-based name for what the record stores as `seed`;
@@ -122,6 +175,9 @@ def rows(archive, kinds=None, include_failed=True):
         if row["seed_draw"] is None and rec.get("kind") == "report1_seed_based":
             row["seed_draw"] = rec.get("seed")
         yield row
+    if hidden:
+        print("  left out {} superseded record(s); --include-superseded keeps "
+              "them".format(hidden), file=sys.stderr)
 
 
 def summarise(data, keys, value="accuracy_report"):
@@ -146,16 +202,17 @@ def summarise(data, keys, value="accuracy_report"):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(
-        description="Tabulate Report 1 run records.")
+    ap = argparse.ArgumentParser(description="Tabulate run records.")
     ap.add_argument("--archive", default=str(ARCHIVE),
                     help="Record archive (default results/runs/).")
     ap.add_argument("--kind", nargs="+", default=None,
                     help="Filter by record kind, e.g. report1_seed_based "
-                         "report1_seed_free_integrated. Default: all Report 1 "
-                         "kinds.")
-    ap.add_argument("--all-kinds", action="store_true",
-                    help="Include adv_gd and generator records too.")
+                         "report1_seed_free_integrated adv_gd. Default: every "
+                         "kind in the archive.")
+    ap.add_argument("--include-superseded", action="store_true",
+                    help="Keep records that a later record names in "
+                         "`supersedes`. Off by default: they were found "
+                         "invalid. Their superseded_by column is filled in.")
     ap.add_argument("--ok-only", action="store_true",
                     help="Drop runs whose status_exit is not ok. Off by "
                          "default: a cell that died is data about where it got.")
@@ -163,20 +220,19 @@ def main(argv=None):
     ap.add_argument("--summary", nargs="+", default=None, metavar="KEY",
                     help="Group by these columns and print n/mean/min/max of "
                          "--value instead of the rows.")
-    ap.add_argument("--value", default="accuracy_report",
-                    help="Column to summarise (default accuracy_report).")
+    ap.add_argument("--value", default=None,
+                    help="Column to summarise. Default: accuracy_report if any "
+                         "selected row has it (Report 1), else chi (Adv-GD "
+                         "suite).")
     args = ap.parse_args(argv)
 
     kinds = args.kind
-    if kinds is None and not args.all_kinds:
-        kinds = ["report1_seed_based", "report1_seed_free_rank",
-                 "report1_seed_free_integrated"]
-
     archive = Path(args.archive)
     if not archive.is_dir():
         print("no archive at {}".format(archive), file=sys.stderr)
         return 1
-    data = list(rows(archive, kinds, include_failed=not args.ok_only))
+    data = list(rows(archive, kinds, include_failed=not args.ok_only,
+                     include_superseded=args.include_superseded))
     if not data:
         print("no matching records in {}".format(archive), file=sys.stderr)
         return 1
@@ -187,7 +243,24 @@ def main(argv=None):
             print("unknown summary key(s): {}\navailable: {}".format(
                 ", ".join(unknown), ", ".join(COLUMNS)), file=sys.stderr)
             return 2
-        table = summarise(data, args.summary, args.value)
+        value = args.value
+        if value is None:
+            value = next((v for v in VALUE_DEFAULTS
+                          if any(r[v] is not None for r in data)),
+                         VALUE_DEFAULTS[-1])
+        if value not in COLUMNS:
+            print("unknown --value column: {}\navailable: {}".format(
+                value, ", ".join(COLUMNS)), file=sys.stderr)
+            return 2
+        have = sum(1 for r in data if r[value] is not None)
+        if not have:
+            usable = [c for c in COLUMNS if (c in METRIC_KEYS or c == "seconds")
+                      and any(r[c] is not None for r in data)]
+            print("warning: column '{}' is None for all {} selected records, "
+                  "so the summary is empty; columns with values here: {}"
+                  .format(value, len(data), ", ".join(usable) or "none"),
+                  file=sys.stderr)
+        table = summarise(data, args.summary, value)
         header = list(args.summary) + ["n", "mean", "min", "max"]
         widths = [max(len(str(h)), max((len(str(r[i])) for r in table),
                                        default=0))
@@ -198,9 +271,10 @@ def main(argv=None):
         for r in table:
             print(fmt.format(*[("" if c is None else c) for c in r]))
         failed = sum(1 for r in data if r["status_exit"] != "ok")
-        print("\n{} records, {} not ok, {} groups, {} with corrected fields"
-              .format(len(data), failed, len(table),
-                      sum(r["_corrected"] for r in data)))
+        print("\n{} records, {} with {}, {} not ok, {} groups, {} with "
+              "corrected fields".format(
+                  len(data), have, value, failed, len(table),
+                  sum(1 for r in data if r["corrected"])))
         return 0
 
     out = open(args.out, "w", newline="") if args.out else sys.stdout
@@ -213,7 +287,7 @@ def main(argv=None):
         if args.out:
             out.close()
             print("wrote {} rows to {} ({} with corrected fields)".format(
-                len(data), args.out, sum(r["_corrected"] for r in data)),
+                len(data), args.out, sum(1 for r in data if r["corrected"])),
                 file=sys.stderr)
     return 0
 
