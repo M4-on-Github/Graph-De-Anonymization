@@ -39,6 +39,13 @@
 #   --pair-seeds "L"    Pair noise draws (default "0").
 #   --align-seeds "L"   Adv-GD alignment seeds, full method only (default
 #                        matches adv_gd/sweep.py's own default "0 1 2 3").
+#   --gae-seed N        Phase 1 (GAE) seed for the adv_gd and ablation stages
+#                        only; pairs and baselines train no GAE and never
+#                        receive it. Default: not passed, so sweep.py's own
+#                        default (0) applies. The embedding cache in each pair
+#                        dir (Z1.npz/Z2.npz) is stamped with the seed, so a run
+#                        with a different seed retrains and OVERWRITES it --
+#                        give each GAE seed its own --pair-root.
 #   --beta-mode M       nominal | divergence (default divergence, matching
 #                        this script's original behavior). nominal deletes
 #                        each copy at the stated beta (edges diverge by
@@ -74,6 +81,7 @@ ALIGN_SEEDS="0 1 2 3"
 BETA_MODE="divergence"
 PAIR_ROOT=""
 STATUS="confirmatory"
+GAE_SEED=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -87,6 +95,7 @@ while [[ $# -gt 0 ]]; do
         --beta-mode)    BETA_MODE="$2"; shift 2 ;;
         --pair-root)    PAIR_ROOT="$2"; shift 2 ;;
         --status)       STATUS="$2"; shift 2 ;;
+        --gae-seed)     GAE_SEED="$2"; shift 2 ;;
         -h|--help)
             sed -n '2,/^set -/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
             exit 0 ;;
@@ -104,6 +113,10 @@ esac
 case "$STATUS" in exploratory|confirmatory) ;;
     *) echo "ERROR: --status must be exploratory or confirmatory" >&2; exit 1 ;;
 esac
+if [ -n "$GAE_SEED" ] && ! [[ "$GAE_SEED" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: --gae-seed must be a single non-negative integer" >&2
+    exit 1
+fi
 [ -z "$PAIR_ROOT" ] && PAIR_ROOT="runs/sweep_${BETA_MODE}"
 
 mkdir -p "$LOGS_DIR"
@@ -158,12 +171,14 @@ submit_array() {
 if [ -z "$ONLY" ] || [ "$ONLY" = adv_gd ]; then
     submit_array adv_gd_full gda_adv "$SCRIPTS/30_adv_gd_job.sh" "$N_FULL" \
         --align-seeds $ALIGN_SEEDS --status "$STATUS" \
+        ${GAE_SEED:+--gae-seed "$GAE_SEED"} \
         --note "Adv-GD suite: full method"
 fi
 
 if [ -z "$ONLY" ] || [ "$ONLY" = ablation ]; then
     submit_array adv_gd_ablation gda_abl "$SCRIPTS/30_adv_gd_job.sh" "$N_SOLO" \
         --align-seeds 0 --skip-adversarial --status "$STATUS" \
+        ${GAE_SEED:+--gae-seed "$GAE_SEED"} \
         --note "Adv-GD suite: skip_adversarial ablation"
 fi
 

@@ -130,6 +130,9 @@ def generate(args, cells: list[dict]) -> int:
                "--beta-mode", c["beta_mode"],
                "--seed", str(c["pair_seed"]),
                "--out", str(args.out),
+               # Confirmatory by design, not by the sweep's --status: the generator
+               # checks each pair's measured edge overlap against the (1-beta)^2
+               # prior stated before the draw (perturbation.check_overlap).
                "--status", "confirmatory",
                "--note", (f"sweep cell for nominal beta={c['beta_nominal']} "
                           f"in {c['beta_mode']} mode")]
