@@ -1,0 +1,17 @@
+{
+  "run_id": "20261022T0208Z_cit-HepTh_b20_s2_7a4f5d97",
+  "started_utc": "2026-10-22T02:08:30+00:00",
+  "kind": "baseline_isorank",
+  "pair": "cit-HepTh_b20_s2",
+  "status": "exploratory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.2,
+  "n_restarts": null,
+  "anchor_precision": 0.023,
+  "chi": 0.00488111526088082,
+  "gamma": 0.08173374613003095,
+  "seconds": 788.1,
+  "git": "2335bc49cb0e+dirty",
+  "note": "Adv-GD suite: IsoRank baseline"
+}

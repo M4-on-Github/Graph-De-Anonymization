@@ -1,0 +1,15 @@
+pair cit-HepTh_b20_s0  beta=0.2  measure=eigenvector
+  sweep   1  stage 0  +0 -> 1,000 mapped  26s
+  sweep   2  stage 1  +208 -> 1,208 mapped  53s
+  sweep   3  stage 1  +112 -> 1,320 mapped  81s
+  sweep   4  stage 1  +58 -> 1,378 mapped  109s
+  sweep   5  stage 1  +38 -> 1,416 mapped  137s
+  sweep   6  stage 1  +29 -> 1,445 mapped  166s
+  sweep   7  stage 1  +21 -> 1,466 mapped  194s
+  sweep   8  stage 1  +9 -> 1,475 mapped  222s
+  sweep   9  stage 1  +8 -> 1,483 mapped  248s
+  sweep  10  stage 1  +6 -> 1,489 mapped  271s
+  sweep  11  stage 1  +3 -> 1,492 mapped  295s
+  sweep  12  stage 1  +5 -> 1,497 mapped  319s
+  sweep  13  stage 1  +2 -> 1,499 mapped  342s
+  sweep  14  stage 1  +0 -> 1,499 mapped  366s

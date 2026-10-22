@@ -1,0 +1,38 @@
+phase 1: GAE embeddings
+  reusing Z1.npz (26,325 nodes, 600 epochs)
+  reusing Z2.npz (26,376 nodes, 600 epochs)
+  reconstruction AUC  G1 0.9962  G2 0.9967
+phase 2: adversarial alignment
+adversarial training on top 5,000 / 5,000 degree nodes
+  restart 1/1  (seed 0)
+    refine 0/5  anchors 179  mean cosine 0.4645
+    refine 1/5  anchors 190  mean cosine 0.6473
+    refine 2/5  anchors 226  mean cosine 0.7013
+    refine 3/5  anchors 227  mean cosine 0.7395
+    refine 4/5  anchors 229  mean cosine 0.7659
+    refine 5/5  anchors 239  mean cosine 0.7881
+phase 3: propagation
+  sweep   1  stage 0  +2 -> 241 mapped  3s
+  sweep   2  stage 0  +1 -> 242 mapped  6s
+  sweep   3  stage 0  +0 -> 242 mapped  9s
+  sweep   4  stage 1  +186 -> 428 mapped  12s
+  sweep   5  stage 1  +189 -> 617 mapped  14s
+  sweep   6  stage 1  +146 -> 763 mapped  17s
+  sweep   7  stage 1  +138 -> 901 mapped  20s
+  sweep   8  stage 1  +109 -> 1,010 mapped  23s
+  sweep   9  stage 1  +86 -> 1,096 mapped  26s
+  sweep  10  stage 1  +83 -> 1,179 mapped  29s
+  sweep  11  stage 1  +72 -> 1,251 mapped  32s
+  sweep  12  stage 1  +55 -> 1,306 mapped  35s
+  sweep  13  stage 1  +63 -> 1,369 mapped  38s
+  sweep  14  stage 1  +37 -> 1,406 mapped  41s
+  sweep  15  stage 1  +23 -> 1,429 mapped  44s
+  sweep  16  stage 1  +12 -> 1,441 mapped  48s
+  sweep  17  stage 1  +8 -> 1,449 mapped  51s
+  sweep  18  stage 1  +9 -> 1,458 mapped  54s
+  sweep  19  stage 1  +4 -> 1,462 mapped  57s
+  sweep  20  stage 1  +0 -> 1,462 mapped  61s
+
+  anchors (ours)   0/239  precision 0.0000
+  de-anonymized    0/1,462 mapped  chi 0.0000  gamma 0.0000
+  62s total

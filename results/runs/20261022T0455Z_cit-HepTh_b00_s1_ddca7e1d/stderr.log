@@ -1,0 +1,101 @@
+phase 1: GAE embeddings
+/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/embedding.py:79: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/Context.cpp:848.)
+  return torch.sparse_coo_tensor(
+  epoch    1/600  loss 0.6931  1s
+  epoch   20/600  loss 0.5274  4s
+  epoch   40/600  loss 0.5167  8s
+  epoch   60/600  loss 0.4980  11s
+  epoch   80/600  loss 0.4668  15s
+  epoch  100/600  loss 0.4474  19s
+  epoch  120/600  loss 0.4355  23s
+  epoch  140/600  loss 0.4276  26s
+  epoch  160/600  loss 0.4192  30s
+  epoch  180/600  loss 0.4127  34s
+  epoch  200/600  loss 0.4079  37s
+  epoch  220/600  loss 0.4040  41s
+  epoch  240/600  loss 0.4008  45s
+  epoch  260/600  loss 0.3982  48s
+  epoch  280/600  loss 0.3958  52s
+  epoch  300/600  loss 0.3938  56s
+  epoch  320/600  loss 0.3921  60s
+  epoch  340/600  loss 0.3909  63s
+  epoch  360/600  loss 0.3897  67s
+  epoch  380/600  loss 0.3888  71s
+  epoch  400/600  loss 0.3880  74s
+  epoch  420/600  loss 0.3873  78s
+  epoch  440/600  loss 0.3868  82s
+  epoch  460/600  loss 0.3865  85s
+  epoch  480/600  loss 0.3860  89s
+  epoch  500/600  loss 0.3857  93s
+  epoch  520/600  loss 0.3855  97s
+  epoch  540/600  loss 0.3852  100s
+  epoch  560/600  loss 0.3850  104s
+  epoch  580/600  loss 0.3849  108s
+  epoch  600/600  loss 0.3847  111s
+embedded 27,769 nodes -> 32d in 111s on cuda
+  epoch    1/600  loss 0.6931  0s
+  epoch   20/600  loss 0.5269  4s
+  epoch   40/600  loss 0.5160  7s
+  epoch   60/600  loss 0.4939  11s
+  epoch   80/600  loss 0.4640  15s
+  epoch  100/600  loss 0.4469  19s
+  epoch  120/600  loss 0.4354  22s
+  epoch  140/600  loss 0.4254  26s
+  epoch  160/600  loss 0.4182  30s
+  epoch  180/600  loss 0.4119  34s
+  epoch  200/600  loss 0.4072  37s
+  epoch  220/600  loss 0.4035  41s
+  epoch  240/600  loss 0.4006  45s
+  epoch  260/600  loss 0.3982  48s
+  epoch  280/600  loss 0.3962  52s
+  epoch  300/600  loss 0.3946  56s
+  epoch  320/600  loss 0.3931  60s
+  epoch  340/600  loss 0.3917  63s
+  epoch  360/600  loss 0.3905  67s
+  epoch  380/600  loss 0.3893  71s
+  epoch  400/600  loss 0.3884  74s
+  epoch  420/600  loss 0.3877  78s
+  epoch  440/600  loss 0.3871  82s
+  epoch  460/600  loss 0.3867  86s
+  epoch  480/600  loss 0.3863  89s
+  epoch  500/600  loss 0.3860  93s
+  epoch  520/600  loss 0.3857  97s
+  epoch  540/600  loss 0.3856  101s
+  epoch  560/600  loss 0.3852  104s
+  epoch  580/600  loss 0.3850  108s
+  epoch  600/600  loss 0.3849  112s
+embedded 27,769 nodes -> 32d in 112s on cuda
+  reconstruction AUC  G1 0.9953  G2 0.9956
+phase 2: adversarial alignment
+adversarial training on top 5,000 / 5,000 degree nodes
+  restart 1/1  (seed 0)
+    refine 0/5  anchors 212  mean cosine 0.6273
+    refine 1/5  anchors 238  mean cosine 0.7549
+    refine 2/5  anchors 256  mean cosine 0.7859
+    refine 3/5  anchors 258  mean cosine 0.7941
+    refine 4/5  anchors 259  mean cosine 0.8043
+    refine 5/5  anchors 258  mean cosine 0.8078
+phase 3: propagation
+  sweep   1  stage 0  +1 -> 259 mapped  14s
+  sweep   2  stage 0  +0 -> 259 mapped  27s
+  sweep   3  stage 1  +208 -> 467 mapped  40s
+  sweep   4  stage 1  +203 -> 670 mapped  55s
+  sweep   5  stage 1  +129 -> 799 mapped  69s
+  sweep   6  stage 1  +100 -> 899 mapped  83s
+  sweep   7  stage 1  +105 -> 1,004 mapped  98s
+  sweep   8  stage 1  +137 -> 1,141 mapped  111s
+  sweep   9  stage 1  +285 -> 1,426 mapped  126s
+  sweep  10  stage 1  +691 -> 2,117 mapped  141s
+  sweep  11  stage 1  +1,068 -> 3,185 mapped  158s
+  sweep  12  stage 1  +2,408 -> 5,593 mapped  176s
+  sweep  13  stage 1  +5,428 -> 11,021 mapped  203s
+  sweep  14  stage 1  +9,214 -> 20,235 mapped  252s
+  sweep  15  stage 1  +5,087 -> 25,322 mapped  276s
+  sweep  16  stage 1  +400 -> 25,722 mapped  281s
+  sweep  17  stage 1  +73 -> 25,795 mapped  285s
+  sweep  18  stage 1  +8 -> 25,803 mapped  288s
+  sweep  19  stage 1  +0 -> 25,803 mapped  291s
+
+  anchors (ours)   2/258  precision 0.0078
+  de-anonymized    24,127/25,803 mapped  chi 0.8688  gamma 0.9350
+  520s total

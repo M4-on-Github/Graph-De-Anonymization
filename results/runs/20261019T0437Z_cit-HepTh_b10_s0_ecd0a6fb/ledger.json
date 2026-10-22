@@ -1,0 +1,17 @@
+{
+  "run_id": "20261019T0437Z_cit-HepTh_b10_s0_ecd0a6fb",
+  "started_utc": "2026-10-19T04:37:55+00:00",
+  "kind": "adv_gd",
+  "pair": "cit-HepTh_b10_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 1,
+  "beta": 0.1,
+  "n_restarts": 4,
+  "anchor_precision": 0.9767171129220024,
+  "chi": 0.9164844774814167,
+  "gamma": 0.9758671529448282,
+  "seconds": 519.1,
+  "git": "94f6d7c55253+dirty",
+  "note": "Adv-GD suite: full method"
+}

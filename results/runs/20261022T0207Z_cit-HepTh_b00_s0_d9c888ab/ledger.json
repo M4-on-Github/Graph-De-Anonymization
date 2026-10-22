@@ -1,0 +1,17 @@
+{
+  "run_id": "20261022T0207Z_cit-HepTh_b00_s0_d9c888ab",
+  "started_utc": "2026-10-22T02:07:06+00:00",
+  "kind": "perturbation",
+  "pair": "cit-HepTh_b00_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.0,
+  "n_restarts": 1,
+  "anchor_precision": null,
+  "chi": null,
+  "gamma": null,
+  "seconds": 2.2,
+  "git": "2335bc49cb0e+dirty",
+  "note": "sweep cell for nominal beta=0.0 in nominal mode"
+}

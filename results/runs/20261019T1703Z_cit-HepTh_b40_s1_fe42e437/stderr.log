@@ -1,0 +1,155 @@
+phase 1: GAE embeddings
+/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/embedding.py:79: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/Context.cpp:848.)
+  return torch.sparse_coo_tensor(
+  epoch    1/600  loss 0.6931  1s
+  epoch   20/600  loss 0.5263  4s
+  epoch   40/600  loss 0.5198  7s
+  epoch   60/600  loss 0.5093  11s
+  epoch   80/600  loss 0.4687  14s
+  epoch  100/600  loss 0.4407  18s
+  epoch  120/600  loss 0.4260  21s
+  epoch  140/600  loss 0.4179  24s
+  epoch  160/600  loss 0.4119  28s
+  epoch  180/600  loss 0.4070  31s
+  epoch  200/600  loss 0.4029  35s
+  epoch  220/600  loss 0.3997  38s
+  epoch  240/600  loss 0.3971  42s
+  epoch  260/600  loss 0.3950  45s
+  epoch  280/600  loss 0.3933  48s
+  epoch  300/600  loss 0.3918  52s
+  epoch  320/600  loss 0.3904  55s
+  epoch  340/600  loss 0.3893  59s
+  epoch  360/600  loss 0.3883  62s
+  epoch  380/600  loss 0.3875  66s
+  epoch  400/600  loss 0.3868  69s
+  epoch  420/600  loss 0.3863  72s
+  epoch  440/600  loss 0.3859  76s
+  epoch  460/600  loss 0.3855  79s
+  epoch  480/600  loss 0.3853  83s
+  epoch  500/600  loss 0.3850  86s
+  epoch  520/600  loss 0.3848  90s
+  epoch  540/600  loss 0.3846  93s
+  epoch  560/600  loss 0.3845  96s
+  epoch  580/600  loss 0.3844  100s
+  epoch  600/600  loss 0.3842  103s
+embedded 26,788 nodes -> 32d in 103s on cuda
+  epoch    1/600  loss 0.6931  0s
+  epoch   20/600  loss 0.5303  3s
+  epoch   40/600  loss 0.5172  7s
+  epoch   60/600  loss 0.4866  10s
+  epoch   80/600  loss 0.4594  14s
+  epoch  100/600  loss 0.4397  17s
+  epoch  120/600  loss 0.4278  21s
+  epoch  140/600  loss 0.4198  24s
+  epoch  160/600  loss 0.4130  27s
+  epoch  180/600  loss 0.4078  31s
+  epoch  200/600  loss 0.4035  34s
+  epoch  220/600  loss 0.4003  38s
+  epoch  240/600  loss 0.3978  41s
+  epoch  260/600  loss 0.3958  45s
+  epoch  280/600  loss 0.3942  48s
+  epoch  300/600  loss 0.3927  52s
+  epoch  320/600  loss 0.3913  55s
+  epoch  340/600  loss 0.3901  58s
+  epoch  360/600  loss 0.3891  62s
+  epoch  380/600  loss 0.3883  65s
+  epoch  400/600  loss 0.3875  69s
+  epoch  420/600  loss 0.3869  72s
+  epoch  440/600  loss 0.3864  76s
+  epoch  460/600  loss 0.3860  79s
+  epoch  480/600  loss 0.3856  82s
+  epoch  500/600  loss 0.3854  86s
+  epoch  520/600  loss 0.3851  89s
+  epoch  540/600  loss 0.3850  93s
+  epoch  560/600  loss 0.3847  96s
+  epoch  580/600  loss 0.3845  100s
+  epoch  600/600  loss 0.3844  103s
+embedded 26,822 nodes -> 32d in 103s on cuda
+  reconstruction AUC  G1 0.9965  G2 0.9965
+phase 2: adversarial alignment
+adversarial training on top 5,000 / 5,000 degree nodes
+  restart 1/4  (seed 0)
+/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/alignment.py:236: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  d_running += float(loss_d)
+  adv epoch 1/5  D 0.6545  W 0.8122  5s
+  adv epoch 2/5  D 0.6300  W 0.9102  11s
+  adv epoch 3/5  D 0.6188  W 0.9611  16s
+  adv epoch 4/5  D 0.6166  W 0.9731  22s
+  adv epoch 5/5  D 0.6114  W 0.9926  27s
+    refine 0/5  anchors 240  mean cosine 0.8127
+    refine 1/5  anchors 234  mean cosine 0.7887
+    refine 2/5  anchors 252  mean cosine 0.8047
+    refine 3/5  anchors 259  mean cosine 0.8094
+    refine 4/5  anchors 255  mean cosine 0.8099
+    refine 5/5  anchors 253  mean cosine 0.8117
+  restart 2/4  (seed 1)
+  adv epoch 1/5  D 0.6532  W 0.8147  5s
+  adv epoch 2/5  D 0.6262  W 0.9264  10s
+  adv epoch 3/5  D 0.6217  W 0.9537  15s
+  adv epoch 4/5  D 0.6165  W 0.9712  20s
+  adv epoch 5/5  D 0.6235  W 0.9559  25s
+    refine 0/5  anchors 564  mean cosine 0.8908
+    refine 1/5  anchors 688  mean cosine 0.9279
+    refine 2/5  anchors 712  mean cosine 0.9372
+    refine 3/5  anchors 726  mean cosine 0.9380
+    refine 4/5  anchors 731  mean cosine 0.9380
+    refine 5/5  anchors 730  mean cosine 0.9382
+  restart 3/4  (seed 2)
+  adv epoch 1/5  D 0.6533  W 0.8135  5s
+  adv epoch 2/5  D 0.6266  W 0.9235  11s
+  adv epoch 3/5  D 0.6221  W 0.9517  16s
+  adv epoch 4/5  D 0.6147  W 0.9790  22s
+  adv epoch 5/5  D 0.6107  W 0.9925  27s
+    refine 0/5  anchors 252  mean cosine 0.8357
+    refine 1/5  anchors 256  mean cosine 0.8146
+    refine 2/5  anchors 270  mean cosine 0.8321
+    refine 3/5  anchors 274  mean cosine 0.8351
+    refine 4/5  anchors 278  mean cosine 0.8397
+    refine 5/5  anchors 280  mean cosine 0.8407
+  restart 4/4  (seed 3)
+  adv epoch 1/5  D 0.6535  W 0.8147  6s
+  adv epoch 2/5  D 0.6292  W 0.9141  11s
+  adv epoch 3/5  D 0.6200  W 0.9572  17s
+  adv epoch 4/5  D 0.6145  W 0.9793  22s
+  adv epoch 5/5  D 0.6104  W 0.9963  27s
+    refine 0/5  anchors 249  mean cosine 0.8288
+    refine 1/5  anchors 250  mean cosine 0.8108
+    refine 2/5  anchors 246  mean cosine 0.8207
+    refine 3/5  anchors 255  mean cosine 0.8280
+    refine 4/5  anchors 258  mean cosine 0.8280
+    refine 5/5  anchors 266  mean cosine 0.8267
+  mean cosine across restarts: 0.8117, 0.9382, 0.8407, 0.8267
+  selected seed 1 (0.9382, 730 anchors)
+phase 3: propagation
+  sweep   1  stage 0  +2,109 -> 2,839 mapped  21s
+  sweep   2  stage 0  +2,012 -> 4,851 mapped  38s
+  sweep   3  stage 0  +1,016 -> 5,867 mapped  51s
+  sweep   4  stage 0  +396 -> 6,263 mapped  63s
+  sweep   5  stage 0  +144 -> 6,407 mapped  74s
+  sweep   6  stage 0  +35 -> 6,442 mapped  85s
+  sweep   7  stage 0  +11 -> 6,453 mapped  96s
+  sweep   8  stage 0  +9 -> 6,462 mapped  107s
+  sweep   9  stage 0  +5 -> 6,467 mapped  118s
+  sweep  10  stage 0  +0 -> 6,467 mapped  129s
+  sweep  11  stage 1  +3,988 -> 10,455 mapped  142s
+  sweep  12  stage 1  +2,372 -> 12,827 mapped  154s
+  sweep  13  stage 1  +1,370 -> 14,197 mapped  164s
+  sweep  14  stage 1  +764 -> 14,961 mapped  173s
+  sweep  15  stage 1  +483 -> 15,444 mapped  182s
+  sweep  16  stage 1  +355 -> 15,799 mapped  192s
+  sweep  17  stage 1  +241 -> 16,040 mapped  201s
+  sweep  18  stage 1  +157 -> 16,197 mapped  210s
+  sweep  19  stage 1  +124 -> 16,321 mapped  218s
+  sweep  20  stage 1  +109 -> 16,430 mapped  227s
+  sweep  21  stage 1  +59 -> 16,489 mapped  236s
+  sweep  22  stage 1  +48 -> 16,537 mapped  245s
+  sweep  23  stage 1  +38 -> 16,575 mapped  254s
+  sweep  24  stage 1  +25 -> 16,600 mapped  263s
+  sweep  25  stage 1  +4 -> 16,604 mapped  272s
+  sweep  26  stage 1  +0 -> 16,604 mapped  281s
+
+  anchors (ours)   684/730  precision 0.9370
+  anchors (paper)  585/607  precision 0.9638
+  de-anonymized    13,063/16,604 mapped  chi 0.5003  gamma 0.7867
+  599s total

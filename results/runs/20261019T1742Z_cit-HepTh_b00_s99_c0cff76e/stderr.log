@@ -1,0 +1,78 @@
+phase 1: GAE embeddings
+  reusing Z1.npz (27,769 nodes, 600 epochs)
+  reusing Z2.npz (27,769 nodes, 600 epochs)
+  reconstruction AUC  G1 0.9955  G2 0.9953
+phase 2: adversarial alignment
+adversarial training on top 5,000 / 5,000 degree nodes
+  restart 1/4  (seed 3)
+/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/alignment.py:236: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  d_running += float(loss_d)
+  adv epoch 1/5  D 0.6497  W 0.8270  6s
+  adv epoch 2/5  D 0.6243  W 0.9317  11s
+  adv epoch 3/5  D 0.6187  W 0.9628  17s
+  adv epoch 4/5  D 0.6152  W 0.9774  23s
+  adv epoch 5/5  D 0.6092  W 1.0022  28s
+    refine 0/5  anchors 269  mean cosine 0.8197
+    refine 1/5  anchors 242  mean cosine 0.8144
+    refine 2/5  anchors 254  mean cosine 0.8276
+    refine 3/5  anchors 264  mean cosine 0.8308
+    refine 4/5  anchors 264  mean cosine 0.8307
+    refine 5/5  anchors 265  mean cosine 0.8352
+  restart 2/4  (seed 4)
+  adv epoch 1/5  D 0.6517  W 0.8215  5s
+  adv epoch 2/5  D 0.6246  W 0.9329  11s
+  adv epoch 3/5  D 0.6153  W 0.9724  17s
+  adv epoch 4/5  D 0.6124  W 0.9891  22s
+  adv epoch 5/5  D 0.6089  W 1.0028  27s
+    refine 0/5  anchors 242  mean cosine 0.8296
+    refine 1/5  anchors 240  mean cosine 0.8140
+    refine 2/5  anchors 254  mean cosine 0.8174
+    refine 3/5  anchors 255  mean cosine 0.8217
+    refine 4/5  anchors 257  mean cosine 0.8236
+    refine 5/5  anchors 263  mean cosine 0.8295
+  restart 3/4  (seed 5)
+  adv epoch 1/5  D 0.6535  W 0.8145  5s
+  adv epoch 2/5  D 0.6238  W 0.9326  11s
+  adv epoch 3/5  D 0.6168  W 0.9716  17s
+  adv epoch 4/5  D 0.6116  W 0.9910  22s
+  adv epoch 5/5  D 0.6246  W 0.9567  27s
+    refine 0/5  anchors 841  mean cosine 0.9367
+    refine 1/5  anchors 930  mean cosine 0.9663
+    refine 2/5  anchors 927  mean cosine 0.9669
+    refine 3/5  anchors 928  mean cosine 0.9666
+    refine 4/5  anchors 929  mean cosine 0.9669
+    refine 5/5  anchors 929  mean cosine 0.9669
+  restart 4/4  (seed 6)
+  adv epoch 1/5  D 0.6527  W 0.8192  5s
+  adv epoch 2/5  D 0.6234  W 0.9357  10s
+  adv epoch 3/5  D 0.6173  W 0.9671  15s
+  adv epoch 4/5  D 0.6161  W 0.9764  20s
+  adv epoch 5/5  D 0.6316  W 0.9329  25s
+    refine 0/5  anchors 802  mean cosine 0.9379
+    refine 1/5  anchors 934  mean cosine 0.9667
+    refine 2/5  anchors 929  mean cosine 0.9677
+    refine 3/5  anchors 929  mean cosine 0.9678
+    refine 4/5  anchors 929  mean cosine 0.9678
+    refine 5/5  anchors 929  mean cosine 0.9678
+  mean cosine across restarts: 0.8352, 0.8295, 0.9669, 0.9678
+  selected seed 6 (0.9678, 929 anchors)
+phase 3: propagation
+  sweep   1  stage 0  +7,166 -> 8,095 mapped  59s
+  sweep   2  stage 0  +460 -> 8,555 mapped  77s
+  sweep   3  stage 0  +31 -> 8,586 mapped  93s
+  sweep   4  stage 0  +2 -> 8,588 mapped  110s
+  sweep   5  stage 0  +0 -> 8,588 mapped  127s
+  sweep   6  stage 1  +12,167 -> 20,755 mapped  150s
+  sweep   7  stage 1  +4,864 -> 25,619 mapped  161s
+  sweep   8  stage 1  +932 -> 26,551 mapped  164s
+  sweep   9  stage 1  +101 -> 26,652 mapped  166s
+  sweep  10  stage 1  +17 -> 26,669 mapped  167s
+  sweep  11  stage 1  +3 -> 26,672 mapped  168s
+  sweep  12  stage 1  +1 -> 26,673 mapped  169s
+  sweep  13  stage 1  +1 -> 26,674 mapped  170s
+  sweep  14  stage 1  +0 -> 26,674 mapped  171s
+
+  anchors (ours)   926/929  precision 0.9968
+  de-anonymized    26,668/26,674 mapped  chi 0.9604  gamma 0.9998
+  282s total

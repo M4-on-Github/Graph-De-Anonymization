@@ -1,0 +1,17 @@
+{
+  "run_id": "20261019T1731Z_cit-HepTh_b30_s2_de2faf20",
+  "started_utc": "2026-10-19T17:31:56+00:00",
+  "kind": "adv_gd_no_adversary",
+  "pair": "cit-HepTh_b30_s2",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.3,
+  "n_restarts": 4,
+  "anchor_precision": 0.013157894736842105,
+  "chi": 0.00026268387871510057,
+  "gamma": 0.005785123966942148,
+  "seconds": 150.8,
+  "git": "2335bc49cb0e+dirty",
+  "note": "Adv-GD suite: skip_adversarial ablation"
+}

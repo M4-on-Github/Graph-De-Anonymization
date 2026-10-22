@@ -1,0 +1,17 @@
+{
+  "run_id": "20261019T0414Z_cit-HepTh_b20_s0_840309c7",
+  "started_utc": "2026-10-19T04:14:09+00:00",
+  "kind": "ours_composite_centrality",
+  "pair": "cit-HepTh_b20_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.2,
+  "n_restarts": null,
+  "anchor_precision": 0.46492659053833607,
+  "chi": 0.7864099158919876,
+  "gamma": 0.8906622101524964,
+  "seconds": 616.3,
+  "git": "94f6d7c55253+dirty",
+  "note": "Adv-GD suite: this repo's own 6-feature + CSLS baseline"
+}

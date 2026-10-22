@@ -1,0 +1,17 @@
+{
+  "run_id": "20261019T0414Z_cit-HepTh_b10_s0_d5025f9b",
+  "started_utc": "2026-10-19T04:14:10+00:00",
+  "kind": "baseline_structural_fingerprint",
+  "pair": "cit-HepTh_b10_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.1,
+  "n_restarts": null,
+  "anchor_precision": 0.028423772609819122,
+  "chi": 0.0006194432298498761,
+  "gamma": 0.012039660056657223,
+  "seconds": 959.0,
+  "git": "94f6d7c55253+dirty",
+  "note": "Adv-GD suite: structural-fingerprint baseline"
+}

@@ -1,0 +1,14 @@
+pair cit-HepTh_b00_s0  beta=0.0  measure=k_truss
+  sweep   1  stage 0  +0 -> 1,000 mapped  13s
+  sweep   2  stage 1  +238 -> 1,238 mapped  26s
+  sweep   3  stage 1  +260 -> 1,498 mapped  40s
+  sweep   4  stage 1  +278 -> 1,776 mapped  54s
+  sweep   5  stage 1  +496 -> 2,272 mapped  68s
+  sweep   6  stage 1  +1,524 -> 3,796 mapped  83s
+  sweep   7  stage 1  +6,701 -> 10,497 mapped  108s
+  sweep   8  stage 1  +12,709 -> 23,206 mapped  143s
+  sweep   9  stage 1  +2,661 -> 25,867 mapped  149s
+  sweep  10  stage 1  +310 -> 26,177 mapped  152s
+  sweep  11  stage 1  +52 -> 26,229 mapped  153s
+  sweep  12  stage 1  +13 -> 26,242 mapped  155s
+  sweep  13  stage 1  +0 -> 26,242 mapped  157s

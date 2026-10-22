@@ -1,0 +1,25 @@
+pair cit-HepTh_b10_s0  beta=0.1  measure=pagerank
+  sweep   1  stage 0  +0 -> 1,000 mapped  37s
+  sweep   2  stage 1  +300 -> 1,300 mapped  75s
+  sweep   3  stage 1  +119 -> 1,419 mapped  112s
+  sweep   4  stage 1  +106 -> 1,525 mapped  149s
+  sweep   5  stage 1  +41 -> 1,566 mapped  185s
+  sweep   6  stage 1  +12 -> 1,578 mapped  222s
+  sweep   7  stage 1  +6 -> 1,584 mapped  258s
+  sweep   8  stage 1  +7 -> 1,591 mapped  294s
+  sweep   9  stage 1  +6 -> 1,597 mapped  330s
+  sweep  10  stage 1  +11 -> 1,608 mapped  367s
+  sweep  11  stage 1  +7 -> 1,615 mapped  403s
+  sweep  12  stage 1  +5 -> 1,620 mapped  439s
+  sweep  13  stage 1  +10 -> 1,630 mapped  476s
+  sweep  14  stage 1  +3 -> 1,633 mapped  512s
+  sweep  15  stage 1  +6 -> 1,639 mapped  548s
+  sweep  16  stage 1  +6 -> 1,645 mapped  584s
+  sweep  17  stage 1  +3 -> 1,648 mapped  621s
+  sweep  18  stage 1  +1 -> 1,649 mapped  657s
+  sweep  19  stage 1  +2 -> 1,651 mapped  693s
+  sweep  20  stage 1  +1 -> 1,652 mapped  729s
+  sweep  21  stage 1  +2 -> 1,654 mapped  765s
+  sweep  22  stage 1  +1 -> 1,655 mapped  802s
+  sweep  23  stage 1  +1 -> 1,656 mapped  838s
+  sweep  24  stage 1  +0 -> 1,656 mapped  874s

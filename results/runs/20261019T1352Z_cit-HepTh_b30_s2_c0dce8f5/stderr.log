@@ -1,0 +1,27 @@
+pair cit-HepTh_b30_s2  beta=0.3  measure=k_core
+  sweep   1  stage 0  +0 -> 1,000 mapped  10s
+  sweep   2  stage 1  +321 -> 1,321 mapped  20s
+  sweep   3  stage 1  +200 -> 1,521 mapped  30s
+  sweep   4  stage 1  +118 -> 1,639 mapped  40s
+  sweep   5  stage 1  +68 -> 1,707 mapped  50s
+  sweep   6  stage 1  +65 -> 1,772 mapped  60s
+  sweep   7  stage 1  +50 -> 1,822 mapped  71s
+  sweep   8  stage 1  +65 -> 1,887 mapped  81s
+  sweep   9  stage 1  +50 -> 1,937 mapped  91s
+  sweep  10  stage 1  +62 -> 1,999 mapped  102s
+  sweep  11  stage 1  +45 -> 2,044 mapped  113s
+  sweep  12  stage 1  +23 -> 2,067 mapped  123s
+  sweep  13  stage 1  +12 -> 2,079 mapped  134s
+  sweep  14  stage 1  +27 -> 2,106 mapped  145s
+  sweep  15  stage 1  +32 -> 2,138 mapped  156s
+  sweep  16  stage 1  +32 -> 2,170 mapped  167s
+  sweep  17  stage 1  +20 -> 2,190 mapped  177s
+  sweep  18  stage 1  +23 -> 2,213 mapped  188s
+  sweep  19  stage 1  +16 -> 2,229 mapped  199s
+  sweep  20  stage 1  +10 -> 2,239 mapped  210s
+  sweep  21  stage 1  +11 -> 2,250 mapped  221s
+  sweep  22  stage 1  +8 -> 2,258 mapped  232s
+  sweep  23  stage 1  +9 -> 2,267 mapped  243s
+  sweep  24  stage 1  +8 -> 2,275 mapped  254s
+  sweep  25  stage 1  +1 -> 2,276 mapped  265s
+  sweep  26  stage 1  +0 -> 2,276 mapped  276s

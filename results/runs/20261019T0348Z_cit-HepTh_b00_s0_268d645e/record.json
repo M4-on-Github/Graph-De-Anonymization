@@ -1,0 +1,232 @@
+{
+  "kind": "adv_gd",
+  "pair": "cit-HepTh_b00_s0",
+  "status": "exploratory",
+  "note": "GAE determinism/cache-race revalidation (2026-10-19): 4 align-seed tasks, same pair+gae_seed, concurrent array -- check z1_sha256/z2_sha256 match across all 4 post-fix (commit 22fce1c)",
+  "supersedes": null,
+  "started_utc": "2026-10-19T03:48:39+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/sweep.py",
+    "--task-id",
+    "0",
+    "--betas",
+    "0.0",
+    "--pair-seeds",
+    "0",
+    "--align-seeds",
+    "0",
+    "1",
+    "2",
+    "3",
+    "--beta-mode",
+    "divergence",
+    "--out",
+    "runs/sweep_divergence",
+    "--status",
+    "exploratory",
+    "--note",
+    "GAE determinism/cache-race revalidation (2026-10-19): 4 align-seed tasks, same pair+gae_seed, concurrent array -- check z1_sha256/z2_sha256 match across all 4 post-fix (commit 22fce1c)"
+  ],
+  "git": {
+    "head": "22fce1c73412",
+    "head_full": "22fce1c734128e220cfdb2b3cb093acc53dd76ad",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "overleaf_writeups/"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "overleaf_writeups",
+        "tree": true,
+        "files": 76,
+        "bytes": 130377,
+        "listing_sha256": "290d6a73557b9f56648fc68e83d03b5516b07be5eb6c0ff7aacab2376ab3c0dc"
+      }
+    ],
+    "diff_sha256": null,
+    "diff_bytes": 0
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-23",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": true,
+      "device": "NVIDIA RTX 6000 Ada Generation",
+      "capability": "8.9",
+      "version": "13.0"
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/G1.edgelist",
+      "bytes": 3943859,
+      "sha256": "85a8d677f562462fd2dc96427ac7d1822a9cbe21bcb4a43a74ee91d32c34a744"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/G2.edgelist",
+      "bytes": 3943027,
+      "sha256": "616141d292afa62f6d2475c09b76deac7e73e908e551e183f5845a50bee1899e"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/mapping.txt",
+      "bytes": 311008,
+      "sha256": "1fa71fcf33bc5531db865de037b153192d1380c536fd4ab2d855a58a1b1dc290"
+    },
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/stats.json",
+      "bytes": 563,
+      "sha256": "6a78f20762eae80721f017368f2d6c4964c2a687b3fed7aa9686e68f818713ff"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_divergence/cit-HepTh_b00_s0/out_mapping_20261019T0348Z_cit-HepTh_b00_s0_268d645e.txt",
+      "bytes": 298720,
+      "sha256": "8f6eb7d9cc9e0c086495bca3985227d2d4da06361da55b0ce9836aadc543bf6b"
+    }
+  ],
+  "metrics": {
+    "auc_g1": 0.995316985,
+    "auc_g2": 0.99571028,
+    "z1_sha256": "1f500fd45eb84038ad657e0ad7d6dc6843ffc445ff1137246c7976a04d0235c3",
+    "z2_sha256": "234ba3264726aa1115b940696b831c778d4197e4e535b95de24d312a7c5925ec",
+    "anchors_found": 893,
+    "anchors_correct": 889,
+    "anchor_precision": 0.9955207166853304,
+    "mapped": 26674,
+    "correct": 26666,
+    "chi": 0.9602794483056646,
+    "gamma": 0.9997000824773188
+  },
+  "seed": 0,
+  "gae_seed": 0,
+  "beta": 0.0,
+  "dataset": "hepth",
+  "phases": "123",
+  "params": {
+    "dim": 32,
+    "n_adv": 5000,
+    "n_anch": 1000,
+    "m": 10000
+  },
+  "config": {
+    "csls_k": 10,
+    "disc_hidden": 2048,
+    "disc_layers": 2,
+    "disc_dropout": 0.1,
+    "disc_input_dropout": 0.1,
+    "disc_leaky": 0.2,
+    "label_smooth": 0.2,
+    "adv_epochs": 5,
+    "adv_steps": 2000,
+    "refine_rounds": 5,
+    "ortho_beta": 0.01,
+    "normalize": "none",
+    "n_restarts": 4,
+    "skip_adversarial": false
+  },
+  "gae_epochs": 600,
+  "theta": 0.5,
+  "eccen_support": "all",
+  "n_restarts": 4,
+  "selection": "mean_match_cosine",
+  "matchable_nodes": 27769,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 352285,
+    "edges_u": 352285,
+    "shared_edges": 352285,
+    "retention_a": 1.0,
+    "retention_u": 1.0,
+    "retention_predicted": 1.0,
+    "overlap_ratio": 1.0,
+    "overlap_predicted": 1.0,
+    "overlap_sigma": 0.0,
+    "jaccard": 1.0,
+    "jaccard_predicted": 1.0,
+    "beta": 0.0,
+    "beta_nominal": 0.0,
+    "beta_mode": "divergence",
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27769,
+    "nodes_u": 27769,
+    "isolated_dropped_a": 0,
+    "isolated_dropped_u": 0,
+    "matchable_nodes": 27769
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/sweep_divergence/cit-HepTh_b00_s0",
+  "run_id": "20261019T0348Z_cit-HepTh_b00_s0_268d645e",
+  "config_sha256": "268d645e",
+  "selected_seed": 0,
+  "restarts": [
+    {
+      "seed": 0,
+      "anchors": 893,
+      "mean_cosine": 0.9546612501144409
+    },
+    {
+      "seed": 1,
+      "anchors": 249,
+      "mean_cosine": 0.8296581506729126
+    },
+    {
+      "seed": 2,
+      "anchors": 261,
+      "mean_cosine": 0.8327865600585938
+    },
+    {
+      "seed": 3,
+      "anchors": 256,
+      "mean_cosine": 0.8498529195785522
+    }
+  ],
+  "refine_history": [
+    {
+      "round": 0,
+      "anchors": 666,
+      "mean_cosine": 0.8965156674385071
+    },
+    {
+      "round": 1,
+      "anchors": 892,
+      "mean_cosine": 0.9515832662582397
+    },
+    {
+      "round": 2,
+      "anchors": 893,
+      "mean_cosine": 0.9545149803161621
+    },
+    {
+      "round": 3,
+      "anchors": 895,
+      "mean_cosine": 0.9546114206314087
+    },
+    {
+      "round": 4,
+      "anchors": 893,
+      "mean_cosine": 0.9546696543693542
+    },
+    {
+      "round": 5,
+      "anchors": 893,
+      "mean_cosine": 0.9546612501144409
+    }
+  ],
+  "status_exit": "ok",
+  "seconds": 327.5,
+  "finished_utc": "2026-10-19T03:54:06+00:00"
+}

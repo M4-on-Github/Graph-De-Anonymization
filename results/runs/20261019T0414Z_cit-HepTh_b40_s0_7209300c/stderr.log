@@ -1,0 +1,20 @@
+pair cit-HepTh_b40_s0  beta=0.4  G1 26,798n  G2 26,831n
+  anchors: 557 mutual CSLS nearest neighbours (k=10) among top 1,000 degree nodes
+  sweep   1  stage 0  +5 -> 562 mapped  13s
+  sweep   2  stage 0  +0 -> 562 mapped  25s
+  sweep   3  stage 1  +264 -> 826 mapped  38s
+  sweep   4  stage 1  +147 -> 973 mapped  51s
+  sweep   5  stage 1  +72 -> 1,045 mapped  65s
+  sweep   6  stage 1  +52 -> 1,097 mapped  78s
+  sweep   7  stage 1  +37 -> 1,134 mapped  91s
+  sweep   8  stage 1  +37 -> 1,171 mapped  104s
+  sweep   9  stage 1  +19 -> 1,190 mapped  117s
+  sweep  10  stage 1  +17 -> 1,207 mapped  130s
+  sweep  11  stage 1  +9 -> 1,216 mapped  143s
+  sweep  12  stage 1  +9 -> 1,225 mapped  156s
+  sweep  13  stage 1  +2 -> 1,227 mapped  169s
+  sweep  14  stage 1  +6 -> 1,233 mapped  181s
+  sweep  15  stage 1  +11 -> 1,244 mapped  194s
+  sweep  16  stage 1  +6 -> 1,250 mapped  207s
+  sweep  17  stage 1  +5 -> 1,255 mapped  219s
+  sweep  18  stage 1  +0 -> 1,255 mapped  232s

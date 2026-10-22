@@ -1,0 +1,14 @@
+pair cit-HepTh_b40_s1  beta=0.4  G1 26,788n  G2 26,822n  restricting to top-2,500 degree nodes per side
+    IsoRank round 5/20  max R=1.835e-05
+    IsoRank round 10/20  max R=1.833e-05
+    IsoRank round 15/20  max R=1.833e-05
+    IsoRank round 20/20  max R=1.833e-05
+  sweep   1  stage 0  +0 -> 1,000 mapped  20s
+  sweep   2  stage 1  +222 -> 1,222 mapped  39s
+  sweep   3  stage 1  +74 -> 1,296 mapped  60s
+  sweep   4  stage 1  +24 -> 1,320 mapped  80s
+  sweep   5  stage 1  +10 -> 1,330 mapped  100s
+  sweep   6  stage 1  +7 -> 1,337 mapped  120s
+  sweep   7  stage 1  +4 -> 1,341 mapped  140s
+  sweep   8  stage 1  +1 -> 1,342 mapped  161s
+  sweep   9  stage 1  +0 -> 1,342 mapped  181s

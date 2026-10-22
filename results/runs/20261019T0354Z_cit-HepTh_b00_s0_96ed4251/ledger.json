@@ -1,0 +1,17 @@
+{
+  "run_id": "20261019T0354Z_cit-HepTh_b00_s0_96ed4251",
+  "started_utc": "2026-10-19T03:54:16+00:00",
+  "kind": "adv_gd",
+  "pair": "cit-HepTh_b00_s0",
+  "status": "exploratory",
+  "status_exit": "ok",
+  "seed": 2,
+  "beta": 0.0,
+  "n_restarts": 4,
+  "anchor_precision": 0.01953125,
+  "chi": 0.8622564730454824,
+  "gamma": 0.9244073816693692,
+  "seconds": 407.9,
+  "git": "22fce1c73412+dirty",
+  "note": "GAE determinism/cache-race revalidation (2026-10-19): 4 align-seed tasks, same pair+gae_seed, concurrent array -- check z1_sha256/z2_sha256 match across all 4 post-fix (commit 22fce1c)"
+}
