@@ -78,6 +78,7 @@ generator's `stats.json` verbatim instead of referencing it.
 ```
 results/runs/
   index.jsonl                     append-only ledger, one line per run, tracked
+  corrections.jsonl               append-only label corrections, overlaid on index.jsonl, tracked
   <run_id>/
     record.json                   the full record, tracked
     diff.patch                    present only when the tree was dirty, tracked
@@ -141,7 +142,9 @@ free-text `note`. Set it before the run, not after. This is the cheapest availab
 against reporting a cell found by searching as though it had been predicted; it is weaker
 than pre-registration and better than nothing. A sweep is exploratory. A re-run of one
 setting to confirm a specific prior expectation is confirmatory. If in doubt it is
-exploratory.
+exploratory. Pair-generation records are confirmatory by design: the generator checks each
+pair's measured edge overlap against the (1-beta)^2 prediction (`check_overlap`) and records
+the outcome in `verify_passed`, so every pair has a numeric expectation stated in advance.
 
 **What came out?** `metrics` (AUC per graph, anchors found/correct/precision, mapped,
 correct, chi, gamma, the paper's Table 2 cell for comparison), `refine_history`,
@@ -185,6 +188,19 @@ are written for failures too.
    check. That was defensible — the values were known with certainty from the run that
    produced them — and it is exactly the kind of act that must not become routine, because
    the stamp now asserts something no record witnesses. Re-generate instead.
+7. **Corrections to a label are appended to `corrections.jsonl`, never written into the
+   record.** A mistake in a run's metadata that does not invalidate the run -- a wrong
+   `status` is the case so far -- goes in `results/runs/corrections.jsonl` as one line
+   (`run_id`, `field`, `old`, `new`, `reason`, `decided`, `recorded`), and the record keeps what
+   was written at the time. Anything that reads a corrected field, from `index.jsonl` or from
+   a record, must overlay `corrections.jsonl`, later lines winning. The file is itself
+   append-only: correcting a correction is a new line. A run that is actually invalid still
+   gets a superseding record under rule 1. On 2026-10-19 the `status` of 90 pair-seed variance
+   records was changed from `confirmatory` to `exploratory` by editing their `record.json` in
+   place; they were untracked, so no committed original existed. The edit was reverted on
+   2026-10-21 by re-serializing each record with the writer's own call (the key order of the
+   51 that had been re-sorted was reconstructed from sibling records, not witnessed), and the
+   relabel is recorded in `corrections.jsonl` instead.
 
 ## Seed taxonomy
 
@@ -253,9 +269,12 @@ Found while reviewing this policy against what the code actually records, after 
   later disagreement be traced.
 - **`centrality_rank`'s per-measure chi swings sharply and non-monotonically across the beta
   sweep, and this is expected behavior, not noise in the estimate or a bug.** Diagnosed
-  2026-10-12 from the 51440-51446 suite's aggregated results: e.g. `degree` scores pure chi
-  0.8667 at beta=0.1 and 0.0033 at beta=0.2, while `eigenvector` stays around 0.778 at the
-  same beta=0.2 point. Root cause is two compounding design properties of
+  2026-10-12 from the 51440-51446 suite's aggregated results: e.g. `degree` scores integrated
+  chi 0.8667 at beta=0.1 and 0.0033 at beta=0.2, while `eigenvector` stays around 0.778 at the
+  same beta=0.2 point (nominal beta, divergence mode; the pure chi of those three runs is
+  0.0026, 0.0019 and 0.0022: `20261012T0238Z_cit-HepTh_b05_s0_28ccce1b`,
+  `20261012T0238Z_cit-HepTh_b11_s0_51119f7e`, `20261012T0259Z_cit-HepTh_b11_s0_42802885`).
+  Root cause is two compounding design properties of
   `centrality_rank_match.py`, not a defect: (1) its Phase-3 anchors are *singleton*
   candidates taken straight from the rank-zip (`candidates = {a: [mapping_full[a]]}`,
   `centrality_rank_match.py:122`), unlike `structural_fingerprint`/`isorank`'s `TOP10`
