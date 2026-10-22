@@ -121,7 +121,9 @@ def main(argv=None) -> int:
     ap.add_argument("--method", required=True, choices=sorted(METHODS))
     ap.add_argument("--dataset", default="hepth", choices=sorted(PARENTS))
     ap.add_argument("--betas", type=float, nargs="+",
-                    default=[0.0, 0.05, 0.11, 0.16, 0.23, 0.29])
+                    default=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
+                    help="Nominal noise levels, as the paper states them; "
+                         "--beta-mode converts them. 0.0 is the control cell.")
     ap.add_argument("--beta-mode", choices=("nominal", "divergence"),
                     default="divergence")
     ap.add_argument("--pair-seeds", type=int, nargs="+", default=[0])
@@ -193,6 +195,9 @@ def _self_test() -> bool:
     # beta-major: cells 0-1 share pair_seed 0/1 at beta 0.0, cells 2-3 at beta 0.1
     assert cells[0]["beta_nominal"] == cells[1]["beta_nominal"] == 0.0
     assert cells[2]["beta_nominal"] == cells[3]["beta_nominal"] == 0.1
+    # Nominal 0.1 in divergence mode is generated at 0.0513, so the pair is b05.
+    assert [Path(c["pair"]).name for c in cells[::2]] == [
+        "cit-HepTh_b00_s0", "cit-HepTh_b05_s0"], [c["pair"] for c in cells]
     print("sweep_baselines self-test passed", file=sys.stderr)
     return True
 

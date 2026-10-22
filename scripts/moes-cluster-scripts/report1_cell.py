@@ -422,7 +422,6 @@ def main(argv=None):
                            choices=list(grid.METHODS))
     grid_args.add_argument("--top-ks", type=int, nargs="+",
                            default=[25, 50, 100, 150])
-    grid_args.add_argument("--no-rank-only", action="store_true")
     grid_args.add_argument("--gen-mode", choices=("bernoulli", "exact"),
                            default="bernoulli")
     grid_args.add_argument("--out", default=None)
@@ -519,8 +518,7 @@ def _self_test():
               f"{rec['metrics']['accuracy_report']}%  "
               f"({rec['metrics']['correct_heldout']} held-out pairs found)")
 
-        sf = dict(cell, kind="seed_free", method="degree", top_ks=[10, 25],
-                  rank_only=True)
+        sf = dict(cell, kind="seed_free", method="degree", top_ks=[10, 25])
         assert run_seed_free(sf, args) == 0
         kinds = [json.loads(p.read_text())["kind"]
                  for p in sorted((tmp / "runs").glob("*/record.json"))]

@@ -168,8 +168,7 @@ def seed_free_cells(args):
             cells.append({**_cell_base(args, p), "kind": "seed_free",
                           "task_id": len(cells), "method": method,
                           "top_ks": list(args.top_ks),
-                          "theta": ANCHOR_THETA,
-                          "rank_only": not args.no_rank_only})
+                          "theta": ANCHOR_THETA})
     return cells
 
 
@@ -187,6 +186,8 @@ def gen_argv(args):
     One process, because loading the 350k-edge parent once and cutting 18 pairs
     from it is strictly cheaper than 18 processes that each load it, and
     because `--beta` and `--repeats` already express this grid exactly.
+    `--beta-nominal` takes one value per `--beta`, so the same call also records
+    on every pair which nominal beta and which mode produced it.
     """
     seeds = sorted(args.pair_seeds)
     if seeds != list(range(seeds[0], seeds[0] + len(seeds))):
@@ -195,9 +196,12 @@ def gen_argv(args):
             f"{seeds}. The generator derives its seeds as --seed + 0..repeats-1. "
             f"Run it once per non-contiguous seed, or use a contiguous range.")
     betas = [f"{generated_beta(b, args.beta_mode):.6f}" for b in args.betas]
+    nominal = [str(b) for b in args.betas]
     root = Path(args.out) if args.out else default_root(args.beta_mode)
     return ["--parent", str(PARENT),
             "--beta", *betas,
+            "--beta-nominal", *nominal,
+            "--beta-mode", args.beta_mode,
             "--seed", str(seeds[0]),
             "--repeats", str(len(seeds)),
             "--mode", args.gen_mode,
@@ -206,7 +210,7 @@ def gen_argv(args):
             "--status", "confirmatory",
             "--note", (f"Report 1 reimplementation grid on HepTh, "
                        f"{args.beta_mode} beta mode, nominal betas "
-                       f"{' '.join(str(b) for b in args.betas)}")]
+                       f"{' '.join(nominal)}")]
 
 
 def main(argv=None):
@@ -241,10 +245,6 @@ def main(argv=None):
     ap.add_argument("--top-ks", type=int, nargs="+", default=[25, 50, 100, 150],
                     help="Top-k of the ranking fed back as seeds (report: "
                          "25-150, best at 50).")
-    ap.add_argument("--no-rank-only", action="store_true",
-                    help="Skip the unintegrated Table 2 scoring in each "
-                         "seed-free cell. It is the full-ranking scan and the "
-                         "slowest part of a cheap method.")
     ap.add_argument("--gen-mode", choices=("bernoulli", "exact"),
                     default="bernoulli",
                     help="Passed through to the generator's --mode.")
@@ -312,8 +312,7 @@ def main(argv=None):
         else:
             for c in cells:
                 print(f"  {c['task_id']:4d}  {c['pair']:24s}  "
-                      f"{c['method']:8s}  top-k {c['top_ks']}  "
-                      f"rank_only {c['rank_only']}")
+                      f"{c['method']:8s}  top-k {c['top_ks']}")
         print(f"{len(cells)} cells")
     return 0
 
@@ -325,7 +324,7 @@ def _self_test():
                     betas=[0.0, 0.1], pair_seeds=[0, 1],
                     train_portions=[0.05, 0.20], thetas=[0.3, 0.5],
                     seed_draws=[0], methods=list(METHODS),
-                    top_ks=[25, 50], no_rank_only=False,
+                    top_ks=[25, 50],
                     gen_mode="bernoulli", out=None)
         base.update(over)
         return argparse.Namespace(**base)
@@ -365,6 +364,21 @@ def _self_test():
     assert len(pr) == 4 and len({c["pair"] for c in pr}) == 4
     argv = gen_argv(ns(kind="pairs"))
     assert "--compat-layout" in argv and argv[argv.index("--repeats") + 1] == "2"
+
+    # The mode and the nominal betas travel with the generated ones, one each.
+    def values(argv, flag):
+        i = argv.index(flag) + 1
+        j = i
+        while j < len(argv) and not argv[j].startswith("--"):
+            j += 1
+        return argv[i:j]
+    assert values(argv, "--beta") == ["0.000000", "0.051317"]
+    assert values(argv, "--beta-nominal") == ["0.0", "0.1"]
+    assert values(argv, "--beta-mode") == ["divergence"]
+    nom = gen_argv(ns(kind="pairs", beta_mode="nominal"))
+    assert values(nom, "--beta") == ["0.000000", "0.100000"]
+    assert values(nom, "--beta-nominal") == ["0.0", "0.1"]
+    assert values(nom, "--beta-mode") == ["nominal"]
     try:
         gen_argv(ns(kind="pairs", pair_seeds=[0, 2]))
     except SystemExit:
