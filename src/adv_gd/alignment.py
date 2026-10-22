@@ -56,7 +56,7 @@ DEFAULTS = {
     "ortho_beta": 0.01,      # strength of the orthogonalization pull on W
     "normalize": "none",     # embedding preprocessing; see _preprocess
     "n_restarts": 4,         # independent adversarial runs; see _search
-    "skip_adversarial": False,  # ablation: see _search's docstring
+    "skip_adversarial": False,  # ablation: see the comment in `_search`
 }
 
 # Paper-specified, section 3.1 and 4.2.
@@ -322,8 +322,9 @@ def _search(Za_t: torch.Tensor, Zu_t: torch.Tensor, adv_a, adv_u, anch_a,
         # only choice that injects no information. If the two embedding spaces
         # happen to already be close to co-rotated (GAE has no reason to prefer
         # any particular rotation, so in general they will not be), the refine
-        # loop below can still walk itself to a good W from there; see
-        # `adv_gd_protocol.md`'s ablation section for what was measured.
+        # loop below can still walk itself to a good W from there. What was
+        # measured is in the Overleaf experiment logs (Log 1's ablation
+        # section; Log 2), not in `adv_gd_protocol.md`.
         dim = Za_t.shape[1]
         W = torch.eye(dim, device=Za_t.device)
     else:
@@ -359,7 +360,7 @@ def align(Za: np.ndarray, nodes_a: list, Zu: np.ndarray, nodes_u: list,
     if cfg["skip_adversarial"] and cfg["n_restarts"] > 1:
         # No training means no randomness: every restart would start from the
         # same identity W and refine identically. Restarts exist to pick a mode
-        # out of training's bimodality (see `align`'s docstring below); there is
+        # out of training's bimodality (see `_search`'s docstring); there is
         # nothing to pick among here.
         cfg["n_restarts"] = 1
     dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))

@@ -1,16 +1,16 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
 # Adv-GD suite — one sweep_baselines.py cell per array task (structural
-# fingerprint or IsoRank, selected by the --method flag submit_adv_gd_suite.sh
-# passes through as $@).
+# fingerprint, IsoRank, centrality rank-matching or composite centrality,
+# selected by the --method flag submit_adv_gd_suite.sh passes through as $@).
 #
-# CPU only — neither classic baseline touches a GPU. Plan is rebuilt
+# CPU only — none of the four baselines touches a GPU. Plan is rebuilt
 # deterministically from CLI flags per task, same as 30_adv_gd_job.sh.
 #
 # Do not call directly — submit_adv_gd_suite.sh sets --array, --output,
 # --error and appends the sweep flags (--method, --betas, --pair-seeds, etc.).
 # To run one cell by hand on an interactive node:
-#   bash scripts/moes-cluster-scripts/31_baselines_job.sh --task-id 0 --method isorank --betas 0.0
+#   bash scripts/moes-cluster-scripts/31_baselines_job.sh 0 --method isorank --betas 0.0
 # ─────────────────────────────────────────────────────────────────────────────
 #SBATCH -p pleiades
 #SBATCH --cpus-per-task=2

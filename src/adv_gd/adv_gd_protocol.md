@@ -108,8 +108,11 @@ design decisions, and we implement the standard forms.
 
 ## Validation targets
 
-Reproduction is checked against HepTh first, because it is the only dataset for
-which the paper reports **exact integers** rather than a figure.
+Reproduction is checked against HepTh first, because it is the only one of the
+paper's three parent graphs present here. Table 2 reports **exact integers**
+(correct/found) for all three -- FB (e.g. 90/90 at 10%), HepTh and Gplus (e.g.
+4921/4956 at 10%) -- but FB is absent from this repo and `gplus_combined.txt` is
+not in this checkout.
 
 **Table 2, p.751 — landmark (anchor) identification on HepTh.** This scores
 Phases 1–2 alone, with no propagation, which is what makes it valuable: it
@@ -181,15 +184,22 @@ python src/adv_gd/sweep.py --task-id $SLURM_ARRAY_TASK_ID
 
 Four decisions are built into it, each because of something measured.
 
-**The alignment seed and the GAE seed are separate.** Phase 1 is deterministic
-given its own seed and is cached as `Z1.npz`/`Z2.npz`, keyed on epochs, dim and
-that seed. Phase 2's bimodality is a property of the adversarial
-initialization, not of the embedding, so a seed sweep that moved both seeds
-together would re-train two GAEs per cell -- roughly twenty minutes of GPU time
-each -- to vary something the question is not about. The sweep pins `--gae-seed
-0` and varies only the alignment seed, so Phase 1 is paid for once per pair.
-This is also why `--gae-seed` exists on `adv_gd.py` at all; it defaults to
-`seed`, which is how every result recorded before 2026-10-08 was produced.
+**The alignment seed and the GAE seed are separate.** Phase 1 is cached as
+`Z1.npz`/`Z2.npz`, keyed on epochs, dim and its own seed. The cache, not the
+seed, is what fixes a pair's embedding: GAE training is not run-to-run
+reproducible on CUDA (see "What is and is not controlled" below). Phase 2's
+bimodality across alignment seeds was observed with the embedding held fixed,
+and was treated as a property of the adversarial initialization. Whether the
+full method's bimodality also depends on the embedding draw has not been
+measured -- the 2026-10-22 GAE-seed sweep was of the beta = 0 identity-start
+ablation, where the draw decided whether the ablation ignites. A seed sweep that
+moved both seeds together would re-train two GAEs per cell -- 98-112 s of GPU
+time each across the 84 trainings recorded 2026-10-19..22, so about 3.5
+GPU-minutes a cell -- to vary something the question is not about. The sweep
+pins `--gae-seed 0` and varies only the alignment seed, so Phase 1 is paid for
+once per pair. This is also why `--gae-seed` exists on `adv_gd.py` at all; it
+defaults to `seed`, which is how every result recorded before 2026-10-08 was
+produced.
 
 **A cell is one process.** `--task-id N` runs exactly cell N of the plan and
 exits. There is no in-process loop over cells, because a single long process
@@ -198,17 +208,21 @@ about which; twenty processes that each write a record lose only their own. The
 plan order is fixed and printable, so `--task-id` is stable across invocations
 as long as the flags are.
 
-**`--beta-mode` chooses what beta means.** The paper does not say whether its
-beta is the per-copy deletion rate or the divergence between the two copies,
-and the difference is large: deleting independently at beta from each copy
-leaves an edge in both with probability (1-beta)^2, so a nominal beta=0.1 makes
-the copies differ by about 19%. Generating instead at beta' = 1 - sqrt(1-beta)
-makes them differ by beta. Measured on HepTh, that single change moves chi from
-0.913 to 0.943 against the paper's ~0.97 (see the noise-model section below),
-which is most of our shortfall. `nominal` reproduces our own earlier numbers;
-`divergence` is the comparison to make against Table 2. **Only `divergence`
-cells are comparable to the paper, and the two modes are not comparable to each
-other.**
+**`--beta-mode` chooses what beta means** (corrected 2026-10-22; an earlier
+version of this paragraph said the paper leaves beta undefined and that only
+`divergence` cells compare to Table 2, and both were wrong). The paper's §4.1
+says that deleting beta of the edges from the original to generate each copy
+leaves (1-beta)^2 of the edges overlapping -- 25% at beta=0.5 -- so its beta is
+the per-copy deletion rate, which is `nominal` here: a nominal beta=0.1 makes
+the copies differ by about 19%. `divergence` generates instead at beta' =
+1 - sqrt(1-beta), which makes them differ by beta, an **easier** noise model
+than the paper's at the same beta. Measured on HepTh, that change moves chi from
+0.913 to 0.943 (see the noise-model section below). `nominal` reproduces our own
+earlier numbers and is the like-for-like comparison to Table 2: the paper's
+beta=0.1 is the nominal pair `cit-HepTh_b10_s0` (0.81 overlap), chi 0.913
+against ~0.97. **The two modes are not comparable to each other.** `sweep.py`'s
+`--beta-mode` default is still `divergence`, so pass `--beta-mode nominal` for
+cells that are comparable to the paper.
 
 **The two modes generate into separate roots.** `runs/sweep_nominal/` and
 `runs/sweep_divergence/`, because a pair directory is named
@@ -224,11 +238,14 @@ Operational notes for the cluster.
   prints the value into every record. Phase 3 was measured to be hash-order
   independent here, unlike the inherited baseline, but that measurement is only
   meaningful next to the value it was taken under.
-- **Phase 1 needs a GPU.** 600 GAE epochs on HepTh's 27k nodes is the bulk of a
-  cell's wall clock, and on CPU it is far worse than the ~1.8 h a full
+- **Phase 1 needs a GPU.** 600 GAE epochs on HepTh's 27k nodes take 98-112 s
+  per graph on the cluster's GPUs, and on CPU far longer than the ~1.7 h a full
   four-restart run took on an RTX 5070. Generate the pairs and warm the
   embedding caches on a GPU node even if Phase 2 and 3 run elsewhere.
-- **Cost.** One end-to-end cell with four restarts took 6,511 s. Five betas by
+- **Cost.** One end-to-end cell with four restarts took 6,284 s on the RTX 5070
+  (record `backfill_cit-HepTh_b05_s0_db3e0a51`). On the cluster's RTX 6000 Ada
+  nodes the 80 four-restart cells recorded on 2026-10-12 and 2026-10-19 took
+  255-737 s each. Five betas by
   four alignment seeds is 20 cells, of which the GAE training is shared within
   each beta.
 - **Collate afterwards.** Each cell writes its own record and appends one line
@@ -314,8 +331,9 @@ restart.
 This is the largest single effect we have measured, and it governs how every
 other number in this log has to be read.
 
-Phase 2 at a fixed seed is bit-reproducible: two runs at seed 0 agree on sum|W|
-to all printed digits. Across seeds it is not merely noisy, it is bimodal.
+Phase 2 at a fixed seed is bit-reproducible given the same cached embedding: two
+runs at seed 0 agree on sum|W| to all printed digits. Across seeds it is not
+merely noisy, it is bimodal.
 HepTh, beta = 0.1, 600-epoch embeddings, DEFAULTS otherwise:
 
 | Seed | Anchors correct/found | Precision | Mean match cosine |
@@ -349,8 +367,10 @@ four seeds) it selected the best or statistically tied-best seed in every mode:
 confirming run rejected seeds 0 and 1 on mean cosine alone (0.845, 0.824),
 selected seed 3 (0.959), and finished at chi = 0.913. Every run records the
 mean cosine of all four restarts and which seed was selected, in the
-`restarts` and `selected_seed` fields of `adv_gd_result.json`, so a result can
-always be checked against the spread it was drawn from.
+`restarts` and `selected_seed` fields of the run's `record.json`
+(`results/runs/<run_id>/`), so a result can always be checked against the
+spread it was drawn from. The per-pair convenience copy is
+`adv_gd_result_<kind>_seed<N>.json`; the record is authoritative.
 
 The pattern replicates on an independently generated pair. On
 `cit-HepTh_b05_s0` -- a different parent perturbation, 90% edge overlap instead
@@ -386,13 +406,20 @@ Two readings of that table are worth separating.
 
 | Source of randomness | Controlled by | Status |
 |---|---|---|
-| GAE weight init | `--seed` -> `torch.manual_seed` | bit-reproducible at a fixed seed |
-| Adversarial init, batch sampling | `--seed` -> `torch.manual_seed` plus a CPU `Generator` | bit-reproducible at a fixed seed; **bimodal across seeds** |
+| GAE weight init | `--gae-seed` (defaults to `--seed`) -> `torch.manual_seed` | seeded, but **not run-to-run reproducible on CUDA**; the cached `Z1.npz`/`Z2.npz` fixes the embedding, not the seed |
+| Adversarial init, batch sampling | `--seed` -> `torch.manual_seed` plus a CPU `Generator` | bit-reproducible at a fixed seed given the same cached embedding; **bimodal across seeds** |
 | Restart selection | `n_restarts`, mean cosine | deterministic given the seed range |
 | AUC sampling | `seed` argument | diagnostic only, does not affect results |
 | Degree ties in `top_degree` | broken by node id | deterministic |
 | Phase 3 iteration order | nothing needed | deterministic; see below |
-| Pair generation (which edges are deleted) | the generator's own `--seed`, recorded in `stats.json` | one pair per beta so far |
+| Pair generation (which edges are deleted) | the generator's own `--seed`, recorded in `stats.json` | `runs/sweep_nominal/` has pair seeds 0-2 for nominal beta 0.0-0.4 (seed 0 only at 0.5); `runs/sweep_divergence/` has one pair (seed 0) per beta |
+
+Corrected 2026-10-22: the first row used to read "bit-reproducible at a fixed
+seed", and that is false. Retraining at the same `--gae-seed`, on the same node,
+GPU model, container and inputs, gave a different Z (a different `z1_sha256`)
+and flipped the run's outcome; the cause is not identified. Treat a pair's
+cached embedding as the artifact, and the seed as a label for how it was first
+drawn (documented in the Overleaf experiment logs, Log 2, 2026-10-22 update).
 
 Phase 3 needs checking rather than assuming, because the inherited baseline is
 hash-seed sensitive: it iterates Python `set`s of string node ids, so its
@@ -404,6 +431,8 @@ PYTHONHASHSEED 0, 1 and 12345, with chi identical to six decimals.
 
 The remaining uncontrolled dimension is the **pair**: one generated pair per
 beta, so none of these figures carry a confidence interval over the noise draw.
+(Update 2026-10-22: more pairs now exist, per the last row of the table, but the
+figures in this log still come from one pair each.)
 
 ### Every run in this log has a record
 
@@ -421,7 +450,10 @@ only two of them have records at all, both backfilled with a null environment.
 The rest -- the seed table, the preprocessing grid, the eccentricity and epoch
 studies -- were overwritten as they were produced and now exist only as the
 prose here. Treat them as reported, not verifiable, and re-run any one of them
-whose exact value a conclusion turns on.
+whose exact value a conclusion turns on. The two backfills' `pair_dir` fields
+are Windows paths (`runs\cit-HepTh_b05_s0`, `runs\cit-HepTh_b10_s0`) from the
+original machine, and those pair directories do not exist in this checkout, so
+the backfills' input and output digests cannot be re-verified here.
 
 ### Where the reproduction stands
 
@@ -430,15 +462,17 @@ cosine (seed 3 chosen):
 
 | | Ours | Paper |
 |---|---|---|
-| Anchors correct/found (Table 2) | 830/854 | 753/755 |
-| Anchor precision | 0.972 | 0.997 |
+| Anchors correct/found (Table 2) | 829/854 | 753/755 |
+| Anchor precision | 0.971 | 0.997 |
 | chi -- correct over 27,444 matchable | **0.913** | ~0.97 |
 | gamma -- correct over 25,727 mapped | 0.974 | not reported for this cell |
 
 The two-stage structure of Algorithm 2 behaves as described: the candidate-set
 restriction grows the mapping conservatively to 8,301 over five sweeps, then
-lifting it adds 17,452 more over eight. Precision barely moves between the
-anchors (0.972) and the final mapping (0.974), which is the property the
+lifting it adds 17,452 more over eight. (These two counts are progress-log
+figures and sum to 25,753, not the recorded 25,727 mapped; which of the three
+is misquoted cannot now be recovered.) Precision barely moves between the
+anchors (0.971) and the final mapping (0.974), which is the property the
 paper's design is after -- propagation does not degrade what alignment handed
 it.
 
@@ -472,9 +506,22 @@ survives in both with probability (1-beta)^2 and about 19% of edges differ
 between the two graphs at beta = 0.1. If the paper's beta instead describes the
 total divergence between the two copies, their task at a nominal beta = 0.1 is
 materially easier than ours. This is the interpretation question already
-flagged in `src/beta_noise_generator/perturbation_protocol.md`.
+flagged in `src/beta_noise_generator/perturbation_protocol.md`. (Corrected
+2026-10-22: the paper's §4.1 answers it, and the answer is per-copy deletion, so
+this explanation does not hold; see the withdrawn section below.)
 
-### Most of the residual gap is the noise model, not the algorithm
+### Most of the residual gap is the noise model, not the algorithm (withdrawn 2026-10-22)
+
+**Corrected 2026-10-22: the conclusion in this heading is withdrawn.** The
+section assumed the paper's beta could mean the total divergence between the two
+copies. The paper's §4.1 rules that out: deleting beta of the edges from the
+original to generate each copy leaves (1-beta)^2 overlapping (25% at beta =
+0.5), so the paper's beta is the per-copy deletion rate, i.e. our `nominal`
+mode. The paper's beta = 0.1 is therefore the `cit-HepTh_b10_s0` row below (0.81
+overlap), and the like-for-like comparison is 0.913 against ~0.97, with none of
+the gap explained by the noise model. The `cit-HepTh_b05_s0` row is an easier
+pair than the paper's. The measurements below stand; the attribution does not.
+The original text follows unchanged.
 
 Tested directly. Generating a pair at beta' = 1 - sqrt(0.9) = 0.0513, which
 makes the two copies diverge by the same 10% that the paper's beta = 0.1 would
@@ -513,7 +560,8 @@ The bimodality applies here too: the beta' run selected seed 1 at mean cosine
 One process note, because it bears on how the figures in this log should be
 trusted. That run was reported mid-session as having been killed partway through
 Phase 3 for low system memory. It was not: the kill notice came from the tooling
-around the run, the process itself survived and finished 6,511 seconds later,
+around the run, the process itself survived and finished 6,284 seconds later (record
+`backfill_cit-HepTh_b05_s0_db3e0a51`),
 and the result sat complete on disk for some time while being described as lost.
 It was recovered only when the logging policy's backfill step read every
 `adv_gd_result.json` in `runs/`. Both halves of that are the argument for

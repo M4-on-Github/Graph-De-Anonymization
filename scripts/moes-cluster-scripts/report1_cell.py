@@ -10,7 +10,7 @@ default that could have changed since the array was queued.
 
 What is reused and what is not. The algorithms are the inherited baseline's,
 imported and called directly: `seed_based.SeedFreeD` is the propagator of the
-report's Algorithm 1, and `seed_free.determine_seed_pairs` is its six-way
+report's Algorithm 1, and `seed_free.determine_seed_pairs` is its five-way
 ranking dispatch. Three things are not reused, each because the baseline's
 `main()` fixes them in a way a sweep cannot:
 
@@ -19,15 +19,17 @@ ranking dispatch. Three things are not reused, each because the baseline's
   the first 20% of `mapping.txt` as the given seeds. Both of the report's
   figures vary exactly those two numbers, so the sweep has to own the split.
   The draw is also shuffled by default: the generator writes ground truth
-  sorted by parent arXiv id, so a prefix slice is a chronologically structured
-  seed set. `--seed-draw -1` restores the prefix.
+  sorted by parent arXiv id, so a prefix slice is a structured seed set (by
+  arXiv id, which puts the 2000 papers first). `--seed-draws -1` restores the
+  prefix.
 - **the membership test.** The baseline keeps a ground-truth pair when
-  `u in G1 and u in G2` -- the same node on both sides. On the inherited
-  `labeled_dev` pair, whose two graphs share an id space, that is merely
-  redundant. On a generated pair it is wrong: the generator relabels each side
-  independently, so `u in G2` tests a G1 label against a permuted G2 and
-  silently drops most of the ground truth. Here the test is `u in G1 and
-  v in G2`, which is what the loop reads as if it had been written that way.
+  `u in G1 and u in G2`, which looks the G1 label up in G2 -- the wrong graph.
+  The generator relabels each side to compact ids 0..n-1, so on these pairs
+  `u in G2` is nearly always true and the test is near-vacuous, not
+  destructive: it differs from the right one by 0-28 pairs on the pairs
+  checked (26,647 against 26,675 kept on one generated pair, 26,942 against
+  26,948 of 27,770 on `labeled_dev`). Here the test is `u in G1 and v in G2`,
+  which is what the loop means.
 - **the scoring container.** `get_seed_pairs` does `tup in validation_pairs`
   against a list; at the full ranking that is 27k linear scans of a 27k-element
   list. A set is passed instead. Membership is the only operation performed on
@@ -118,8 +120,9 @@ def load_pair(pair_dir):
     if not truth:
         raise SystemExit(
             f"no usable ground truth in {d / 'mapping.txt'}. If the file is "
-            f"non-empty this is the membership test: a G1 label is being "
-            f"looked up in G2.")
+            f"non-empty, check that it is 'G1-id G2-id' per line and that "
+            f"G1.edgelist/G2.edgelist in this directory are the pair it "
+            f"describes.")
     return G1, G2, truth, stats
 
 

@@ -187,7 +187,12 @@ def embed_cached(G: nx.Graph, path: Path, dim: int, seed: int, refresh: bool,  #
     again, and trains only if it is still missing; the others wait and load
     what it wrote. That -- not the deterministic mode below -- is what gives
     every task of a sweep the same embedding: the job constraint admits two GPU
-    architectures, and determinism holds only per device and torch build.
+    architectures, and determinism holds only per device and torch build. Nor
+    is it guaranteed even then: on 2026-10-22, retraining at the same gae_seed
+    on the same node, GPU model, container and inputs gave a different Z
+    (different z1_sha256) and flipped the run's outcome; the cause is not
+    identified. The cached Z1.npz/Z2.npz, not the seed, is what fixes a pair's
+    embedding.
     """
     want = {"epochs": epochs, "dim": dim, "seed": seed}
     if not refresh:
@@ -230,9 +235,9 @@ def run(pair: Path, dataset: str, seed: int = 0, refresh: bool = False,
     `seed` drives Phase 2. `gae_seed` drives Phase 1 and defaults to `seed`,
     which is how every result recorded before 2026-10-08 was produced. Pin it
     for a seed sweep: the embedding cache is keyed on its seed, so leaving them
-    coupled makes every cell re-train both GAEs -- about twenty wasted minutes
-    per cell -- to answer a question that is entirely about Phase 2's
-    adversarial initialization.
+    coupled makes every cell re-train both GAEs -- about 3.5 wasted GPU-minutes
+    per cell (98-112 s per 600-epoch training) -- to answer a question that is
+    about Phase 2's adversarial initialization.
     """
     params = DATASETS[dataset]
     gae_seed = seed if gae_seed is None else gae_seed

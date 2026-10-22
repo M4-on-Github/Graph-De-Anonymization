@@ -105,17 +105,18 @@ def get_all_edges_trussness_and_decomposition(G):
         This function iteratively finds the k-truss subgraph for increasing values
         of k, starting from k=2. For each value of k, it determines the edges that
         belong to the (k-1)-truss but not the k-truss. For these edges, it assigns
-        the trussness score as k-1 and also calculates and assigns their support.
-        The trussness score and support are stored in the 'weight' attribute of the
-        edges in a copy of the original graph G.
+        the trussness score as k-1. The score is stored, as an int, in the
+        'weight' attribute of the edges in a copy of the original graph G; no
+        support is computed. Self-loops are removed from the input G, in place,
+        before the copy is made.
 
         Parameters:
-        - G (NetworkX graph): The input graph.
+        - G (NetworkX graph): The input graph. Its self-loops are removed in
+                place.
 
         Returns:
         - G_main (NetworkX graph): A copy of G where each edge has an assigned
-                'weight' attribute containing a dictionary with the trussness and
-                support.
+                'weight' attribute holding its trussness (an int).
         - trussness_dict (dict): A dictionary where the keys are trussness scores
                 and the values are lists of edges that have the corresponding trussness.
     """

@@ -1,6 +1,7 @@
-"""Shared loader and scoring glue for the classic seed-free baselines.
+"""Shared loader and scoring glue for the seed-free baselines.
 
-Both `structural_fingerprint.py` and `isorank.py` read the same pair
+All four method modules (`structural_fingerprint.py`, `isorank.py`,
+`centrality_rank_match.py`, `composite_centrality.py`) read the same pair
 directories Adv-GD's sweep generates and are scored through the same Phase 3
 propagator Adv-GD uses, so a baseline's number sits in the same table as
 Adv-GD's own row rather than needing a footnote about how it was computed

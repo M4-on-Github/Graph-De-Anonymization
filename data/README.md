@@ -3,12 +3,17 @@
 Four graph-pair sets, inherited from Privacy Aware Computing Project 1 (Dec 2024).
 **The thing that distinguishes them is how much ground truth you get**, not their size.
 
-| Directory | G1 / G2 edges | Ground truth | What it is for |
+| Directory | Lines per edge list | Ground truth | What it is for |
 |---|---|---|---|
-| `labeled_dev/` | 634,148 | **full** — 27,770 pairs | The only set the scripts read. Full truth, so you can measure accuracy. |
+| `labeled_dev/` | 634,148 | **full** — 27,770 pairs (26,948 of them have both endpoints present in the two graphs) | The only set the scripts read. Full truth, so you can measure accuracy. |
 | `task_seed_based/` | 290,527 | **500 seed pairs only** | Graded task input: you are given 500 seeds and must produce the rest. No truth to score against locally. |
 | `task_seed_free/` | 729,810 | **none** | Graded task input for the seed-free task. Nothing to score against locally. |
 | `small_ca_grqc/` | 14,496 | **full** — 5,242 pairs | Small labeled pair (arXiv ca-GrQc). Fast enough to iterate on. Not wired into the scripts (see below). |
+
+The count is lines per edge list; G1 and G2 have the same number of lines. Unique
+undirected edges differ: `labeled_dev/` has 344,379 / 348,903, `task_seed_based/`
+159,748 / 159,738, `task_seed_free/` 364,905 / 364,905, and `small_ca_grqc/` 14,496 /
+14,496 (the only set where lines = edges).
 
 Every edge list is whitespace-separated `u v`, undirected, read with `nx.read_edgelist`.
 Every mapping file is one `u v` ground-truth pair per line.
@@ -62,9 +67,10 @@ exactly that name; pass `--compat-layout` to the generator to write that nesting
 
 ## Not in this repo
 
-`gplus_combined.txt/` (Google+, 1.3 GB, 107,614 nodes) sits at the repo root and is
-gitignored. It is a single directed edge list, not a pair, so using it for matching means
-generating the pair yourself by perturbation.
+`gplus_combined.txt/` (Google+, 1.3 GB, 107,614 nodes) goes at the repo root and is
+gitignored; it is not present in this checkout. It is a single directed edge list,
+not a pair, so using it for matching means generating the pair yourself by
+perturbation.
 
 `data/cit-HepTH/` (arXiv HEP-Th citations, 27,770 nodes, 352,807 directed edges) is
 present on disk and gitignored. It is the parent graph for every Adv-GD run, chosen

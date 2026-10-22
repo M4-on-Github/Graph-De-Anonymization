@@ -22,7 +22,7 @@ that same file, and editing a default here cannot retarget a queued job.
 
 Three axis conventions, each of which is a choice and not the paper's:
 
-- beta is nominal by default in `--beta-mode divergence`, meaning the pair is
+- beta is a divergence by default (`--beta-mode divergence`): the pair is
   generated at 1-sqrt(1-beta) per copy so that the two released graphs differ
   by beta. `nominal` deletes at beta from each copy, so they differ by ~2*beta.
   The two modes write into separate roots because pair directory names round
@@ -34,9 +34,10 @@ Three axis conventions, each of which is a choice and not the paper's:
   bug and not a finding.
 - the training seed set is drawn with an explicit RNG seed, not taken as the
   first 20% of `mapping.txt`. The generator writes ground truth sorted by
-  parent node id, i.e. by arXiv id, so a prefix slice is a chronologically
-  structured seed set rather than an arbitrary one. `--seed-draws -1` restores
-  the prefix split that `src/seed_based.py` performs.
+  parent node id, i.e. by arXiv id, so a prefix slice is a structured seed set
+  (arXiv-id order puts the 2000 papers first) rather than an arbitrary one.
+  `--seed-draws -1` restores the prefix split that `src/seed_based.py`
+  performs.
 """
 import argparse
 import json

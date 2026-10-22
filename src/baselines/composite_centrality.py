@@ -1,6 +1,6 @@
 """This repo's own baseline: a richer per-node feature vector than
 `structural_fingerprint.py`'s three (degree, clustering, egonet size), plus
-two of the global centrality measures `centrality_rank_match.py` scores on
+three of the global centrality measures `centrality_rank_match.py` scores on
 their own (k-core, pagerank, eigenvector), matched by CSLS rather than plain
 cosine.
 

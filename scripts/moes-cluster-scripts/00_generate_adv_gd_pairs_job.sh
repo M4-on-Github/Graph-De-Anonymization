@@ -7,10 +7,10 @@
 # root), not Report 1's runs/report1_*/ (--compat-layout, grid.py's root).
 # Same generator, same beta math underneath, different directory tree.
 #
-# One process for the whole beta x pair_seed grid (adv_gd/sweep.py --generate
-# shells out to the generator once per beta, same reasoning as Report 1's
-# version: the parent graph is loaded once per invocation of this script
-# rather than once per cell). Idempotent: already-present pairs are skipped.
+# One SLURM job for the whole beta x pair_seed grid (adv_gd/sweep.py --generate
+# loops over the pairs and shells out to the generator once per pair, so the
+# parent graph is parsed once per pair, not once per array cell that later
+# runs on it). Idempotent: already-present pairs are skipped.
 #
 # Do not call directly — submit_adv_gd_suite.sh runs it as step 0. To run it
 # alone:

@@ -7,11 +7,15 @@ array can own the parallelism. See the "Sweeping beta across seeds" section of
 is; the short version:
 
 - the GAE seed is pinned while the alignment seed varies, because Phase 2's
-  bimodality is in the adversarial initialization and re-training Phase 1 per
-  cell costs ~20 GPU-minutes to vary something the question is not about;
+  bimodality was observed with the embedding held fixed (whether the full
+  method's bimodality also depends on the embedding draw is unmeasured) and
+  re-training Phase 1 per cell costs ~3.5 GPU-minutes (98-112 s per GAE, two
+  GAEs) to vary something the question is not about;
 - one cell per process, so a death at cell 14 of 20 costs one cell;
-- `--beta-mode divergence` generates at beta' = 1 - sqrt(1 - beta), which is
-  what makes a cell comparable to the paper's Table 2;
+- `--beta-mode nominal` is the paper's own definition of beta (its section
+  4.1: edge overlap (1 - beta)^2) and is the like-for-like comparison to Table
+  2; `divergence` generates at beta' = 1 - sqrt(1 - beta), an easier noise
+  model than the paper's, and is still the default;
 - the two beta modes generate into separate roots, because pair directory names
   round beta to whole percent and would collide.
 
@@ -109,9 +113,9 @@ def generate(args, cells: list[dict]) -> int:
 
     Delegates to the generator as a subprocess rather than importing it, so that
     the pair gets the generator's own run record with its own argv rather than
-    one that says the sweep made it. Each beta is a separate invocation because
-    the generator names its output from beta and we need to know which pair
-    directory corresponds to which cell.
+    one that says the sweep made it. Each pair (one beta and pair seed) is a
+    separate invocation because the generator names its output from beta and
+    seed and we need to know which pair directory corresponds to which cell.
     """
     want: dict[str, dict] = {}
     for c in cells:
@@ -187,8 +191,10 @@ def main(argv=None) -> int:
                     default="divergence",
                     help="nominal: delete at beta from each copy (copies "
                          "diverge by ~2*beta). divergence: delete at "
-                         "1-sqrt(1-beta), so the copies diverge by beta. Only "
-                         "divergence cells are comparable to Table 2.")
+                         "1-sqrt(1-beta), so the copies diverge by beta, an "
+                         "easier model than the paper's. nominal is the "
+                         "paper's own definition (its section 4.1: overlap "
+                         "(1-beta)^2).")
     ap.add_argument("--pair-seeds", type=int, nargs="+", default=[0],
                     help="Noise draws per beta. More than one is the only way "
                          "to get an interval over the beta axis.")
@@ -208,7 +214,7 @@ def main(argv=None) -> int:
                     help="Ablation sweep: W starts at identity, no adversarial "
                          "training. Recorded under kind=adv_gd_no_adversary so "
                          "it never mixes with the full method's records. See "
-                         "alignment.py's `_search` for why n_restarts is forced "
+                         "alignment.py's `align` for why n_restarts is forced "
                          "to 1 when this is set.")
     ap.add_argument("--out", default=None,
                     help="Pair root. Defaults to runs/sweep_<beta-mode>/, "

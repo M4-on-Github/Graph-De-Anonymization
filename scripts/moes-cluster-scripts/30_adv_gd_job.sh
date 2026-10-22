@@ -23,7 +23,7 @@
 # --error and appends the sweep flags (--betas, --pair-seeds, --align-seeds,
 # --skip-adversarial, etc.).
 # To run one cell by hand on an interactive node:
-#   GDA_NV=1 bash scripts/moes-cluster-scripts/30_adv_gd_job.sh --task-id 0 --betas 0.0
+#   GDA_NV=1 bash scripts/moes-cluster-scripts/30_adv_gd_job.sh 0 --betas 0.0
 # ─────────────────────────────────────────────────────────────────────────────
 #SBATCH -p pleiades
 #SBATCH --cpus-per-task=4

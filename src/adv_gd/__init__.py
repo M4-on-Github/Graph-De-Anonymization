@@ -12,7 +12,8 @@ Three phases, one module each:
     propagation.py  Phase 3 -- Algorithms 1 and 2
     adv_gd.py       driver, and the Table 2 comparison
 
-Every module has a `--self-test` that runs without a dataset.
+Every module except `adv_gd.py` has a `--self-test` that runs without a
+dataset.
 """
 
 from alignment import align, csls_matrix, evaluate_anchors, procrustes

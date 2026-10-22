@@ -301,7 +301,7 @@ def process_files_and_get_initial_data(file_path, train_portion = 0.20):
                 validation_pair_list.append(line_data)
             # print(line_data)
     
-    ### Training nodes % = 10%
+    ### Training nodes % = 20%
     train_portion = train_portion
     split_index = int(len(validation_pair_list) * train_portion)
     

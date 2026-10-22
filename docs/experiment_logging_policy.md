@@ -87,8 +87,15 @@ runs/<pair>/
   G1.edgelist G2.edgelist         pair input, hashed into the record
   mapping.txt stats.json          ground truth and generator provenance
   Z1.npz Z2.npz                   Phase 1 cache, stamped with epochs/dim/seed
-  out_mapping_<run_id>.txt        Phase 3 output, hashed into the record
-  adv_gd_result.json              last run on this pair; a convenience, not the record
+  out_mapping_<run_id>.txt        Adv-GD Phase 3 output, hashed into the record
+  out_mapping_<prefix>_<run_id>.txt
+                                  baseline output, e.g. out_mapping_baseline_isorank_<run_id>.txt
+  adv_gd_result_<kind>_seed<N>.json
+                                  last Adv-GD run of that kind and seed on this pair, e.g.
+                                  adv_gd_result_adv_gd_seed0.json; a convenience, not the record
+  <method>_result.json            last baseline run of that method on this pair, e.g.
+                                  isorank_result.json (centrality_rank_result.json for
+                                  the rank-matching baselines); a convenience, not the record
 ```
 
 `run_id` is `<UTC timestamp>_<pair>_<8 hex>`, for example
@@ -110,17 +117,19 @@ recognisable as a repeat.
 Every field is there to answer a question somebody will actually ask. Grouped by question.
 
 **What code?** `git.head`, `git.branch`, `git.dirty`, `git.diff_sha256`. A bare commit hash
-is a lie in a repository where the work is uncommitted — all of the Adv-GD module is, at the
-time of writing. When the tree is dirty the uncommitted diff is written next to the record
-as `diff.patch` and hashed, so `head` plus `diff.patch` reconstructs the exact source.
-`git.dirty: true` with no diff stored is not an acceptable record.
+is a lie in a repository where the work is uncommitted — all of the Adv-GD module was, at
+the time of writing (it has since been committed, but the tree is often dirty). When the
+tree is dirty the uncommitted diff is written next to the record as `diff.patch` and
+hashed, so `head` plus `diff.patch` reconstructs the exact source. `git.dirty: true` with
+no diff stored is not an acceptable record.
 
 **What environment?** `env.python`, `env.platform`, `env.host`, `env.packages` (torch,
 numpy, networkx, scipy), `env.cuda` (availability, device name, build), `env.hashseed`.
-Torch here is a dated nightly (`2.12.0.dev20260329+cu128`); "torch 2.12" would not identify
-it. `hashseed` is recorded because the inherited baseline is hash-order sensitive and this
-reimplementation was measured not to be — a claim that needs the value it was measured
-under.
+The earliest records (6 of them) carry a dated nightly (`2.12.0.dev20260329+cu128`); later
+records carry `2.14.1+cu130`, the container's pinned torch. "torch 2.12" would not have
+identified the nightly. `hashseed` is recorded because the inherited baseline is
+hash-order sensitive and this reimplementation was measured not to be — a claim that needs
+the value it was measured under.
 
 **What input?** `pair`, `inputs[]` with a path, byte size and SHA-256 for each of
 `G1.edgelist`, `G2.edgelist`, `mapping.txt`, plus `pair_stats` holding the generator's
@@ -134,8 +143,10 @@ flags — a default that changes later must not silently rewrite the meaning of 
 
 **How large was the sample, and what was selected?** `n_restarts`, `restarts[]` (the mean
 cosine of each), `selected_seed`, `selection: "mean_match_cosine"`. This group is
-mandatory. A number drawn from a selection over restarts is not the same kind of claim as a
-number from a single run, and the record must not permit the distinction to be lost.
+mandatory for any record that selects over restarts (`REQUIRED_IF_RESTARTS` in
+`provenance.py`). A number drawn from a selection over restarts is not the same kind of
+claim as a number from a single run, and the record must not permit the distinction to be
+lost.
 
 **Exploratory or confirmatory?** `status`, one of `exploratory` or `confirmatory`, plus a
 free-text `note`. Set it before the run, not after. This is the cheapest available guard
@@ -157,9 +168,12 @@ impossible to repeat.
 `error` carrying the traceback. `verify_failed` is for a run that executed correctly and
 whose *output* missed a criterion stated in advance -- a generated pair whose measured edge
 overlap falls outside tolerance of (1-beta)^2. That is neither success nor a crash, and
-collapsing it into either loses the most interesting thing the generator can report. A killed run is data — the beta-interpretation run was killed for low system
-memory partway through Phase 3, and that it got as far as it did is worth knowing. Records
-are written for failures too.
+collapsing it into either loses the most interesting thing the generator can report. A
+killed run is data — the beta-interpretation run was first reported as killed for low
+system memory partway through Phase 3, but it was not: the kill notice came from the
+tooling around the run, and the process finished (see the process note in
+`src/adv_gd/adv_gd_protocol.md`). That is itself the argument for recording exit status
+rather than inferring it. Records are written for failures too.
 
 ## Rules
 
@@ -235,9 +249,11 @@ Found while reviewing this policy against what the code actually records, after 
   (`runs/sweep_divergence/` vs `runs/sweep_nominal/`) — a directory-naming convention,
   the exact class of implicit fact this policy's "pair directory name does not identify
   the pair" section already warns about. This is also the root cause class behind the
-  `beta_pct`/`PAPER_TABLE2` lookup bug fixed in `adv_gd.py` on 2026-10-12: the code had to
-  re-derive the realized divergence from `overlap_ratio` because the mode that produced
-  the pair was never recorded on the pair itself. **Fixed:** `perturbation.py` now accepts
+  `beta_pct`/`PAPER_TABLE2` lookup bug fixed in `adv_gd.py` on 2026-10-12 (and fixed a
+  second time on 2026-10-19, commit 2fee5fb, "PAPER_TABLE2 lookup used realized divergence
+  even in nominal mode"): the code had to re-derive the realized divergence from
+  `overlap_ratio` because the mode that produced the pair was never recorded on the pair
+  itself. **Fixed:** `perturbation.py` now accepts
   `--beta-mode`/`--beta-nominal`, writes both into `stats.json` via `make_pair`/
   `record_pair`, and `sweep.py`'s `generate()` passes them through on every cell.
 - **`argv` was checked and is already correct** — `RunRecord.__init__` defaults `argv` to
@@ -250,7 +266,10 @@ Found while reviewing this policy against what the code actually records, after 
 
 - **One pair per beta.** Every Adv-GD figure we have rests on a single noise draw. Logging
   does not create a confidence interval over the pair, and no amount of recorded metadata
-  changes that `N = 1` on the dimension most likely to matter.
+  changes that `N = 1` on the dimension most likely to matter. (Update 2026-10-22:
+  `runs/sweep_nominal/` now has pair seeds 0-2 at nominal beta 0.0-0.4, and 24 `adv_gd`
+  records sit on seeds 1-2, so this is no longer true of every figure; it is still true
+  of the figures in `src/adv_gd/adv_gd_protocol.md` and of `runs/sweep_divergence/`.)
 - **Hyperparameter search is not yet separated from evaluation.** Preprocessing mode and
   epoch count were chosen by looking at scored outcomes on the same pair the result is
   reported on. The `status` field makes that visible; it does not fix it. A held-out pair
@@ -258,7 +277,7 @@ Found while reviewing this policy against what the code actually records, after 
 - **A pair directory name does not identify the pair.** The generator names pairs
   `<stem>_b<NN>_s<seed>`, which encodes neither the sampling fraction nor the mode, so two
   different configurations write to one directory and the second replaces the first. This
-  bit during this feature's own testing: a 5% node sample and a 0.4% one both landed in
+  bit during this feature's own testing: a 5% node sample and a 2% one both landed in
   `cit-HepTh_b10_s0`, leaving the first record's output digests pointing at bytes that no
   longer existed. Renaming the scheme would invalidate every path in the protocol docs and
   the embedding caches, so the overwrite is reported rather than prevented -- on stderr at
@@ -278,7 +297,7 @@ Found while reviewing this policy against what the code actually records, after 
   `centrality_rank_match.py`, not a defect: (1) its Phase-3 anchors are *singleton*
   candidates taken straight from the rank-zip (`candidates = {a: [mapping_full[a]]}`,
   `centrality_rank_match.py:122`), unlike `structural_fingerprint`/`isorank`'s `TOP10`
-  CSLS candidate sets, so there is no fallback if the rank-matched guess is wrong; (2)
+  candidate sets, so there is no fallback if the rank-matched guess is wrong; (2)
   `propagate()` (`propagation.py:94-150`) is a mutual-best-match bootstrap gated by an
   eccentricity threshold (`theta=0.5`) in both directions — seed anchors either reinforce
   and the mapping snowballs outward, or they get rejected and propagation stalls/collapses.

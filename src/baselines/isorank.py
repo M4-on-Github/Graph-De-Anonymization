@@ -48,13 +48,14 @@ rank-matching method -- a legitimate seed-free topology floor, but expect it
 to degrade quickly under edge noise, like the other rank-matching baselines.
 
 Scalability restriction (deliberate, documented, not a bug): dense IsoRank
-is O(n1^2 * n2^2) per iteration because R is a full n1 x n2 matrix and the
-update is two dense matrix products. That is intractable at HepTh's ~28k
-nodes. This file restricts both graphs to their top-M highest-degree nodes
-(M much smaller than Adv-GD's own M, default 2,500, CLI-overridable) via
-induced subgraphs before running IsoRank at all -- a real limitation of the
-classic method being reproduced faithfully, not a design choice specific to
-this repo.
+costs O(n1^2 * n2 + n1 * n2^2) time and O(n1 * n2) memory per iteration,
+because R is a full n1 x n2 matrix and the update is two dense matrix
+products (n1^2 * n2^2 is the Kronecker-product formulation, not this one).
+That is intractable at HepTh's ~28k nodes. This file restricts both graphs to
+their top-M highest-degree nodes (M much smaller than Adv-GD's own M, default
+2,500, CLI-overridable) via induced subgraphs before running IsoRank at all --
+a real limitation of the classic method being reproduced faithfully, not a
+design choice specific to this repo.
 
 Matching is extracted from the converged R by the standard IsoRank greedy
 one-to-one extraction: sort all (i, j) pairs by R[i, j] descending, walk the

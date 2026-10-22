@@ -26,7 +26,7 @@ sbatch --partition=pleiades --cpus-per-task=8 --mem=64G --time=1:30:00 \
 ```
 
 There is no python newer than 3.6 on `pleiades` outside a container, and
-`networkx 3.7` needs 3.11+. The parent graph is downloaded by step 0 if absent;
+`networkx 3.7` needs 3.12+. The parent graph is downloaded by step 0 if absent;
 only `cit-HepTh.txt.gz` is fetched, never the ~29,000-file abstracts archive.
 
 ## Running it
@@ -88,7 +88,7 @@ Nothing is written outside two directories, both named after the repo:
 
 `GDA_DATA_DIR` overrides the NAS root and `GDA_SIF` the image path. The 500 GB
 `/home` quota is why the image lives on `/data` (1.9 TB) rather than beside the
-code — see the cluster guide.
+code.
 
 ## The files
 
@@ -102,6 +102,10 @@ code — see the cluster guide.
 | `00_generate_pairs_job.sh` | step 0: fetch the parent if needed, cut every pair in one process. |
 | `10_seed_based_job.sh`, `20_seed_free_job.sh` | one array task = one cell. |
 | `submit_report1.sh` | freezes the manifests and submits the three stages. |
+| `00_generate_adv_gd_pairs_job.sh` | Adv-GD suite, step 0: cut the HepTh pairs into `runs/sweep_divergence/` (flat layout) in one job for the whole grid. Idempotent. |
+| `30_adv_gd_job.sh` | Adv-GD suite: one `sweep.py` cell per array task, full Adv-GD or the `skip_adversarial` ablation. GPU only (RTX6000ADA or QUADRORTX6000); exports `GDA_NV=1` so `in_container` passes `--nv`. |
+| `31_baselines_job.sh` | Adv-GD suite: one `sweep_baselines.py` cell per array task; `--method` picks structural fingerprint, IsoRank, centrality rank-matching or composite centrality. CPU only. |
+| `submit_adv_gd_suite.sh` | Adv-GD suite: submits pair generation and the six arrays (full Adv-GD, the ablation, four baselines) that depend on it. `--dry-run` prints the `sbatch` commands. |
 
 ## Three axis conventions, each a choice and not the paper's
 
@@ -120,9 +124,10 @@ is a bug, not a finding. Run it first.
 
 **The seed set is drawn, not sliced.** The generator writes ground truth sorted
 by parent arXiv id, so taking the first 20% of `mapping.txt` — which is what
-`src/seed_based.py` does — is a chronologically structured seed set rather than
-an arbitrary one. The default is a shuffle under an explicit seed;
-`--seed-draws -1` restores the prefix.
+`src/seed_based.py` does — is a structured seed set (by arXiv id, which puts
+the 2000 papers ahead of the 1992–99 ones) rather than an arbitrary one. The
+default is a shuffle under an explicit seed; `--seed-draws -1` restores the
+prefix.
 
 ## What `report1_cell.py` changes, and why
 
@@ -136,14 +141,16 @@ dispatch. Three things around them are not reused.
    `--integrate_with_Seed_Based` and `--number_of_top_index_pairs` are parsed
    there and never read. A sweep has to own the split.
 2. **The membership test.** The baseline keeps a ground-truth pair when
-   `u in G1 and u in G2`: the same label on both sides. On the inherited
-   `labeled_dev` pair, whose graphs share an id space, that is merely
-   redundant. On a generated pair it is **wrong** — the generator relabels each
-   side independently, so `u in G2` tests a G1 label against a permuted G2 and
-   silently drops nearly all of the ground truth. Here it is
-   `u in G1 and v in G2`. If you ever point the baseline's own `main()` at a
-   generated pair, expect a near-empty validation list and an accuracy that
-   means nothing.
+   `u in G1 and u in G2`: it looks the G1 label up in G2, which is the wrong
+   graph. The generator relabels each side to compact ids `0..n-1`, so on these
+   pairs `u in G2` is nearly always true and the test is near-vacuous rather
+   than destructive. Pairs kept by `u in G2` against by `v in G2`: 26,983
+   against 26,983 on `b23_s0`, 27,769 against 27,769 on `b00_s0`, 26,647
+   against 26,675 on `b29_s2`, and 26,942 against 26,948 of 27,770 on
+   `labeled_dev`, whose two labellings are independent -- a difference of 0–28
+   pairs. Here it is `u in G1 and v in G2`, the test the loop means. If you ever
+   point the baseline's own `main()` at a generated pair, expect a few pairs'
+   difference, not a near-empty validation list.
 3. **The scoring container.** `get_seed_pairs` does `tup in validation_pairs`
    against a *list*; at the full ranking that is 27k linear scans of a
    27k-element list. A `set` is passed instead. Membership is the only
@@ -177,9 +184,6 @@ a difference from the report is a difference in the data and not in the code.
 
 - **node2vec**, in the report's Table 2 at 0.01%, has no branch in
   `src/seed_free.py`. It is excluded rather than reimplemented.
-- **A GPU array for `src/adv_gd/`.** `sweep.py --task-id` is already written for
-  one; `10_seed_based_job.sh` is the template — add `--gpus=1`,
-  `--constraint=RTX6000ADA`, and set `GDA_NV=1` so `in_container` passes `--nv`.
 - **A held-out pair.** Every number here is measured on the same pairs the
   settings were chosen on. The `status` field (`exploratory` by default) makes
   that visible; it does not fix it.

@@ -443,7 +443,7 @@ def existing_pair_conflict(case_dir: Path, pair: dict,
 
     The directory name is `<stem>_b<NN>_s<seed>`, which encodes neither the
     sampling fraction nor the mode, so two different configurations map to one
-    directory. A 5% node sample and a 0.4% one both wrote to
+    directory. A 5% node sample and a 2% one both wrote to
     `cit-HepTh_b10_s0` during this feature's own testing, and the second
     silently replaced the first -- leaving the first record's output digests
     pointing at bytes that no longer existed.

@@ -1,11 +1,13 @@
-"""Multi-cell driver for the two classic baselines: beta x pair seed.
+"""Multi-cell driver for the baselines (four methods): beta x pair seed.
 
 Mirrors `adv_gd/sweep.py`'s shape (same CLI conventions, same --plan/
 --generate/--task-id flow, same pair-generation delegation) but is deliberately
-simpler in one respect: neither baseline here has anything analogous to Adv-GD's
-alignment seed -- structural-fingerprint matching and IsoRank's recurrence are
-both fully deterministic given a pair, so the cell grid is beta x pair_seed
-only, not beta x pair_seed x align_seed. One cell = one (pair, method) run.
+simpler in one respect: none of the four methods has anything analogous to
+Adv-GD's alignment seed -- structural-fingerprint matching, IsoRank's
+recurrence, centrality rank-matching and the composite-centrality fingerprint
+are each fully deterministic given a pair, so the cell grid is beta x
+pair_seed only, not beta x pair_seed x align_seed. One cell = one (pair,
+method) run.
 
 Reuses `adv_gd.sweep`'s pair-math (`divergence_beta`, `pair_name`, `PARENTS`,
 `generate`) directly rather than duplicating it: unlike `grid.py` (Report 1's
@@ -13,8 +15,8 @@ own planner, which deliberately duplicates the beta math so that module has no
 import path into the GPU code), there is no such constraint here -- these
 baselines already import GPU-adjacent code transitively through
 `baselines.common` (which imports `adv_gd.propagation`/`alignment`, themselves
-torch imports, though neither baseline ever touches a GPU). Duplicating the
-beta math again would just be a second place for it to drift.
+torch imports, though none of the baselines ever touches a GPU). Duplicating
+the beta math again would just be a second place for it to drift.
 
     python src/baselines/sweep_baselines.py --method structural_fingerprint --plan
     python src/baselines/sweep_baselines.py --method structural_fingerprint --generate
@@ -115,7 +117,7 @@ def run_cell(cell: dict, args) -> int:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
-        description="Multi-cell driver for the classic baselines.")
+        description="Multi-cell driver for the baselines.")
     ap.add_argument("--method", required=True, choices=sorted(METHODS))
     ap.add_argument("--dataset", default="hepth", choices=sorted(PARENTS))
     ap.add_argument("--betas", type=float, nargs="+",

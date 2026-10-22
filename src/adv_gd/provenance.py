@@ -36,9 +36,11 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE = REPO_ROOT / "results" / "runs"
 LEDGER = "index.jsonl"
 
-# Fields a record is not allowed to omit. The first three identify the run; the
-# last two exist so that a number can never be quoted without the sample size
-# and selection rule it came from -- the policy's one mandatory group.
+# Fields a record is not allowed to omit. REQUIRED is checked for every record
+# and identifies the run. REQUIRED_IF_RESTARTS exists so that a number can never
+# be quoted without the sample size and selection rule it came from -- the
+# policy's one mandatory group -- and is enforced only when a record has
+# restarts.
 REQUIRED = ("seed", "status", "note")
 REQUIRED_IF_RESTARTS = ("n_restarts", "selection", "selected_seed")
 
@@ -163,10 +165,11 @@ def git_state() -> tuple[dict, str]:
     """Describe the working tree, and return the uncommitted diff alongside it.
 
     A commit hash alone misidentifies a dirty tree, which is the normal state
-    here -- the whole adv_gd module is uncommitted, so `head` by itself points
-    at a tree containing none of the code that produced any of these runs. The
-    diff is returned so the caller can archive it: `head` plus that patch
-    reconstructs the exact source.
+    here -- when this was written the whole adv_gd module was uncommitted, so
+    `head` by itself pointed at a tree containing none of the code that produced
+    any of these runs. The module has since been committed, but the tree is
+    often still dirty. The diff is returned so the caller can archive it: `head`
+    plus that patch reconstructs the exact source.
 
     Cached for the process: a run must not record two different code states for
     itself, and the walk is not free.

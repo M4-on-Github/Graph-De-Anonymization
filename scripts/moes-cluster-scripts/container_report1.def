@@ -8,13 +8,13 @@ From: python:3.12-slim
 # job adds.
 #
 # pleiades has no python newer than 3.6 outside a container and no sudo, which
-# is why this exists at all: networkx 3.7 and numpy 2.5 both require 3.11+.
+# is why this exists at all: networkx 3.7 and numpy 2.5 both require 3.12+.
 # `scripts/moes-cluster-scripts/grid.py` is deliberately 3.6-compatible so that
 # a submit script on the head node can size an array without the container.
 #
 # Versions are the ones pinned in the repo's requirements.txt. That file is a
 # superset -- it also pins the nvidia-* and cuda-* wheels that torch pulls in
-# transitively -- so the four lines below are the direct dependencies and pip
+# transitively -- so the five lines below are the direct dependencies and pip
 # resolves the rest.
 
 %post
