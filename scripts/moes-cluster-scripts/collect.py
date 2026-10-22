@@ -11,6 +11,10 @@ The ledger line is Adv-GD shaped: it carries `chi`, `gamma` and
 not what it found. The records hold everything. `index.jsonl` stays the thing
 you grep to see that a run exists.
 
+Records are immutable, so label fixes live in `results/runs/corrections.jsonl`
+(docs/experiment_logging_policy.md, Rule 7). They are overlaid on each record
+in memory, later lines winning; no record file is written.
+
     python3 collect.py --kind report1_seed_based
     python3 collect.py --kind report1_seed_based --summary beta_nominal theta
     python3 collect.py --out /data/$USER/report1.csv
@@ -47,7 +51,49 @@ METRIC_KEYS = {"extracted", "new_pairs", "correct", "correct_heldout",
                "final_correct"}
 
 
+def load_corrections(archive):
+    """{run_id: [(field, old, new), ...]} from `corrections.jsonl`, file order.
+
+    No file means no corrections. A list rather than {field: new} so a
+    correction of a correction is checked against the value the earlier line
+    set, not against the record.
+    """
+    path = archive / "corrections.jsonl"
+    out = {}
+    if not path.is_file():
+        return out
+    for n, line in enumerate(path.read_text().splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            c = json.loads(line)
+            out.setdefault(c["run_id"], []).append(
+                (c["field"], c["old"], c["new"]))
+        except (ValueError, KeyError, TypeError) as exc:
+            print("  skipping bad line {} of {}: {!r}".format(n, path, exc),
+                  file=sys.stderr)
+    return out
+
+
+def apply_corrections(rec, corrections):
+    """Overlay `corrections` on the loaded dict `rec`; return the fields set.
+
+    A stale `old` is a warning, not a reason to drop the correction.
+    """
+    fields = []
+    for field, old, new in corrections.get(rec.get("run_id"), ()):
+        if rec.get(field) != old:
+            print("  correction for {} {}: record has {!r}, expected old {!r};"
+                  " applying anyway".format(rec.get("run_id"), field,
+                                            rec.get(field), old),
+                  file=sys.stderr)
+        rec[field] = new
+        fields.append(field)
+    return fields
+
+
 def rows(archive, kinds=None, include_failed=True):
+    corrections = load_corrections(archive)
     for rec_path in sorted(archive.glob("*/record.json")):
         try:
             rec = json.loads(rec_path.read_text())
@@ -55,12 +101,13 @@ def rows(archive, kinds=None, include_failed=True):
             print("  skipping unreadable {}: {}".format(rec_path, exc),
                   file=sys.stderr)
             continue
+        corrected = apply_corrections(rec, corrections)
         if kinds and rec.get("kind") not in kinds:
             continue
         if not include_failed and rec.get("status_exit") != "ok":
             continue
         metrics = rec.get("metrics") or {}
-        row = {}
+        row = {"_corrected": bool(corrected)}
         for col in COLUMNS:
             if col in METRIC_KEYS:
                 row[col] = metrics.get(col)
@@ -151,8 +198,9 @@ def main(argv=None):
         for r in table:
             print(fmt.format(*[("" if c is None else c) for c in r]))
         failed = sum(1 for r in data if r["status_exit"] != "ok")
-        print("\n{} records, {} not ok, {} groups".format(
-            len(data), failed, len(table)))
+        print("\n{} records, {} not ok, {} groups, {} with corrected fields"
+              .format(len(data), failed, len(table),
+                      sum(r["_corrected"] for r in data)))
         return 0
 
     out = open(args.out, "w", newline="") if args.out else sys.stdout
@@ -164,8 +212,9 @@ def main(argv=None):
     finally:
         if args.out:
             out.close()
-            print("wrote {} rows to {}".format(len(data), args.out),
-                  file=sys.stderr)
+            print("wrote {} rows to {} ({} with corrected fields)".format(
+                len(data), args.out, sum(r["_corrected"] for r in data)),
+                file=sys.stderr)
     return 0
 
 
