@@ -287,30 +287,60 @@ Found while reviewing this policy against what the code actually records, after 
   validated against ground truth on one dataset. Recording it per run is what will let a
   later disagreement be traced.
 - **`centrality_rank`'s per-measure chi swings sharply and non-monotonically across the beta
-  sweep, and this is expected behavior, not noise in the estimate or a bug.** Diagnosed
+  sweep. The mechanism offered for it below is a hypothesis, not a finding.** Observed
   2026-10-12 from the 51440-51446 suite's aggregated results: e.g. `degree` scores integrated
   chi 0.8667 at beta=0.1 and 0.0033 at beta=0.2, while `eigenvector` stays around 0.778 at the
   same beta=0.2 point (nominal beta, divergence mode; the pure chi of those three runs is
   0.0026, 0.0019 and 0.0022: `20261012T0238Z_cit-HepTh_b05_s0_28ccce1b`,
   `20261012T0238Z_cit-HepTh_b11_s0_51119f7e`, `20261012T0259Z_cit-HepTh_b11_s0_42802885`).
-  Root cause is two compounding design properties of
-  `centrality_rank_match.py`, not a defect: (1) its Phase-3 anchors are *singleton*
+  Hypothesised cause, never tested by an ablation: two design properties of
+  `centrality_rank_match.py` that may compound. (1) Its Phase-3 anchors are *singleton*
   candidates taken straight from the rank-zip (`candidates = {a: [mapping_full[a]]}`,
   `centrality_rank_match.py:122`), unlike `structural_fingerprint`/`isorank`'s `TOP10`
-  candidate sets, so there is no fallback if the rank-matched guess is wrong; (2)
-  `propagate()` (`propagation.py:94-150`) is a mutual-best-match bootstrap gated by an
-  eccentricity threshold (`theta=0.5`) in both directions — seed anchors either reinforce
-  and the mapping snowballs outward, or they get rejected and propagation stalls/collapses.
-  This makes final chi a threshold (bootstrap-or-collapse) function of anchor quality, not
-  a smooth one. Different centrality measures cross that threshold at different betas
-  because their *rank order*'s sensitivity to edge noise differs: eigenvector/PageRank are
-  smooth, global, iterative measures whose top ranks shift gradually; degree/k-core/k-truss
-  are local/combinatorial and a single edge change can flip tie-breaks or cascade through
-  the core/truss decomposition, reordering many ranks at once. **Watch for:** do not read a
-  single beta's `centrality_rank` chi as a point estimate of that measure's robustness —
-  it is which side of a per-measure, per-seed bootstrap cliff that beta happens to land on.
-  The report's own low "pure" rank-matching numbers (0.10-0.83%) and reliance on the
-  integration step reflect the same mechanism.
+  candidate sets, which would leave no fallback if the rank-matched guess is wrong; (2)
+  `propagate()` (`propagation.py:90-155`) is a mutual-best-match bootstrap gated by an
+  eccentricity threshold (`theta=0.5`) in both directions, so seed anchors would either
+  reinforce and the mapping snowball outward, or be rejected and propagation stall/collapse.
+  That would make final chi a threshold (bootstrap-or-collapse) function of anchor quality,
+  not a smooth one. A further conjecture is that different centrality measures cross that
+  threshold at different betas because their *rank order*'s sensitivity to edge noise
+  differs: eigenvector/PageRank smooth, global, iterative measures whose top ranks shift
+  gradually; degree/k-core/k-truss local/combinatorial, where a single edge change could flip
+  tie-breaks or cascade through the core/truss decomposition. **Watch for:** do not read a
+  single beta's `centrality_rank` chi as a point estimate of that measure's robustness; in
+  the records it is a survive-or-collapse outcome, and the Update below says what decides
+  it. The report's own low "pure" rank-matching numbers (0.10-0.83%) are of the order of our
+  pure chi at every beta > 0 (at most 0.51%), but that is a separate fact from the
+  integration step's behaviour and is not evidence for the mechanism above. (Update
+  2026-10-22: the mechanism was first written up as a diagnosis, and the 110
+  `baseline_centrality_*` records (22 pairs x 5 measures, `results/runs/*/record.json`) do
+  not support the parts of it they can check. (a) The outcome is bimodal: 28 records have integrated chi >= 0.7137 and 82 have
+  <= 0.0082, none in between. (b) Survival tracks the pair's `overlap_ratio` far more than
+  the measure. None of the 65 records with overlap <= 0.6985 survives (chi <= 0.0062, all
+  five measures); all five survive at 0.8994 (chi 0.78-0.87). Two exceptions to "not the
+  measure": at overlap 1.0 (20 records; the beta=0 pair s0 is recorded under both beta
+  modes) 16 survive and the 4 failures are all `k_core` (chi <= 0.0004), and in the
+  0.7985-0.8108 band only 7 of 20 survive, split by measure as degree 3/4, eigenvector 2/4,
+  pagerank 1/4, k_core 1/4, k_truss 0/4, with no order that holds across pairs: degree
+  collapses at 0.7985 yet survives all three nominal-0.1 pairs, while eigenvector survives
+  at 0.7985 and on one of those three, whose overlaps (0.8086, 0.8100, 0.8108) differ by
+  0.002. So overlap sets a floor and, near it, the pair draw decides, which is noise in the
+  estimate of the kind this section's first bullet warns about. (c) In every one of the 110
+  `stderr.log` files the first sweep line is `sweep 1  stage 0  +0 -> 1,000 mapped`, and no
+  stage-0 sweep in any of them adds a node. That is forced by construction, not a measurement:
+  `candidates` is keyed only on the 1,000 anchors, which `propagate` skips as already
+  mapped, so the stage-0 candidate test (`propagation.py:137`) has nothing to accept for
+  any other node. All growth is stage 1, which is unrestricted. Point (1) above, singleton
+  versus `TOP10` candidates, therefore cannot have affected any of these runs. That stage 1
+  grows from the anchors is visible (survivors end at 24,230-26,679 mapped, collapsed runs
+  at 1,306-4,544); whether the anchors' correctness is what separates them is not, because
+  no record holds the anchors' precision. (d) The smooth-versus-local conjecture is
+  unmeasured: pure chi, which asks for exact rank-position agreement, falls for
+  eigenvector and PageRank from 0.977 at overlap 1.0 to 0.0051 and 0.0030 at 0.8994, and
+  stays <= 0.0051 for every measure below 1.0, so it shows no gradual shift for the
+  "smooth" measures either; no rank correlation was computed. A test would be to run
+  `propagate` from ground-truth anchors, or from the same anchors with their precision
+  logged, across the 0.7985-0.8108 band.)
 
 ## Citation
 

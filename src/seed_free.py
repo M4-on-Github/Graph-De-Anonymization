@@ -218,6 +218,14 @@ def get_all_edges_coreness_and_decomposition(G):
 
 ### Node score
 
+# This is not Report 1's Strength(u). Strength(u) sums weight(u, v) over the
+# neighbours v of u, i.e. the edges incident to u. This sums every edge weight in
+# the radius-1 ego graph, edges between two neighbours included. The incident-only
+# variant is the commented-out `weighted_degree` line below. Kept as is because it
+# is the variant that reproduces Report 1's Table 2: on the labeled dev pair it
+# matches 44 nodes for K-core (0.16%) and 29 for K-truss, where incident-only
+# matches 101 and 38. It feeds only the k-truss and k-core branches, so Report 1's
+# 88.88% (PageRank seeds) does not depend on it.
 def node_score_based_on_ego_network(graph, weight="weight", radius = 1):
     """
     Measure node scores based on their ego networks, considering edge weights.
@@ -313,7 +321,7 @@ def determine_seed_pairs(G1, G2, validation_seed_pairs, top_k, method_name = 'pa
         ### Measure with trussness
         all_pairs, correct_pairs, count, accuracy, count_right_dict, index_based_accuracy = get_seed_pairs(node_scores_G1, node_scores_G2, \
                                                      validation_seed_pairs, top_k = top_k)
-        print('\nEigen Vecotr:')
+        print('\nK-truss:')
         print(f"Number of Extracted Seed Pairs: {count}\t Accuracy: {accuracy*100}")
 
         plot_first_k_elements_two_dicts(count_right_dict, index_based_accuracy,  k = 21, method='k-truss')
@@ -330,7 +338,7 @@ def determine_seed_pairs(G1, G2, validation_seed_pairs, top_k, method_name = 'pa
         ### Measure with trussness
         all_pairs, correct_pairs, count, accuracy, count_right_dict, index_based_accuracy = get_seed_pairs(node_scores_G1, node_scores_G2, \
                                                      validation_seed_pairs, top_k = top_k)
-        print('\nEigen Vecotr:')
+        print('\nK-core:')
         print(f"Number of Extracted Seed Pairs: {count}\t Accuracy: {accuracy*100}")
         
         plot_first_k_elements_two_dicts(count_right_dict, index_based_accuracy,  k = 21, method='k-core')
@@ -468,7 +476,7 @@ def main():
     with open(os.path.join(out_dir, 'accuracy_top'+str(number_of_top_index_pairs)+'.txt'), 'w') as result_file: 
         result_file.write("Accuracy: "+str(accuracy)+"\n")
         result_file.write("# of Correct pairs: "+str(len(common))+"\n")
-        result_file.write("Method Accuracy ({method_name}): "+str(method_accuracy)+"\n")
+        result_file.write(f"Method Accuracy ({method_name}): "+str(method_accuracy)+"\n")
         result_file.close() 
     ### Write newly added seed pairs with given seed pairs in a new file
     with open(os.path.join(out_dir, 'seed_free_final_mapping_'+str(integrate_with_Seed_Based)+'.txt'), 'w') as final_seed_file: 

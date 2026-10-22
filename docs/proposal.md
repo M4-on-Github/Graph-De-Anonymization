@@ -27,11 +27,15 @@ flowchart LR
 
 Seed-based attacks propagate a mapping outward from a small set of known correct pairs.
 They work well but depend entirely on obtaining those seeds, which is often unrealistic.
-Seed-free attacks remove that dependency. In the group's prior implementation, node
-ranking by a centrality measure (PageRank, eigenvector, degree, k-core, k-truss) drives
-the whole result, so the choice of measure is the dominant factor and accuracy degrades
-when the two graphs differ structurally. Published work on the seed-free setting is thin,
-which is itself part of the problem we want to characterize.
+Seed-free attacks remove that dependency. In the group's prior implementation (Report 1),
+ranking nodes by a centrality measure (PageRank, eigenvector, degree, k-core, k-truss) and
+pairing equal ranks was weak on its own, at 0.10% to 0.83% accuracy. What worked was
+passing the top-ranked pairs to seed-based propagation as seeds: with the top 50, every
+integrated method passed 70%, and the best, PageRank, reached 88.88%. Report 1 used one
+graph pair and no noise parameter, so it says nothing about how accuracy changes when the
+two graphs differ structurally. We expect it to degrade, since the seeds come from rank
+alignment, but that is our hypothesis to test, not a Report 1 result. Published work on
+the seed-free setting is thin, which is itself part of the problem we want to characterize.
 
 ## 3. Approach
 
@@ -71,7 +75,8 @@ underpin cross-platform consumer profiling and data-heavy pricing programs.
 
 **Midpoint:** several benchmark datasets characterized by degree distribution, component
 count, centrality, and PageRank (etc); the baseline seed-free algorithm fully reimplemented and
-reproducing its reported accuracy; at least one exploratory algorithm of our own.
+reproducing the accuracy Report 1 reports for it (88.88% with the top 50 PageRank pairs
+as seeds); at least one exploratory algorithm of our own.
 
 **End of semester:** a result that is publishable or a clearly argued path toward
 publication, plus a rudimentary working web app.

@@ -49,6 +49,12 @@ CLAUDE.md
 SeedFree_Li.etal.pdf
 docs/some-context.txt
 
+# The Overleaf writeups are their own git repository, cloned here and pushed to
+# Overleaf, not tracked by this one. Left untracked it showed in `git status`,
+# and run records, which take git.dirty from that, called a clean code tree
+# dirty (records 268d645e and 34d97e60).
+overleaf_writeups/
+
 # OS cruft
 .DS_Store
 Thumbs.db
