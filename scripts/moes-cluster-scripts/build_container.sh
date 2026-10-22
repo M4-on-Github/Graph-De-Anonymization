@@ -78,7 +78,7 @@ apptainer build --fakeroot --force "$SIF" "$DEF"
 printf '%s\n' "$DEF_HASH" > "$HASH_FILE"
 
 echo "[$(date)] Verifying ..."
-apptainer exec --containall "$SIF" python3 -c \
+apptainer exec --containall --env PYTHONNOUSERSITE=1 "$SIF" python3 -c \
     "import networkx, numpy, matplotlib, torch, subprocess; \
 print('python ok;', 'git', subprocess.run(['git','--version'],capture_output=True,text=True).stdout.strip())"
 

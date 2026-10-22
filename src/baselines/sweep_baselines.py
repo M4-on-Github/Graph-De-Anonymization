@@ -118,7 +118,7 @@ def run_cell(cell: dict, args) -> int:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
         description="Multi-cell driver for the baselines.")
-    ap.add_argument("--method", required=True, choices=sorted(METHODS))
+    ap.add_argument("--method", choices=sorted(METHODS))
     ap.add_argument("--dataset", default="hepth", choices=sorted(PARENTS))
     ap.add_argument("--betas", type=float, nargs="+",
                     default=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
@@ -160,6 +160,8 @@ def main(argv=None) -> int:
 
     if args.self_test:
         return 0 if _self_test() else 1
+    if not args.method:
+        ap.error("--method is required (or pass --self-test)")
 
     cells = build_plan(args)
 

@@ -65,10 +65,14 @@ stage_sif_locally() {
 # Only the repo and this project's NAS directory are bound, not the whole of
 # /data/$USER: a job has no business reading another project's data.
 #
-# --containall is deliberate: without it the host's PYTHONPATH, pip --user
-# site-packages under ~/.local and a stale MPLBACKEND all leak in, and the run
-# record would name library versions the job did not actually use. Everything
-# the job needs is bound explicitly.
+# --containall is deliberate: without it the host's PYTHONPATH and a stale
+# MPLBACKEND leak in, and the run record would name library versions the job
+# did not actually use. Everything the job needs is bound explicitly.
+#
+# --containall does NOT stop pip --user site-packages under ~/.local: the
+# cluster's apptainer.conf has `mount hostfs = yes`, so the real home is visible
+# and its site-packages sorts ahead of the container's own pinned ones.
+# PYTHONNOUSERSITE=1 is what closes that.
 #
 # PYTHONHASHSEED is set, not inherited. The inherited baseline is hash-order
 # sensitive; report1_cell.py refuses to run without it and the value goes into
@@ -92,6 +96,7 @@ in_container() {
         --env PYTHONUNBUFFERED=1 \
         --env PYTHONHASHSEED="${PYTHONHASHSEED:-0}" \
         --env MPLBACKEND=Agg \
+        --env PYTHONNOUSERSITE=1 \
         "$LOCAL_SIF" \
         python3 "$@"
 }
