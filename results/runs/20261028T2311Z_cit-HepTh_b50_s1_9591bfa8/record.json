@@ -1,0 +1,143 @@
+{
+  "kind": "perturbation",
+  "pair": "cit-HepTh_b50_s1",
+  "status": "confirmatory",
+  "note": "sweep cell for nominal beta=0.5 in nominal mode",
+  "supersedes": null,
+  "started_utc": "2026-10-28T23:11:04+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/beta_noise_generator/perturbation.py",
+    "--parent",
+    "/home/mmyatmau/Graph-De-Anonymization/data/cit-HepTH/cit-HepTh.txt",
+    "--beta",
+    "0.5",
+    "--beta-nominal",
+    "0.5",
+    "--beta-mode",
+    "nominal",
+    "--seed",
+    "1",
+    "--out",
+    "runs/sweep_nominal",
+    "--status",
+    "confirmatory",
+    "--note",
+    "sweep cell for nominal beta=0.5 in nominal mode"
+  ],
+  "git": {
+    "head": "b5a8f292eedf",
+    "head_full": "b5a8f292eedfb68666d9b48bc590ad7053e40d5f",
+    "branch": "moe-dev",
+    "dirty": false,
+    "dirty_paths": [],
+    "untracked_inlined": [],
+    "untracked_hashed": [],
+    "diff_sha256": null,
+    "diff_bytes": 0
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "data/cit-HepTH/cit-HepTh.txt",
+      "bytes": 5576851,
+      "sha256": "556bd671a7a0e15bd6921d22d9599a17b53b41c6a46b766fbaf768f1d39643b2"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b50_s1/G1.edgelist",
+      "bytes": 1964800,
+      "sha256": "08fbc79d831cba50c60f4c215749f757221d77318e1edbe6a7b739de9a5cb849"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b50_s1/G2.edgelist",
+      "bytes": 1971801,
+      "sha256": "0a123d0511d22a0948f2b235ca25e8c315d1d97a4e7619382b1b28bc4c48dd9c"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b50_s1/mapping.txt",
+      "bytes": 283467,
+      "sha256": "be9bfcac68b1ee51bff8ce2a50093dd7054e5b5b7f7b01d3757a0d05c564b2c1"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b50_s1/stats.json",
+      "bytes": 658,
+      "sha256": "cf7bab6d04b0440e5767ad2c98c8f5c707f20f236647457dec7d326e16fa0eca"
+    }
+  ],
+  "metrics": {
+    "overlap_ratio": 0.2504477908511574,
+    "overlap_predicted": 0.25,
+    "overlap_sigma": 0.00072954747753518,
+    "jaccard": 0.33398948392494143,
+    "retention_a": 0.4996437543466228,
+    "retention_u": 0.5006713314503882,
+    "matchable_nodes": 25411,
+    "edges_a": 176017,
+    "edges_u": 176379,
+    "parent_edges": 352285
+  },
+  "seed": 1,
+  "beta": 0.5,
+  "beta_nominal": 0.5,
+  "beta_mode": "nominal",
+  "mode": "bernoulli",
+  "permute": true,
+  "node_sample": null,
+  "compat_layout": false,
+  "n_restarts": 1,
+  "selection": "none (single draw, accepted on (1-beta)^2 overlap check)",
+  "selected_seed": 1,
+  "parent": "/home/mmyatmau/Graph-De-Anonymization/data/cit-HepTH/cit-HepTh.txt",
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 176017,
+    "edges_u": 176379,
+    "shared_edges": 88229,
+    "retention_a": 0.4996437543466228,
+    "retention_u": 0.5006713314503882,
+    "retention_predicted": 0.5,
+    "overlap_ratio": 0.2504477908511574,
+    "overlap_predicted": 0.25,
+    "overlap_sigma": 0.00072954747753518,
+    "jaccard": 0.33398948392494143,
+    "jaccard_predicted": 0.3333333333333333,
+    "beta": 0.5,
+    "beta_nominal": 0.5,
+    "beta_mode": "nominal",
+    "seed": 1,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 26319,
+    "nodes_u": 26390,
+    "isolated_dropped_a": 1450,
+    "isolated_dropped_u": 1379,
+    "matchable_nodes": 25411
+  },
+  "matchable_nodes": 25411,
+  "verify_passed": true,
+  "verify_message": "overlap 0.2504 vs predicted 0.2500 (delta 0.0004, tol 0.0100)",
+  "overwrote_existing": null,
+  "out_dir": "runs/sweep_nominal/cit-HepTh_b50_s1",
+  "run_id": "20261028T2311Z_cit-HepTh_b50_s1_9591bfa8",
+  "config_sha256": "9591bfa8",
+  "status_exit": "ok",
+  "seconds": 1.7,
+  "finished_utc": "2026-10-28T23:11:06+00:00"
+}
