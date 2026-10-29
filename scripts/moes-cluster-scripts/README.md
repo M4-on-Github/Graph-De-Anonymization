@@ -1,4 +1,4 @@
-# Moe's cluster scripts — Report 1 on cit-HepTh
+# Moe's cluster scripts — Report 1, the Adv-GD suite and the Log 3 experiments on cit-HepTh
 
 Reimplementing `docs/Project_Report_1_Seed_Based_Seed_Free_.pdf` on generated
 HepTh noise pairs, as a SLURM job array on `pleiades`.
@@ -55,6 +55,26 @@ bash .../submit_report1.sh --betas 0.0 --pair-seeds 0 \
 bash .../submit_report1.sh --betas 0.2 --pair-seeds 0 --train-portions 0.20
 ```
 
+### Log 3 experiments
+
+```bash
+# E0: print the plan and the sbatch command for task 0, the default
+bash scripts/moes-cluster-scripts/e0_job.sh --dry-run
+
+# E2: print the sbatch commands for the confirmatory blocks
+bash scripts/moes-cluster-scripts/submit_ignition_grid.sh --dry-run --status confirmatory
+
+# E3: print the sbatch commands for one group
+bash scripts/moes-cluster-scripts/submit_w_control.sh --group main_ge49 \
+     --status confirmatory --dry-run
+```
+
+Inside an interactive allocation, prefix the submit command with
+`SLURM_SUBMIT_DIR=$PWD` (from the repo root): `common.sh` takes the repo root
+from that variable whenever `SLURM_JOB_ID` is set, and the allocation points it
+at wherever it was started (`e0_job.sh` ignores it when submitting, so it needs
+no prefix).
+
 ## Reading the results
 
 ```bash
@@ -106,6 +126,14 @@ code.
 | `30_adv_gd_job.sh` | Adv-GD suite: one `sweep.py` cell per array task, full Adv-GD or the `skip_adversarial` ablation. GPU only (RTX6000ADA or QUADRORTX6000); exports `GDA_NV=1` so `in_container` passes `--nv`. |
 | `31_baselines_job.sh` | Adv-GD suite: one `sweep_baselines.py` cell per array task; `--method` picks structural fingerprint, IsoRank, centrality rank-matching or composite centrality. CPU only. |
 | `submit_adv_gd_suite.sh` | Adv-GD suite: submits pair generation and the six arrays (full Adv-GD, the ablation, four baselines) that depend on it. `--dry-run` prints the `sbatch` commands. |
+| `e0_stage_pair.py` | Log 3 E0: stages Report 1's own pair, `data/labeled_dev`, as the flat pair directory `runs/e0_labeled_dev/` (three symlinks and a `stats.json` whose `matchable_nodes` is counted from the data and must be 26,948), the input of arm (b), our `centrality_rank_match.py`. Idempotent; standard library only and Python 3.6, so it can run on the head node, and every arm (b) task of `e0_job.sh` calls it first. CPU only; writes no record. |
+| `e0_arm_a_record.py` | Log 3 E0 arm (a), the recorder: runs Report 1's own `src/seed_free.py` unmodified under a pinned `PYTHONHASHSEED` and writes the run's record, kind `report1_seed_free_integrated` (`--mode integrated`) or `report1_seed_free_rank` (`--mode pure`). Refuses to start with `PYTHONHASHSEED` unset or `random`. One run per array task of `e0_job.sh`; CPU only. |
+| `e0_job.sh` | Log 3 E0: the 11-task array and its submitter in one file. On the head node it submits (`--tasks` picks the tasks, the default is task 0 alone; `--time` sets the walltime), and under `sbatch` one task is one run: tasks 0-7 are arm (a) through `e0_arm_a_record.py` at several hash seeds, tasks 8-10 are arm (b), `centrality_rank_match.py --n-anch 50` on the staged pair (`baseline_centrality_pagerank` records), and task 10 is forced exploratory. CPU only. |
+| `submit_ignition_grid.sh` | Log 3 E2: submits the ignition-threshold grid and the E2.0 anchor audit, one CPU array per block (`32_ignition_grid_job.sh` for the grid blocks, `34_anchor_audit_job.sh` for the audit), over pairs that already exist. It asks `src/ignition_grid/ignition_plan.py` for the counts; flags `--status` (confirmatory is refused for blocks the spec leaves exploratory), `--only`, `--limit`, `--dry-run`, `--pair-root`, `--out`, `--note`, `--time`. |
+| `32_ignition_grid_job.sh` | Log 3 E2: one array task = one instance and one n group of a block, run through `src/ignition_grid/ignition_grid.py` (1 to 9 `propagate` runs from a synthetic anchor set). CPU only; writes `ignition_grid` records; submitted by `submit_ignition_grid.sh`, not called directly. |
+| `34_anchor_audit_job.sh` | Log 3 E2.0, the anchor audit: one array task = one pair, five centrality measures, run through `src/ignition_grid/anchor_audit.py`; no `propagate`. CPU only; writes one `anchor_audit` record per measure; submitted by `submit_ignition_grid.sh`, not called directly. |
+| `submit_w_control.sh` | Log 3 E3: submits the non-adversarial alignment control, one group per call (`main_ge49`, `main_le36_b`, `main_le36_c`, `d4_a`, `d4_bc`), as GPU arrays of `w_control.py` cells (`33_adv_gd_w_control_job.sh`); `d4_a` is the exception and submits pair generation plus the Adv-GD cells that train GAE seeds 1 and 2. Refuses `--status confirmatory` on a group the Log does not mark confirmatory; `--dry-run` prints the `sbatch` commands and `--plan` the groups. |
+| `33_adv_gd_w_control_job.sh` | Log 3 E3: one array task = one `w_control.py` cell, arm B (`W_0` from `composite_centrality` anchors) or arm C (oracle `W_0`), on one cached embedding pair; it only reads the cached embeddings, so no GAE is trained and no adversarial step runs. GPU (RTX6000ADA or QUADRORTX6000, `--mem=32G`; exports `GDA_NV=1`); writes `adv_gd_w_control` records. |
 
 ## Three axis conventions, the first the paper's and the other two a choice
 
