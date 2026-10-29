@@ -1,0 +1,163 @@
+{
+  "kind": "anchor_audit",
+  "pair": "cit-HepTh_b00_s2",
+  "status": "confirmatory",
+  "note": "E2.0 anchor audit: audit_high E2.0 block=audit_high task=2: anchors of the centrality_rank baseline, measure degree, first 1000 of the rank-zip, on cit-HepTh_b00_s2 (nominal); no propagate.",
+  "supersedes": null,
+  "started_utc": "2026-10-29T06:30:37+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/ignition_grid/anchor_audit.py",
+    "--task-id",
+    "2",
+    "--group",
+    "high",
+    "--pair-root",
+    "runs/sweep_nominal",
+    "runs/sweep_divergence",
+    "--out",
+    "runs/ignition_grid",
+    "--status",
+    "confirmatory",
+    "--note",
+    "E2.0 anchor audit: audit_high"
+  ],
+  "git": {
+    "head": "3c880c0f204a",
+    "head_full": "3c880c0f204aa365e3a4c06dcf979c47afb39524",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261029T0612Z_e0_labeled_dev_8cc75419/",
+      "results/runs/20261029T0629Z_cit-HepTh_b00_s0_15db3ffb/",
+      "results/runs/20261029T0629Z_cit-HepTh_b00_s0_7291dca6/",
+      "results/runs/20261029T0629Z_cit-HepTh_b00_s0_cba149a0/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261029T0612Z_e0_labeled_dev_8cc75419",
+        "tree": true,
+        "files": 3,
+        "bytes": 4235,
+        "listing_sha256": "5879b059eb26a5cb4534ae3f10eaf32ee0670fce64c1f5c9489fe705a8497f9e"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b00_s0_15db3ffb",
+        "tree": true,
+        "files": 3,
+        "bytes": 4363,
+        "listing_sha256": "7eb20f23427a4afe1f502d2aef0ffbb5f1de8ea92855af76bdc03bbd11dc9092"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b00_s0_7291dca6",
+        "tree": true,
+        "files": 3,
+        "bytes": 4355,
+        "listing_sha256": "8107b31310807cf61b5a556540254b2820bb2ff9f455ca584e18b8dad94bcf47"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b00_s0_cba149a0",
+        "tree": true,
+        "files": 3,
+        "bytes": 4389,
+        "listing_sha256": "1f80fb30c2f3a40b329c195097588d5d2770f97f61de7abdd77a94d08db5a222"
+      }
+    ],
+    "diff_sha256": "384c1f73159b6c6c4ad88448278f3dffa98ac27cd6728e8b5006c4a83f5f46e4",
+    "diff_bytes": 4046
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s2/G1.edgelist",
+      "bytes": 3950024,
+      "sha256": "5e01f2964dc9fe31e5ddbb597292478c558ab256cdfff5eef0b5905fc1a41f57"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s2/G2.edgelist",
+      "bytes": 3947550,
+      "sha256": "d4695aaefa8756b06868865d41090ade5d8e63fc9f164898962f82303c992dd8"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s2/mapping.txt",
+      "bytes": 311008,
+      "sha256": "44ca94be1c785ee611078e715ffcaa78fb275bc44a092ea3374e3bd021a3fe77"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s2/stats.json",
+      "bytes": 560,
+      "sha256": "e53ca9ed955ba269d7360303151c368f9ee08c7473a366704f948fdaed5b0341"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/ignition_grid/audit/sweep_nominal/cit-HepTh_b00_s2/anchors_anchor_audit_degree_20261029T0630Z_cit-HepTh_b00_s2_8973a651.txt",
+      "bytes": 11235,
+      "sha256": "192423622f1bca4b092e7fe51ffdff653d01c39293e09590b5f119741ae3c6c5"
+    }
+  ],
+  "metrics": {
+    "anchors_found": 1000,
+    "anchors_correct": 245,
+    "anchor_precision": 0.245,
+    "rank_mapping_len": 27769,
+    "anchors_sha256": "192423622f1bca4b092e7fe51ffdff653d01c39293e09590b5f119741ae3c6c5"
+  },
+  "seed": 0,
+  "beta": 0.0,
+  "beta_nominal": 0.0,
+  "beta_mode": "nominal",
+  "dataset": "hepth",
+  "measure": "degree",
+  "n_anch": 1000,
+  "overlap": 1.0,
+  "matchable_nodes": 27769,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 352285,
+    "edges_u": 352285,
+    "shared_edges": 352285,
+    "retention_a": 1.0,
+    "retention_u": 1.0,
+    "retention_predicted": 1.0,
+    "overlap_ratio": 1.0,
+    "overlap_predicted": 1.0,
+    "overlap_sigma": 0.0,
+    "jaccard": 1.0,
+    "jaccard_predicted": 1.0,
+    "beta": 0.0,
+    "beta_nominal": 0.0,
+    "beta_mode": "nominal",
+    "seed": 2,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27769,
+    "nodes_u": 27769,
+    "isolated_dropped_a": 0,
+    "isolated_dropped_u": 0,
+    "matchable_nodes": 27769
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/sweep_nominal/cit-HepTh_b00_s2",
+  "run_id": "20261029T0630Z_cit-HepTh_b00_s2_8973a651",
+  "config_sha256": "8973a651",
+  "status_exit": "ok",
+  "seconds": 0.1,
+  "finished_utc": "2026-10-29T06:30:38+00:00"
+}

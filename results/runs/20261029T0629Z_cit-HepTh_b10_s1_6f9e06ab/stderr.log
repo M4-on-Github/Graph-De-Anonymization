@@ -1,0 +1,36 @@
+run 1/8: cit-HepTh_b10_s1 draw 1  n=100 k=2 w=98  uniform/pool/empty
+  anchors 2/100  (1897 eligible of 2000 pool nodes)
+  sweep   1  stage 0  +0 -> 100 mapped  2s
+  sweep   2  stage 1  +80 -> 180 mapped  5s
+  sweep   3  stage 1  +147 -> 327 mapped  7s
+  sweep   4  stage 1  +202 -> 529 mapped  9s
+  sweep   5  stage 1  +225 -> 754 mapped  12s
+  sweep   6  stage 1  +228 -> 982 mapped  15s
+  sweep   7  stage 1  +281 -> 1,263 mapped  19s
+  sweep   8  stage 1  +356 -> 1,619 mapped  23s
+  sweep   9  stage 1  +313 -> 1,932 mapped  27s
+  sweep  10  stage 1  +302 -> 2,234 mapped  32s
+  sweep  11  stage 1  +283 -> 2,517 mapped  37s
+  sweep  12  stage 1  +307 -> 2,824 mapped  43s
+  sweep  13  stage 1  +340 -> 3,164 mapped  50s
+  sweep  14  stage 1  +439 -> 3,603 mapped  57s
+  sweep  15  stage 1  +490 -> 4,093 mapped  65s
+  sweep  16  stage 1  +463 -> 4,556 mapped  74s
+  sweep  17  stage 1  +529 -> 5,085 mapped  83s
+  sweep  18  stage 1  +826 -> 5,911 mapped  94s
+  sweep  19  stage 1  +1,322 -> 7,233 mapped  107s
+  sweep  20  stage 1  +4,050 -> 11,283 mapped  137s
+  sweep  21  stage 1  +7,132 -> 18,415 mapped  178s
+  sweep  22  stage 1  +2,946 -> 21,361 mapped  195s
+  sweep  23  stage 1  +1,131 -> 22,492 mapped  205s
+  sweep  24  stage 1  +474 -> 22,966 mapped  213s
+  sweep  25  stage 1  +249 -> 23,215 mapped  220s
+  sweep  26  stage 1  +88 -> 23,303 mapped  227s
+  sweep  27  stage 1  +37 -> 23,340 mapped  234s
+  sweep  28  stage 1  +15 -> 23,355 mapped  241s
+  sweep  29  stage 1  +11 -> 23,366 mapped  247s
+  sweep  30  stage 1  +9 -> 23,375 mapped  254s
+  sweep  31  stage 1  +4 -> 23,379 mapped  260s
+  sweep  32  stage 1  +1 -> 23,380 mapped  267s
+  sweep  33  stage 1  +0 -> 23,380 mapped  274s
+  chi 0.6335  gamma 0.7441  17,396/23,380 correct/mapped  33 sweeps  274s

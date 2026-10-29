@@ -1,0 +1,116 @@
+{
+  "kind": "report1_seed_free_integrated",
+  "pair": "e0_labeled_dev",
+  "status": "confirmatory",
+  "note": "E0 arm (a), integrated, run 1: inherited seed_free.py main() unchanged, pagerank alpha=1, top 50 as seeds, theta 0.5, PYTHONHASHSEED=1 (Log 3, E0)",
+  "supersedes": null,
+  "started_utc": "2026-10-29T06:12:28+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/scripts/moes-cluster-scripts/e0_arm_a_record.py",
+    "--mode",
+    "integrated",
+    "--out",
+    "/home/mmyatmau/Graph-De-Anonymization/runs/e0_arm_a/55184_a_integrated_h1",
+    "--status",
+    "confirmatory",
+    "--run-index",
+    "1",
+    "--pair-label",
+    "e0_labeled_dev"
+  ],
+  "git": {
+    "head": "25b5bf2fb303",
+    "head_full": "25b5bf2fb3037f2b428a78628c698aec802af707",
+    "branch": "moe-dev",
+    "dirty": false,
+    "dirty_paths": [],
+    "untracked_inlined": [],
+    "untracked_hashed": [],
+    "diff_sha256": null,
+    "diff_bytes": 0
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "1"
+  },
+  "inputs": [
+    {
+      "path": "data/labeled_dev/validation_G1.edgelist",
+      "bytes": 6592014,
+      "sha256": "1cc2eb242b383fd0c4d6c99a9d7422277c1da08c72837809fae28b8890be0b7f"
+    },
+    {
+      "path": "data/labeled_dev/validation_G2.edgelist",
+      "bytes": 7104941,
+      "sha256": "a76d5d9aac77c2aee2f5b60f451dcbc8f4e68a004c6d62728035eaf643a47f99"
+    },
+    {
+      "path": "data/labeled_dev/validation_seed_mapping.txt",
+      "bytes": 311020,
+      "sha256": "f4ed1e0bbb1d226a82804653c09a182984b0488485f05041f79fd47d6dd17f52"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/e0_arm_a/55184_a_integrated_h1/accuracy_top50.txt",
+      "bytes": 101,
+      "sha256": "300c7908ad949f556634a2fefe6190e8d9e462552b500e002949c14a5788d26e"
+    },
+    {
+      "path": "runs/e0_arm_a/55184_a_integrated_h1/seed_free_final_mapping_1.txt",
+      "bytes": 282749,
+      "sha256": "cfd5e82d1ef7d3bff63e566f7f0769e523a4be80088b1246398a870f37939c6c"
+    }
+  ],
+  "metrics": {
+    "seconds_main": 1115.5,
+    "accuracy_inherited": 88.80929403904685,
+    "correct_inherited": 23927,
+    "correct_inherited_file": 23927,
+    "extracted": 25318,
+    "correct": 23940,
+    "accuracy_report": 88.8378,
+    "precision_extracted": 94.5572,
+    "mapping_set_sha256": "9a957eef70ed0abad4dab18957263cd43d5f0e919075c3880434faa49a5cce9e",
+    "new_pairs": 25268,
+    "seeds_correct_inherited": 36
+  },
+  "seed": 1,
+  "dataset": "labeled_dev",
+  "beta": null,
+  "beta_mode": null,
+  "method": "pagerank",
+  "integrated": true,
+  "n_restarts": 1,
+  "selection": "none",
+  "pagerank_alpha": 1,
+  "validation_filter": "u in G1 and u in G2",
+  "inherited_args": {
+    "method_name": "pagerank",
+    "integrate_with_Seed_Based": 1,
+    "number_of_top_index_pairs": 50
+  },
+  "theta": 0.5,
+  "n_truth": 26948,
+  "matchable_nodes": 26948,
+  "n_validation_inherited": 26942,
+  "top_k": 50,
+  "run_id": "20261029T0612Z_e0_labeled_dev_b7d49f2e",
+  "config_sha256": "b7d49f2e",
+  "seeds_given_correct": 36,
+  "status_exit": "ok",
+  "seconds": 1126.3,
+  "finished_utc": "2026-10-29T06:31:14+00:00"
+}

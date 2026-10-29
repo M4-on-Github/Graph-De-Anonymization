@@ -1,0 +1,135 @@
+{
+  "kind": "report1_seed_free_integrated",
+  "pair": "e0_labeled_dev",
+  "status": "confirmatory",
+  "note": "E0 arm (a), integrated, run 5: inherited seed_free.py main() unchanged, pagerank alpha=1, top 50 as seeds, theta 0.5, PYTHONHASHSEED=0 (Log 3, E0)",
+  "supersedes": null,
+  "started_utc": "2026-10-29T06:13:43+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/scripts/moes-cluster-scripts/e0_arm_a_record.py",
+    "--mode",
+    "integrated",
+    "--out",
+    "/home/mmyatmau/Graph-De-Anonymization/runs/e0_arm_a/55184_a_integrated_h0_repeat",
+    "--status",
+    "confirmatory",
+    "--run-index",
+    "5",
+    "--pair-label",
+    "e0_labeled_dev"
+  ],
+  "git": {
+    "head": "25b5bf2fb303",
+    "head_full": "25b5bf2fb3037f2b428a78628c698aec802af707",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261029T0612Z_e0_labeled_dev_e16dff6b/",
+      "results/runs/20261029T0612Z_e0_labeled_dev_edeb74c1/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261029T0612Z_e0_labeled_dev_e16dff6b",
+        "tree": true,
+        "files": 3,
+        "bytes": 3941,
+        "listing_sha256": "d4aca2406ccb8fff329faecf0ac443a83f374f9248d73fd9f426e4bf9f1db287"
+      },
+      {
+        "path": "results/runs/20261029T0612Z_e0_labeled_dev_edeb74c1",
+        "tree": true,
+        "files": 3,
+        "bytes": 3941,
+        "listing_sha256": "d4aca2406ccb8fff329faecf0ac443a83f374f9248d73fd9f426e4bf9f1db287"
+      }
+    ],
+    "diff_sha256": "c9860e990d5e1394e621f37fd8daad5430480614435bf5f293a3e2efdaa00fbd",
+    "diff_bytes": 2729
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "data/labeled_dev/validation_G1.edgelist",
+      "bytes": 6592014,
+      "sha256": "1cc2eb242b383fd0c4d6c99a9d7422277c1da08c72837809fae28b8890be0b7f"
+    },
+    {
+      "path": "data/labeled_dev/validation_G2.edgelist",
+      "bytes": 7104941,
+      "sha256": "a76d5d9aac77c2aee2f5b60f451dcbc8f4e68a004c6d62728035eaf643a47f99"
+    },
+    {
+      "path": "data/labeled_dev/validation_seed_mapping.txt",
+      "bytes": 311020,
+      "sha256": "f4ed1e0bbb1d226a82804653c09a182984b0488485f05041f79fd47d6dd17f52"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/e0_arm_a/55184_a_integrated_h0_repeat/accuracy_top50.txt",
+      "bytes": 101,
+      "sha256": "54129fd1beb5da3cf7ee003c17f62dba5712925233c4dc5b57486ec9f1b32384"
+    },
+    {
+      "path": "runs/e0_arm_a/55184_a_integrated_h0_repeat/seed_free_final_mapping_1.txt",
+      "bytes": 283035,
+      "sha256": "3a065aa6ada9c11d1edf60166cbbdde4b500b3a4c939a104025557f08dcdb3b4"
+    }
+  ],
+  "metrics": {
+    "seconds_main": 1110.6,
+    "accuracy_inherited": 88.96889614727934,
+    "correct_inherited": 23970,
+    "correct_inherited_file": 23970,
+    "extracted": 25343,
+    "correct": 23984,
+    "accuracy_report": 89.001,
+    "precision_extracted": 94.6376,
+    "mapping_set_sha256": "c9656de1f768b98baecee68401d408686d549aef4822c019c9db0d662e3befa6",
+    "new_pairs": 25293,
+    "seeds_correct_inherited": 36
+  },
+  "seed": 0,
+  "dataset": "labeled_dev",
+  "beta": null,
+  "beta_mode": null,
+  "method": "pagerank",
+  "integrated": true,
+  "n_restarts": 1,
+  "selection": "none",
+  "pagerank_alpha": 1,
+  "validation_filter": "u in G1 and u in G2",
+  "inherited_args": {
+    "method_name": "pagerank",
+    "integrate_with_Seed_Based": 1,
+    "number_of_top_index_pairs": 50
+  },
+  "theta": 0.5,
+  "n_truth": 26948,
+  "matchable_nodes": 26948,
+  "n_validation_inherited": 26942,
+  "top_k": 50,
+  "run_id": "20261029T0613Z_e0_labeled_dev_d577fb68",
+  "config_sha256": "d577fb68",
+  "seeds_given_correct": 36,
+  "status_exit": "ok",
+  "seconds": 1121.3,
+  "finished_utc": "2026-10-29T06:32:24+00:00"
+}
