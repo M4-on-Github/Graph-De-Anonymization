@@ -1,0 +1,19 @@
+run 3/7: cit-HepTh_b11_s0 draw 0  n=300 k=20 w=280  uniform/pool/empty
+  anchors 20/300  (1897 eligible of 2000 pool nodes)
+  sweep   1  stage 0  +0 -> 300 mapped  10s
+  sweep   2  stage 1  +206 -> 506 mapped  19s
+  sweep   3  stage 1  +245 -> 751 mapped  29s
+  sweep   4  stage 1  +240 -> 991 mapped  38s
+  sweep   5  stage 1  +511 -> 1,502 mapped  48s
+  sweep   6  stage 1  +1,134 -> 2,636 mapped  60s
+  sweep   7  stage 1  +2,505 -> 5,141 mapped  80s
+  sweep   8  stage 1  +7,576 -> 12,717 mapped  123s
+  sweep   9  stage 1  +7,143 -> 19,860 mapped  150s
+  sweep  10  stage 1  +3,284 -> 23,144 mapped  163s
+  sweep  11  stage 1  +1,135 -> 24,279 mapped  171s
+  sweep  12  stage 1  +309 -> 24,588 mapped  176s
+  sweep  13  stage 1  +90 -> 24,678 mapped  181s
+  sweep  14  stage 1  +20 -> 24,698 mapped  185s
+  sweep  15  stage 1  +3 -> 24,701 mapped  190s
+  sweep  16  stage 1  +0 -> 24,701 mapped  194s
+  chi 0.7887  gamma 0.8757  21,631/24,701 correct/mapped  16 sweeps  194s

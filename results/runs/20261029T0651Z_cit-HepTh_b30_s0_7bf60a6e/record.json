@@ -1,0 +1,404 @@
+{
+  "kind": "ignition_grid",
+  "pair": "cit-HepTh_b30_s0",
+  "status": "exploratory",
+  "note": "E2 ignition grid: placement E2 block=placement task=6: level 0.49 cit-HepTh_b30_s0 (nominal) draw 0; n=1000 k=200 w=800 p=0.2; scheme uniform, placement uniform, candidates empty.",
+  "supersedes": null,
+  "started_utc": "2026-10-29T06:51:54+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/ignition_grid/ignition_grid.py",
+    "--task-id",
+    "6",
+    "--block",
+    "placement",
+    "--pair-root",
+    "runs/sweep_nominal",
+    "runs/sweep_divergence",
+    "--out",
+    "runs/ignition_grid",
+    "--status",
+    "exploratory",
+    "--note",
+    "E2 ignition grid: placement"
+  ],
+  "git": {
+    "head": "eb7b13da5f52",
+    "head_full": "eb7b13da5f525a6b8110b653f996f936c86452ab",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261029T0629Z_cit-HepTh_b00_s1_5da0d853/",
+      "results/runs/20261029T0629Z_cit-HepTh_b05_s0_341a5d34/",
+      "results/runs/20261029T0629Z_cit-HepTh_b05_s0_9fa5f363/",
+      "results/runs/20261029T0629Z_cit-HepTh_b10_s0_a51eeaac/",
+      "results/runs/20261029T0629Z_cit-HepTh_b10_s0_cf603adf/",
+      "results/runs/20261029T0629Z_cit-HepTh_b30_s1_047ab38f/",
+      "results/runs/20261029T0630Z_cit-HepTh_b00_s0_04c5b11e/",
+      "results/runs/20261029T0631Z_cit-HepTh_b10_s0_df61b0d4/",
+      "results/runs/20261029T0631Z_cit-HepTh_b10_s1_61a6ddcb/",
+      "results/runs/20261029T0632Z_cit-HepTh_b00_s0_ec6a720a/",
+      "results/runs/20261029T0632Z_cit-HepTh_b00_s2_6cebdc01/",
+      "results/runs/20261029T0632Z_cit-HepTh_b10_s0_361665ae/",
+      "results/runs/20261029T0633Z_cit-HepTh_b00_s0_2dedc5fa/",
+      "results/runs/20261029T0633Z_cit-HepTh_b00_s1_5c9180be/",
+      "results/runs/20261029T0633Z_cit-HepTh_b05_s0_37aa2690/",
+      "results/runs/20261029T0633Z_cit-HepTh_b05_s0_a1729444/",
+      "results/runs/20261029T0633Z_cit-HepTh_b30_s2_934f3785/",
+      "results/runs/20261029T0634Z_cit-HepTh_b00_s0_e63747c4/",
+      "results/runs/20261029T0634Z_cit-HepTh_b00_s2_45381d20/",
+      "results/runs/20261029T0634Z_cit-HepTh_b05_s0_94c1c8f9/",
+      "results/runs/20261029T0635Z_cit-HepTh_b00_s0_a43a27bc/",
+      "results/runs/20261029T0635Z_cit-HepTh_b00_s1_3f4b37c7/",
+      "results/runs/20261029T0635Z_cit-HepTh_b00_s2_b328a0a8/",
+      "results/runs/20261029T0635Z_cit-HepTh_b05_s0_fce7466b/",
+      "results/runs/20261029T0636Z_cit-HepTh_b10_s1_9de35b30/",
+      "results/runs/20261029T0636Z_cit-HepTh_b11_s0_02940e92/",
+      "results/runs/20261029T0636Z_cit-HepTh_b11_s0_ade37505/",
+      "results/runs/20261029T0636Z_cit-HepTh_b11_s0_d6e67f96/",
+      "results/runs/20261029T0637Z_cit-HepTh_b00_s0_a0a3fbaa/",
+      "results/runs/20261029T0637Z_cit-HepTh_b10_s0_a912db8d/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b00_s1_5da0d853",
+        "tree": true,
+        "files": 3,
+        "bytes": 7655,
+        "listing_sha256": "90fc9859f7c9af68e31deea5214598339b54a54d16420f2624ce0a58fb7a7ca5"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b05_s0_341a5d34",
+        "tree": true,
+        "files": 3,
+        "bytes": 6918,
+        "listing_sha256": "6dcc4b4071f97b5dbe234dd8a154ea66c61248b123884ed984b939816fea207a"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b05_s0_9fa5f363",
+        "tree": true,
+        "files": 3,
+        "bytes": 7281,
+        "listing_sha256": "d812dbf858fe8db39adfc8bb9dd9aae4dcfa2a60660c8dc34b872b3881018dee"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b10_s0_a51eeaac",
+        "tree": true,
+        "files": 3,
+        "bytes": 8268,
+        "listing_sha256": "df17d87335d41657c0f2baeab733f871bf7c838b2302266b8e7473538c462979"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b10_s0_cf603adf",
+        "tree": true,
+        "files": 3,
+        "bytes": 7348,
+        "listing_sha256": "617e4c197c6d44e35805a01e3816e21e9b0686d63fbe97eac561a585ae0f104b"
+      },
+      {
+        "path": "results/runs/20261029T0629Z_cit-HepTh_b30_s1_047ab38f",
+        "tree": true,
+        "files": 3,
+        "bytes": 6258,
+        "listing_sha256": "62bf612a8e9d2504aeee753997df90fbe6e0ff5232daa01121c458c48685c71e"
+      },
+      {
+        "path": "results/runs/20261029T0630Z_cit-HepTh_b00_s0_04c5b11e",
+        "tree": true,
+        "files": 3,
+        "bytes": 4370,
+        "listing_sha256": "49d31b9161b09fbf2e9699e6e8eaa2d4d43cac2ef91ac8a3a897fb9ad395bc42"
+      },
+      {
+        "path": "results/runs/20261029T0631Z_cit-HepTh_b10_s0_df61b0d4",
+        "tree": true,
+        "files": 4,
+        "bytes": 20923,
+        "listing_sha256": "6aecf86d95b38962cdcf14e855585ec22d55bff66d6c885caee6e9f8e451d380"
+      },
+      {
+        "path": "results/runs/20261029T0631Z_cit-HepTh_b10_s1_61a6ddcb",
+        "tree": true,
+        "files": 4,
+        "bytes": 19201,
+        "listing_sha256": "b44305a171a393c9fa1e7a49aa1a58a2553b9c3700ba76b4dfc188e06632bfa9"
+      },
+      {
+        "path": "results/runs/20261029T0632Z_cit-HepTh_b00_s0_ec6a720a",
+        "tree": true,
+        "files": 3,
+        "bytes": 6099,
+        "listing_sha256": "3bd9b55f75642a41d44fc8fb718a96af3678e277cde28f8959db7a814554b47f"
+      },
+      {
+        "path": "results/runs/20261029T0632Z_cit-HepTh_b00_s2_6cebdc01",
+        "tree": true,
+        "files": 3,
+        "bytes": 6052,
+        "listing_sha256": "cd6534b7ea051164bfb93decaefd14fde153a86b7086a0b71da85e8840a26aa1"
+      },
+      {
+        "path": "results/runs/20261029T0632Z_cit-HepTh_b10_s0_361665ae",
+        "tree": true,
+        "files": 3,
+        "bytes": 6418,
+        "listing_sha256": "1d7b558777b597a3683130d0df477a333a7ec97a65c69e530d3380aaa3ce6507"
+      },
+      {
+        "path": "results/runs/20261029T0633Z_cit-HepTh_b00_s0_2dedc5fa",
+        "tree": true,
+        "files": 3,
+        "bytes": 5781,
+        "listing_sha256": "2b59f945a3ba3cb33ccb893dcb22a92f860706537d05936462ab38aefa560818"
+      },
+      {
+        "path": "results/runs/20261029T0633Z_cit-HepTh_b00_s1_5c9180be",
+        "tree": true,
+        "files": 3,
+        "bytes": 5849,
+        "listing_sha256": "40fe3f68b805291df4a6cb151d6de005993c5c6e95bb2c3b1f9c764b9af12536"
+      },
+      {
+        "path": "results/runs/20261029T0633Z_cit-HepTh_b05_s0_37aa2690",
+        "tree": true,
+        "files": 3,
+        "bytes": 6234,
+        "listing_sha256": "e604b180a73446bbefe2da72a29bced55cd6190f243e85a1e4ac0980076ee61a"
+      },
+      {
+        "path": "results/runs/20261029T0633Z_cit-HepTh_b05_s0_a1729444",
+        "tree": true,
+        "files": 3,
+        "bytes": 6450,
+        "listing_sha256": "3de1114ab9cb221975860dd1b2d24abc43dd14e8ef38bc7eb06ab5c56ec0bd2b"
+      },
+      {
+        "path": "results/runs/20261029T0633Z_cit-HepTh_b30_s2_934f3785",
+        "tree": true,
+        "files": 3,
+        "bytes": 6065,
+        "listing_sha256": "e7be6aae296e9e7298b8b29d88b94ab31baab79094a5d77fb396500b45e42f97"
+      },
+      {
+        "path": "results/runs/20261029T0634Z_cit-HepTh_b00_s0_e63747c4",
+        "tree": true,
+        "files": 3,
+        "bytes": 5842,
+        "listing_sha256": "20ec833954a69ef1445c03b6d99bb51a5078e9ae701d4ecbf55aee536085fc8c"
+      },
+      {
+        "path": "results/runs/20261029T0634Z_cit-HepTh_b00_s2_45381d20",
+        "tree": true,
+        "files": 3,
+        "bytes": 5894,
+        "listing_sha256": "c8fb6c193d499793f062754dadcb6e6ab7807c14d2039d83fa41501d3b6ceda5"
+      },
+      {
+        "path": "results/runs/20261029T0634Z_cit-HepTh_b05_s0_94c1c8f9",
+        "tree": true,
+        "files": 3,
+        "bytes": 6143,
+        "listing_sha256": "bcf34ca8a8b993e1ec9de076053ea8c95662ea2a00b3a9b652538f5124906cdb"
+      },
+      {
+        "path": "results/runs/20261029T0635Z_cit-HepTh_b00_s0_a43a27bc",
+        "tree": true,
+        "files": 3,
+        "bytes": 5725,
+        "listing_sha256": "b610184770268c2c581c7b17f7940f615efa1a837dccc8e2116ea46f5b412649"
+      },
+      {
+        "path": "results/runs/20261029T0635Z_cit-HepTh_b00_s1_3f4b37c7",
+        "tree": true,
+        "files": 3,
+        "bytes": 5832,
+        "listing_sha256": "ba95911decf1f5bff7358f1f250dbf37ffca6004f77e993ab3bf7cacea310813"
+      },
+      {
+        "path": "results/runs/20261029T0635Z_cit-HepTh_b00_s2_b328a0a8",
+        "tree": true,
+        "files": 3,
+        "bytes": 5959,
+        "listing_sha256": "ad4082c5ed5941b39d7fec4ca612eee3850ad593fd3427a4ad345fbffe75e0b9"
+      },
+      {
+        "path": "results/runs/20261029T0635Z_cit-HepTh_b05_s0_fce7466b",
+        "tree": true,
+        "files": 3,
+        "bytes": 6237,
+        "listing_sha256": "5af24b6f861eaecd5d5b6cb8405d46aa32e82b2ad3d508dc73666e1111996f0f"
+      },
+      {
+        "path": "results/runs/20261029T0636Z_cit-HepTh_b10_s1_9de35b30",
+        "tree": true,
+        "files": 4,
+        "bytes": 19200,
+        "listing_sha256": "8340bd0af5eaea9f4b19785cfe2060fd7b502073702e68b6f027ccc59bfbe229"
+      },
+      {
+        "path": "results/runs/20261029T0636Z_cit-HepTh_b11_s0_02940e92",
+        "tree": true,
+        "files": 4,
+        "bytes": 15185,
+        "listing_sha256": "f7edf4c28b8c306940c8345a701359f3974c1122e6323425a54131d4b4f691fe"
+      },
+      {
+        "path": "results/runs/20261029T0636Z_cit-HepTh_b11_s0_ade37505",
+        "tree": true,
+        "files": 4,
+        "bytes": 15157,
+        "listing_sha256": "6b2b65febee36673b0939394a1e288030232d58b33a1469c0a2fd72f32c55b50"
+      },
+      {
+        "path": "results/runs/20261029T0636Z_cit-HepTh_b11_s0_d6e67f96",
+        "tree": true,
+        "files": 4,
+        "bytes": 15159,
+        "listing_sha256": "445fba7dd9db891be2ed8a360719c6a2840e2d06602c590bff8bc23ecb019487"
+      },
+      {
+        "path": "results/runs/20261029T0637Z_cit-HepTh_b00_s0_a0a3fbaa",
+        "tree": true,
+        "files": 3,
+        "bytes": 4371,
+        "listing_sha256": "230768d0f94a10ce43a5a45cc3d3aeff5377bdd0b987f476ad838d9392319328"
+      },
+      {
+        "path": "results/runs/20261029T0637Z_cit-HepTh_b10_s0_a912db8d",
+        "tree": true,
+        "files": 4,
+        "bytes": 20922,
+        "listing_sha256": "b31266231d9c12f1d89603420678ee282a8048fff2780aa876c036017425cc71"
+      }
+    ],
+    "diff_sha256": "48e3b52d36bc2996d82c88a4f2af52ced88035deefe1f69398ebfd81fa887d6b",
+    "diff_bytes": 18474
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-23",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b30_s0/G1.edgelist",
+      "bytes": 2755056,
+      "sha256": "570392e8d4dcc5aad575a1894d00e726101f45fd81b7dec410c9df026131b87a"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b30_s0/G2.edgelist",
+      "bytes": 2754122,
+      "sha256": "2c0c8e645792d28040e1b82823c37d51747b86c63a2708db087bc48938fa87e2"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b30_s0/mapping.txt",
+      "bytes": 298035,
+      "sha256": "3ffbf4df5eb810ab3256ec66402f5948613090592f03e82f05d2b49432dfb4b7"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b30_s0/stats.json",
+      "bytes": 673,
+      "sha256": "b96b6a7f07d252f34f1769e2a183474714adff0dfd498bcf896fdbc1389bcc63"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/ignition_grid/sweep_nominal/cit-HepTh_b30_s0/anchors_ignition_grid_20261029T0651Z_cit-HepTh_b30_s0_7bf60a6e.txt",
+      "bytes": 11161,
+      "sha256": "389fad1c3cd4209cf319db13fe978b84d730ffa655d6c3a62cf5f127101181f0"
+    },
+    {
+      "path": "runs/ignition_grid/sweep_nominal/cit-HepTh_b30_s0/out_mapping_ignition_grid_20261029T0651Z_cit-HepTh_b30_s0_7bf60a6e.txt",
+      "bytes": 201156,
+      "sha256": "a64f3328a1f0d1baac2cd2d57fc14f32cd3e649665b1678c6c3fc343c26b3479"
+    }
+  ],
+  "metrics": {
+    "anchors_found": 1000,
+    "anchors_correct": 200,
+    "anchor_precision": 0.2,
+    "pool_eligible": 26657,
+    "wrong_abs_degree_gap_mean": 20.7125,
+    "anchors_sha256": "389fad1c3cd4209cf319db13fe978b84d730ffa655d6c3a62cf5f127101181f0",
+    "propagate_seconds": 377.9,
+    "mapped": 17995,
+    "correct": 9416,
+    "chi": 0.3532280451663728,
+    "gamma": 0.5232564601278132,
+    "mapping_sha256": "a64f3328a1f0d1baac2cd2d57fc14f32cd3e649665b1678c6c3fc343c26b3479",
+    "sweeps": 32,
+    "sweeps_stage0": 1,
+    "stage0_added": 0,
+    "stage1_added": 16995
+  },
+  "seed": 0,
+  "beta": 0.3,
+  "beta_nominal": 0.3,
+  "beta_mode": "nominal",
+  "dataset": "hepth",
+  "theta": 0.5,
+  "eccen_support": "all",
+  "pool_size": 2000,
+  "n": 1000,
+  "k": 200,
+  "w": 800,
+  "p": 0.2,
+  "overlap": 0.4898306768667414,
+  "level": "0.49",
+  "scheme": "uniform",
+  "placement": "uniform",
+  "candidate_mode": "empty",
+  "draw": 0,
+  "rng_entropy": [
+    0,
+    1000,
+    200,
+    0,
+    1
+  ],
+  "matchable_nodes": 26657,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 246555,
+    "edges_u": 246521,
+    "shared_edges": 172560,
+    "retention_a": 0.6998736818201172,
+    "retention_u": 0.6997771690534652,
+    "retention_predicted": 0.7,
+    "overlap_ratio": 0.4898306768667414,
+    "overlap_predicted": 0.48999999999999994,
+    "overlap_sigma": 0.0008422403664585329,
+    "jaccard": 0.5383818592519563,
+    "jaccard_predicted": 0.5384615384615384,
+    "beta": 0.3,
+    "beta_nominal": 0.3,
+    "beta_mode": "nominal",
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27124,
+    "nodes_u": 27147,
+    "isolated_dropped_a": 645,
+    "isolated_dropped_u": 622,
+    "matchable_nodes": 26657
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/sweep_nominal/cit-HepTh_b30_s0",
+  "run_id": "20261029T0651Z_cit-HepTh_b30_s0_7bf60a6e",
+  "config_sha256": "7bf60a6e",
+  "status_exit": "ok",
+  "seconds": 378.0,
+  "finished_utc": "2026-10-29T06:58:12+00:00"
+}

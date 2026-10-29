@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0726Z_cit-HepTh_b30_s2_db1b72b9",
+  "started_utc": "2026-10-29T07:26:31+00:00",
+  "kind": "ignition_grid",
+  "pair": "cit-HepTh_b30_s2",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 2,
+  "beta": 0.3,
+  "n_restarts": null,
+  "anchor_precision": 0.3333333333333333,
+  "chi": 0.5756154308015611,
+  "gamma": 0.7451180413873506,
+  "seconds": 289.8,
+  "git": "eb7b13da5f52+dirty",
+  "note": "E2 ignition grid: base E2 block=base task=52: level 0.49 cit-HepTh_b30_s2 (nominal) draw 2; n=300 k=100 w=200 p=0.3333; scheme uniform, placement pool, candidates empty."
+}

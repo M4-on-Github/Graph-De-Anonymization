@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0644Z_cit-HepTh_b40_s1_219b0144",
+  "started_utc": "2026-10-29T06:44:34+00:00",
+  "kind": "ignition_grid",
+  "pair": "cit-HepTh_b40_s1",
+  "status": "exploratory",
+  "status_exit": "ok",
+  "seed": 1,
+  "beta": 0.4,
+  "n_restarts": null,
+  "anchor_precision": 0.2,
+  "chi": 0.01704458403554466,
+  "gamma": 0.18388429752066116,
+  "seconds": 178.9,
+  "git": "eb7b13da5f52+dirty",
+  "note": "E2 ignition grid: lowoverlap E2 block=lowoverlap task=1: level 0.36 cit-HepTh_b40_s1 (nominal) draw 1; n=1000 k=200 w=800 p=0.2; scheme uniform, placement pool, candidates empty."
+}

@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0636Z_cit-HepTh_b11_s0_292d6828",
+  "started_utc": "2026-10-29T06:36:38+00:00",
+  "kind": "anchor_audit",
+  "pair": "cit-HepTh_b11_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.105573,
+  "n_restarts": null,
+  "anchor_precision": 0.003,
+  "chi": null,
+  "gamma": null,
+  "seconds": 287.5,
+  "git": "eb7b13da5f52+dirty",
+  "note": "E2.0 anchor audit: audit_high E2.0 block=audit_high task=8: anchors of the centrality_rank baseline, measure k_truss, first 1000 of the rank-zip, on cit-HepTh_b11_s0 (divergence); no propagate."
+}
