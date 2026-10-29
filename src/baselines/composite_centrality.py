@@ -103,6 +103,41 @@ def match(Fa: np.ndarray, nodes_a: list, Fu: np.ndarray, nodes_u: list,
     return {"anchors": anchors, "candidates": candidates}
 
 
+def find_anchors(Ga: nx.Graph, Gu: nx.Graph, n_anch: int,
+                 csls_k: int = DEFAULTS["csls_k"], nodes_a: list | None = None,
+                 nodes_u: list | None = None, Fa: np.ndarray | None = None,
+                 Fu: np.ndarray | None = None, verbose: bool = True) -> list:
+    """The anchor list `match` returns, without its candidate sets and without
+    `propagate`.
+
+    The first half of `match` on the same inputs: mutual CSLS nearest
+    neighbours of the six-feature fingerprints among the top-`n_anch` degree
+    nodes of each graph, as [(node in Ga, node in Gu)]. Nothing in the
+    fingerprint or the match is random, so the list is a function of the two
+    graphs alone. A caller that wants these anchors as an input to something
+    else (the E3 W-control arms fit a Procrustes W to them) can have them
+    without a propagate run and without this baseline's run record. This
+    function writes no record and reads no ground truth.
+
+    `nodes_a` / `nodes_u` default to the sorted node ids `run` uses. Pass `Fa`
+    / `Fu` to reuse fingerprints already computed for these node lists.
+    """
+    import torch
+    nodes_a = sorted(Ga.nodes()) if nodes_a is None else nodes_a
+    nodes_u = sorted(Gu.nodes()) if nodes_u is None else nodes_u
+    Fa = fingerprint(Ga, nodes_a) if Fa is None else Fa
+    Fu = fingerprint(Gu, nodes_u) if Fu is None else Fu
+    anch_a = top_degree(Ga, nodes_a, n_anch)
+    anch_u = top_degree(Gu, nodes_u, n_anch)
+    s_anch = csls_matrix(torch.as_tensor(Fa[anch_a]), torch.as_tensor(Fu[anch_u]), csls_k)
+    pairs = mutual_anchors(s_anch)
+    anchors = [(nodes_a[anch_a[i]], nodes_u[anch_u[j]]) for i, j in pairs]
+    if verbose:
+        print(f"  anchors: {len(anchors):,} mutual CSLS nearest neighbours "
+              f"(k={csls_k}) among top {len(anch_a):,} degree nodes", file=sys.stderr)
+    return anchors
+
+
 def run(pair: Path, dataset: str, csls_k: int = DEFAULTS["csls_k"],
        phases: str = "123", theta: float = 0.5, eccen_support: str = "all",
        status: str = "exploratory", note: str = "", record: bool = True,
@@ -234,6 +269,19 @@ def self_test(verbose: bool = True) -> bool:
     print(f"  [INFO] {n_unique}/{len(nodes_a)} nodes have a unique "
           f"6-feature fingerprint on this synthetic graph; mutual-CSLS-NN "
           f"recovered {correct}/{len(m['anchors'])} anchors", file=sys.stderr)
+
+    # `find_anchors` duplicates the first half of `match` so that it can run
+    # without the candidate sets; this is what keeps the two from drifting.
+    alone = find_anchors(G, Gp, n_anch=300, csls_k=DEFAULTS["csls_k"],
+                         nodes_a=nodes_a, nodes_u=nodes_u, Fa=Fa, Fu=Fu,
+                         verbose=False)
+    if alone != m["anchors"]:
+        print(f"  [FAIL] find_anchors returned {len(alone)} anchors that differ "
+              f"from match()'s {len(m['anchors'])}", file=sys.stderr)
+        ok = False
+    else:
+        print(f"  [PASS] find_anchors == match()['anchors'] "
+              f"({len(alone)} anchors, same order)", file=sys.stderr)
 
     print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
     return ok

@@ -24,6 +24,12 @@ Library use:
     from alignment import align
     res = align(Za, nodes_a, Zu, nodes_u, Ga, Gu, n_adv=5000, n_anch=1000, m=10000)
 
+    # The same refinement and candidate sets from a given seed set (node-id
+    # pairs) in place of adversarial training; returns what `align` returns.
+    from alignment import align_from_seeds
+    res = align_from_seeds(Za, nodes_a, Zu, nodes_u, Ga, Gu, n_anch=1000,
+                           m=10000, seed_pairs=pairs)
+
 CLI:
     python src/adv_gd/alignment.py --self-test
 """
@@ -302,6 +308,41 @@ def top_degree(G: nx.Graph, nodes: list, k: int) -> np.ndarray:
     return np.array(order[:min(k, len(nodes))], dtype=np.int64)
 
 
+def _refine(Za_t: torch.Tensor, Zu_t: torch.Tensor, anch_a, anch_u,
+            W: torch.Tensor, cfg: dict, verbose: bool = True,
+            on_round=None) -> tuple:
+    """The refinement rounds: from a starting W to its final W, anchors, history.
+
+    Each round matches the anchor pool by CSLS under the current W, keeps the
+    mutual nearest neighbours, and refits W to them by Procrustes (paper
+    equations 8-9). Separate from `_search` so that a W that did not come from
+    adversarial training -- `align_from_seeds` starts from a Procrustes fit to
+    given seed pairs -- is refined by exactly the code that refines the
+    adversarial W, and not by a copy of it.
+
+    `on_round(rnd, pairs)`, if given, is called after each round's matching
+    with that round's mutual pairs as (row in anch_a, row in anch_u) indices.
+    It only observes; the default None leaves the loop as it was.
+    """
+    history, pairs = [], []
+    for rnd in range(cfg["refine_rounds"] + 1):
+        s = csls_matrix(Za_t[anch_a] @ W.t(), Zu_t[anch_u], cfg["csls_k"])
+        pairs = mutual_anchors(s)
+        cos = mean_match_cosine(Za_t[anch_a] @ W.t(), Zu_t[anch_u], pairs)
+        history.append({"round": rnd, "anchors": len(pairs), "mean_cosine": cos})
+        if on_round is not None:
+            on_round(rnd, pairs)
+        if verbose:
+            print(f"    refine {rnd}/{cfg['refine_rounds']}  "
+                  f"anchors {len(pairs):,}  mean cosine {cos:.4f}",
+                  file=sys.stderr)
+        if rnd == cfg["refine_rounds"] or not pairs:
+            break
+        W = procrustes(Za_t[anch_a][[p[0] for p in pairs]],
+                       Zu_t[anch_u][[p[1] for p in pairs]])
+    return W, pairs, history
+
+
 def _search(Za_t: torch.Tensor, Zu_t: torch.Tensor, adv_a, adv_u, anch_a,
             anch_u, cfg: dict, seed: int, verbose: bool = True,
             label: str = "") -> tuple:
@@ -330,21 +371,40 @@ def _search(Za_t: torch.Tensor, Zu_t: torch.Tensor, adv_a, adv_u, anch_a,
     else:
         W = train_mapping(Za_t[adv_a], Zu_t[adv_u], cfg, seed=seed, verbose=verbose)
 
-    history, pairs = [], []
-    for rnd in range(cfg["refine_rounds"] + 1):
-        s = csls_matrix(Za_t[anch_a] @ W.t(), Zu_t[anch_u], cfg["csls_k"])
-        pairs = mutual_anchors(s)
-        cos = mean_match_cosine(Za_t[anch_a] @ W.t(), Zu_t[anch_u], pairs)
-        history.append({"round": rnd, "anchors": len(pairs), "mean_cosine": cos})
-        if verbose:
-            print(f"    refine {rnd}/{cfg['refine_rounds']}  "
-                  f"anchors {len(pairs):,}  mean cosine {cos:.4f}",
-                  file=sys.stderr)
-        if rnd == cfg["refine_rounds"] or not pairs:
-            break
-        W = procrustes(Za_t[anch_a][[p[0] for p in pairs]],
-                       Zu_t[anch_u][[p[1] for p in pairs]])
-    return W, pairs, history
+    return _refine(Za_t, Zu_t, anch_a, anch_u, W, cfg, verbose)
+
+
+def _prepare(Za: np.ndarray, Zu: np.ndarray, cfg: dict,
+             device: str | None) -> tuple:
+    """Both embedding matrices as float32 tensors on the device, preprocessed."""
+    dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    Za_t = _preprocess(torch.as_tensor(Za, dtype=torch.float32, device=dev),
+                       cfg["normalize"])
+    Zu_t = _preprocess(torch.as_tensor(Zu, dtype=torch.float32, device=dev),
+                       cfg["normalize"])
+    return Za_t, Zu_t
+
+
+def _anchors_and_candidates(Za_t: torch.Tensor, Zu_t: torch.Tensor,
+                            nodes_a: list, nodes_u: list, Ga: nx.Graph,
+                            anch_a, anch_u, W: torch.Tensor, pairs: list,
+                            m: int, cfg: dict) -> tuple:
+    """Anchors as node ids, and the candidate sets, for a final W and its pairs.
+
+    Shared by `align` and `align_from_seeds`, so that both hand `propagate`
+    anchors and candidates built by one piece of code.
+    """
+    anchors = [(nodes_a[anch_a[i]], nodes_u[anch_u[j]]) for i, j in pairs]
+
+    # Candidate sets: top 10 CSLS matches in all of G^u for each of the top M
+    # degree nodes of G^a. M exceeds N_adv in Table 1, so this deliberately
+    # covers nodes the adversarial phase never trained on.
+    cand_a = top_degree(Ga, nodes_a, m)
+    s_cand = csls_matrix(Za_t[cand_a] @ W.t(), Zu_t, cfg["csls_k"])
+    top = candidate_sets(s_cand, TOP10).cpu().numpy()
+    candidates = {nodes_a[cand_a[i]]: [nodes_u[j] for j in top[i]]
+                  for i in range(len(cand_a))}
+    return anchors, candidates
 
 
 def align(Za: np.ndarray, nodes_a: list, Zu: np.ndarray, nodes_u: list,
@@ -363,11 +423,7 @@ def align(Za: np.ndarray, nodes_a: list, Zu: np.ndarray, nodes_u: list,
         # out of training's bimodality (see `_search`'s docstring); there is
         # nothing to pick among here.
         cfg["n_restarts"] = 1
-    dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
-    Za_t = _preprocess(torch.as_tensor(Za, dtype=torch.float32, device=dev),
-                       cfg["normalize"])
-    Zu_t = _preprocess(torch.as_tensor(Zu, dtype=torch.float32, device=dev),
-                       cfg["normalize"])
+    Za_t, Zu_t = _prepare(Za, Zu, cfg, device)
 
     adv_a = top_degree(Ga, nodes_a, n_adv)
     adv_u = top_degree(Gu, nodes_u, n_adv)
@@ -404,16 +460,8 @@ def align(Za: np.ndarray, nodes_a: list, Zu: np.ndarray, nodes_u: list,
               f"({best['mean_cosine']:.4f}, {len(pairs):,} anchors)",
               file=sys.stderr)
 
-    anchors = [(nodes_a[anch_a[i]], nodes_u[anch_u[j]]) for i, j in pairs]
-
-    # Candidate sets: top 10 CSLS matches in all of G^u for each of the top M
-    # degree nodes of G^a. M exceeds N_adv in Table 1, so this deliberately
-    # covers nodes the adversarial phase never trained on.
-    cand_a = top_degree(Ga, nodes_a, m)
-    s_cand = csls_matrix(Za_t[cand_a] @ W.t(), Zu_t, cfg["csls_k"])
-    top = candidate_sets(s_cand, TOP10).cpu().numpy()
-    candidates = {nodes_a[cand_a[i]]: [nodes_u[j] for j in top[i]]
-                  for i in range(len(cand_a))}
+    anchors, candidates = _anchors_and_candidates(
+        Za_t, Zu_t, nodes_a, nodes_u, Ga, anch_a, anch_u, W, pairs, m, cfg)
 
     return {
         "W": W.cpu().numpy(),
@@ -424,6 +472,83 @@ def align(Za: np.ndarray, nodes_a: list, Zu: np.ndarray, nodes_u: list,
         "restarts": [{"seed": r["seed"], "anchors": len(r["pairs"]),
                       "mean_cosine": r["mean_cosine"]} for r in runs],
         "config": cfg,
+    }
+
+
+def align_from_seeds(Za: np.ndarray, nodes_a: list, Zu: np.ndarray,
+                     nodes_u: list, Ga: nx.Graph, Gu: nx.Graph, n_anch: int,
+                     m: int, seed_pairs: list, cfg: dict | None = None,
+                     device: str | None = None, verbose: bool = True,
+                     on_round=None) -> dict:
+    """Phase 2 from a given seed set, in place of adversarial training.
+
+    W_0 is the orthogonal Procrustes fit (equation 9) to `seed_pairs`, a list
+    of (node id in G^a, node id in G^u). From there every step is the one
+    `align` runs after its adversarial W: the CSLS / mutual-anchor / Procrustes
+    refinement rounds (`_refine`), then the anchor ids and the top-10 candidate
+    sets for the top M nodes (`_anchors_and_candidates`). It returns the dict
+    `align` returns, so `propagate` and `evaluate_anchors` take it unchanged,
+    plus `W0` (the fit before refinement) and `seed_pairs` (as used).
+
+    Nothing is trained and nothing is random here, so there is one run and no
+    selection among restarts: `selected_seed` is None and `restarts` holds the
+    single run. `config` reports skip_adversarial and n_restarts=1, as `align`
+    reports them for the identity-start ablation. N_adv plays no part and is
+    not a parameter.
+
+    This function does not know where the seed pairs came from, and the ones
+    that name a node with no embedding row are an error, not skipped: a silent
+    drop would change the fit without a trace. `on_round(rnd, pairs)`, if
+    given, receives each refinement round's mutual anchors as node-id pairs
+    (observation only, e.g. to score them against a ground truth the caller
+    holds).
+    """
+    cfg = {**DEFAULTS, **(cfg or {})}
+    cfg["skip_adversarial"] = True
+    cfg["n_restarts"] = 1
+    Za_t, Zu_t = _prepare(Za, Zu, cfg, device)
+
+    seeds = [(a, u) for a, u in seed_pairs]
+    if not seeds:
+        raise ValueError("align_from_seeds needs at least one seed pair; with "
+                         "none, Procrustes returns the identity and this would "
+                         "silently be the identity-start ablation")
+    row_a = {n: i for i, n in enumerate(nodes_a)}
+    row_u = {n: i for i, n in enumerate(nodes_u)}
+    missing = [p for p in seeds if p[0] not in row_a or p[1] not in row_u]
+    if missing:
+        raise ValueError(f"{len(missing):,} of {len(seeds):,} seed pairs name a "
+                         f"node with no embedding row, e.g. {missing[0]}")
+    ia = np.array([row_a[a] for a, _ in seeds], dtype=np.int64)
+    iu = np.array([row_u[u] for _, u in seeds], dtype=np.int64)
+    W0 = procrustes(Za_t[ia], Zu_t[iu])
+    if verbose:
+        print(f"W_0: Procrustes fit to {len(seeds):,} seed pairs",
+              file=sys.stderr)
+
+    anch_a = top_degree(Ga, nodes_a, n_anch)
+    anch_u = top_degree(Gu, nodes_u, n_anch)
+    observe = None
+    if on_round is not None:
+        def observe(rnd, pairs):
+            on_round(rnd, [(nodes_a[anch_a[i]], nodes_u[anch_u[j]])
+                           for i, j in pairs])
+    W, pairs, history = _refine(Za_t, Zu_t, anch_a, anch_u, W0, cfg, verbose,
+                                on_round=observe)
+    anchors, candidates = _anchors_and_candidates(
+        Za_t, Zu_t, nodes_a, nodes_u, Ga, anch_a, anch_u, W, pairs, m, cfg)
+
+    return {
+        "W": W.cpu().numpy(),
+        "anchors": anchors,
+        "candidates": candidates,
+        "history": history,
+        "selected_seed": None,
+        "restarts": [{"seed": None, "anchors": len(pairs),
+                      "mean_cosine": history[-1]["mean_cosine"]}],
+        "config": cfg,
+        "W0": W0.cpu().numpy(),
+        "seed_pairs": seeds,
     }
 
 
@@ -526,6 +651,33 @@ def self_test(verbose: bool = True) -> bool:
     else:
         print(f"  [PASS] skip_adversarial ran to completion "
               f"({len(pairs0)} anchors, identity-started)", file=sys.stderr)
+
+    # The seeded entry point: a handful of correct pairs must fix the rotation
+    # exactly, and the refinement and candidate steps must then run on it as
+    # they do after adversarial training. Z and Zr = Z Q are related by the W
+    # with Z W^T = Zr, that is W = Q^T.
+    ids_a = [f"a{i:04d}" for i in range(n)]
+    ids_u = [f"u{i:04d}" for i in range(n)]
+    G_a = nx.relabel_nodes(nx.gnm_random_graph(n, 4 * n, seed=3),
+                           dict(enumerate(ids_a)))
+    G_u = nx.relabel_nodes(G_a, dict(zip(ids_a, ids_u)))
+    seeds = list(zip(ids_a[:3 * d // 2], ids_u[:3 * d // 2]))
+    res = align_from_seeds(Z, ids_a, Zr, ids_u, G_a, G_u, n_anch=n, m=n,
+                           seed_pairs=seeds, device=dev.type, verbose=False)
+    err = float(np.linalg.norm(res["W0"] - Q.T))
+    hits = sum(1 for a, u in res["anchors"] if a[1:] == u[1:])
+    ok_cand = sum(1 for a, c in res["candidates"].items()
+                  if "u" + a[1:] in c)
+    if err > 1e-4 or hits < 0.99 * n or ok_cand < 0.99 * n:
+        print(f"  [FAIL] align_from_seeds: |W0 - Q^T|_F {err:.2e}, "
+              f"{hits}/{n} anchors, {ok_cand}/{n} candidate sets",
+              file=sys.stderr)
+        ok = False
+    else:
+        print(f"  [PASS] align_from_seeds recovers the rotation from "
+              f"{len(seeds)} pairs (|W0 - Q^T|_F {err:.2e}, {hits}/{n} anchors "
+              f"correct, true match in the top-10 for {ok_cand}/{n})",
+              file=sys.stderr)
 
     print("all checks passed" if ok else "CHECKS FAILED", file=sys.stderr)
     return ok
