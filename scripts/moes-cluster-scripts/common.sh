@@ -24,6 +24,9 @@ SCRIPTS="$REPO/scripts/moes-cluster-scripts"
 DATA_DIR="${GDA_DATA_DIR:-/data/$USER/Graph-De-Anonymization}"
 LOGS_DIR="$DATA_DIR/logs"
 SIF="${GDA_SIF:-$DATA_DIR/graph_deanon.sif}"
+# Report 1's parent (cit-HepTh), read only by 00_generate_pairs_job.sh. The Adv-GD
+# suite does not use it: its parent comes from sweep.py's PARENTS, chosen with
+# --dataset, so this does not need to follow the dataset.
 PARENT_GRAPH="$REPO/data/cit-HepTH/cit-HepTh.txt"
 
 if [ ! -d "$REPO/src/adv_gd" ]; then

@@ -3,6 +3,7 @@
 # one carries ~29,000 abstract files beside the edge list. Both are documented
 # in data/README.md with the URL to fetch them from.
 data/cit-HepTH/
+data/fb/
 gplus_combined.txt/
 *.edgelist
 Graph Deanonymization2024/

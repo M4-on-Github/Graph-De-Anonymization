@@ -64,6 +64,16 @@
 #                        before submitting (docs/experiment_logging_policy.md).
 #                        The label goes on every stage of the call, so use
 #                        --only when the expectation covers just one method.
+#   --dataset D         hepth | fb: the parent graph (sweep.py's PARENTS) the
+#                        pairs are cut from. Not passed unless given, so every
+#                        call that predates the flag submits exactly the commands
+#                        it always did (sweep.py's default is hepth). When given
+#                        it goes to the pair-generation job and to every array.
+#                        For a dataset other than hepth the default pair root is
+#                        runs/sweep_<mode>_<dataset>/ (runs/sweep_nominal_fb/),
+#                        so pairs of different parents never share a root; the
+#                        E4b pilot passes --pair-root runs/pilot_fb. fb needs
+#                        data/fb/fb.edgelist first: scripts/e4_convert_fb.py.
 #
 # Everything written outside the repo goes under
 # /data/$USER/Graph-De-Anonymization/ -- logs under logs/, same as Report 1.
@@ -85,6 +95,7 @@ BETA_MODE="nominal"
 PAIR_ROOT=""
 STATUS="exploratory"
 GAE_SEED=""
+DATASET=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -99,6 +110,7 @@ while [[ $# -gt 0 ]]; do
         --pair-root)    PAIR_ROOT="$2"; shift 2 ;;
         --status)       STATUS="$2"; shift 2 ;;
         --gae-seed)     GAE_SEED="$2"; shift 2 ;;
+        --dataset)      DATASET="$2"; shift 2 ;;
         -h|--help)
             sed -n '2,/^set -/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
             exit 0 ;;
@@ -120,7 +132,16 @@ if [ -n "$GAE_SEED" ] && ! [[ "$GAE_SEED" =~ ^[0-9]+$ ]]; then
     echo "ERROR: --gae-seed must be a single non-negative integer" >&2
     exit 1
 fi
-[ -z "$PAIR_ROOT" ] && PAIR_ROOT="runs/sweep_${BETA_MODE}"
+case "$DATASET" in ""|hepth|fb) ;;      # keep in step with sweep.py's PARENTS
+    *) echo "ERROR: --dataset must be hepth or fb" >&2; exit 1 ;;
+esac
+if [ -z "$PAIR_ROOT" ]; then
+    PAIR_ROOT="runs/sweep_${BETA_MODE}"
+    # HepTh keeps the roots it has always used; any other dataset gets its own.
+    if [ -n "$DATASET" ] && [ "$DATASET" != hepth ]; then
+        PAIR_ROOT="${PAIR_ROOT}_${DATASET}"
+    fi
+fi
 
 mkdir -p "$LOGS_DIR"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -150,11 +171,23 @@ run() {
 
 PAIR_DEP=""
 if [ "$GENERATE" = true ] && { [ -z "$ONLY" ] || [ "$ONLY" = pairs ]; }; then
+    # No job fetches fb's parent (it is the converted upload), and a failed stage 0
+    # would leave every dependent array pending as DependencyNeverSatisfied.
+    # The path is sweep.py's PARENTS["fb"].
+    if [ "$DATASET" = fb ] && [ ! -f "$REPO/data/fb/fb.edgelist" ]; then
+        if [ "$DRY_RUN" = true ]; then
+            echo "NOTE: $REPO/data/fb/fb.edgelist is missing; a real submission would stop here" >&2
+        else
+            echo "ERROR: $REPO/data/fb/fb.edgelist is missing." >&2
+            echo "       Convert the upload first: scripts/e4_convert_fb.py <file>" >&2
+            exit 1
+        fi
+    fi
     GEN_OUT="$LOGS_DIR/adv_gd_gen_${STAMP}.out"
     JOBID=$(run sbatch --parsable -o "$GEN_OUT" -e "$GEN_OUT" \
             "$SCRIPTS/00_generate_adv_gd_pairs_job.sh" \
             --betas $BETAS --pair-seeds $PAIR_SEEDS --beta-mode "$BETA_MODE" \
-            --out "$PAIR_ROOT")
+            --out "$PAIR_ROOT" ${DATASET:+--dataset "$DATASET"})
     echo "pair generation: job ${JOBID:-<dry-run>}"
     PAIR_DEP="${JOBID:+--dependency=afterok:$JOBID}"
     [ "$ONLY" = pairs ] && exit 0
@@ -167,7 +200,8 @@ submit_array() {
             --array="0-$((n - 1))%$LIMIT" ${PAIR_DEP:+$PAIR_DEP} \
             -o "$out" -e "$out" \
             "$script" --betas $BETAS --pair-seeds $PAIR_SEEDS \
-            --beta-mode "$BETA_MODE" --out "$PAIR_ROOT" "$@")
+            --beta-mode "$BETA_MODE" --out "$PAIR_ROOT" \
+            ${DATASET:+--dataset "$DATASET"} "$@")
     echo "$name: $n cells, job ${JOBID:-<dry-run>}"
 }
 

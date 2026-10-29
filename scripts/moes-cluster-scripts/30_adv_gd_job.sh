@@ -21,9 +21,11 @@
 #
 # Do not call directly — submit_adv_gd_suite.sh sets --array, --output,
 # --error and appends the sweep flags (--betas, --pair-seeds, --align-seeds,
-# --skip-adversarial, etc.).
+# --skip-adversarial, --dataset, etc.); all of them reach sweep.py through "$@".
 # To run one cell by hand on an interactive node:
 #   GDA_NV=1 bash scripts/moes-cluster-scripts/30_adv_gd_job.sh 0 --betas 0.0
+#   GDA_NV=1 bash scripts/moes-cluster-scripts/30_adv_gd_job.sh 0 --betas 0.1 \
+#            --pair-seeds 3 --dataset fb --out runs/pilot_fb
 # ─────────────────────────────────────────────────────────────────────────────
 #SBATCH -p pleiades
 #SBATCH --cpus-per-task=4

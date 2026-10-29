@@ -1,6 +1,7 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Adv-GD suite — step 0: cut the HepTh pairs the whole suite runs on.
+# Adv-GD suite — step 0: cut the pairs the whole suite runs on (from the HepTh
+# parent unless --dataset names another, e.g. fb).
 #
 # Separate from Report 1's 00_generate_pairs_job.sh / grid.py on purpose: this
 # suite's pairs go into runs/sweep_<mode>/ (flat layout, adv_gd/sweep.py's
@@ -19,6 +20,7 @@
 #          scripts/moes-cluster-scripts/00_generate_adv_gd_pairs_job.sh \
 #          --betas 0.0 0.1 0.2 --pair-seeds 0 --beta-mode nominal \
 #          --out runs/sweep_nominal
+# Every flag, --dataset included, reaches sweep.py through "$@" unchanged.
 # ─────────────────────────────────────────────────────────────────────────────
 #SBATCH -p pleiades
 #SBATCH --cpus-per-task=2
@@ -32,7 +34,14 @@ if [ -n "${SLURM_JOB_ID:-}" ] && [ -n "${SLURM_SUBMIT_DIR:-}" ]; then
 else
     source "$(dirname "${BASH_SOURCE[0]:-$0}")/common.sh"
 fi
-banner "Adv-GD suite — generate HepTh pairs"
+# --dataset reaches sweep.py through "$@"; it is read here only to label the banner.
+DATASET_LABEL=HepTh
+ARGS=("$@")
+for ((i = 0; i < ${#ARGS[@]}; i++)); do
+    if [ "${ARGS[i]}" = "--dataset" ]; then DATASET_LABEL="${ARGS[i+1]:-HepTh}"; fi
+done
+[ "$DATASET_LABEL" = hepth ] && DATASET_LABEL=HepTh
+banner "Adv-GD suite — generate ${DATASET_LABEL} pairs"
 echo " Args: $*"
 echo "-------------------------------------------"
 

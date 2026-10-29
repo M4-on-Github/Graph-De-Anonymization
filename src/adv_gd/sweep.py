@@ -47,6 +47,9 @@ from adv_gd import DATASETS, GAE_EPOCHS, run  # noqa: E402
 GENERATOR = REPO_ROOT / "src" / "beta_noise_generator" / "perturbation.py"
 PARENTS = {
     "hepth": REPO_ROOT / "data" / "cit-HepTH" / "cit-HepTh.txt",
+    # The paper's FB graph (Yale, 2005). Not in the repo: it is uploaded, and
+    # scripts/e4_convert_fb.py turns the upload into this edge list.
+    "fb": REPO_ROOT / "data" / "fb" / "fb.edgelist",
 }
 
 

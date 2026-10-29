@@ -8,7 +8,8 @@
 # deterministically from CLI flags per task, same as 30_adv_gd_job.sh.
 #
 # Do not call directly — submit_adv_gd_suite.sh sets --array, --output,
-# --error and appends the sweep flags (--method, --betas, --pair-seeds, etc.).
+# --error and appends the sweep flags (--method, --betas, --pair-seeds, --dataset,
+# etc.); all of them reach sweep_baselines.py through "$@".
 # To run one cell by hand on an interactive node:
 #   bash scripts/moes-cluster-scripts/31_baselines_job.sh 0 --method isorank --betas 0.0
 # ─────────────────────────────────────────────────────────────────────────────
