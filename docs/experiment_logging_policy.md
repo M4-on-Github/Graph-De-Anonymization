@@ -297,7 +297,7 @@ Found while reviewing this policy against what the code actually records, after 
   Hypothesised cause, never tested by an ablation: two design properties of
   `centrality_rank_match.py` that may compound. (1) Its Phase-3 anchors are *singleton*
   candidates taken straight from the rank-zip (`candidates = {a: [mapping_full[a]]}`,
-  `centrality_rank_match.py:122`), unlike `structural_fingerprint`/`isorank`'s `TOP10`
+  `centrality_rank_match.py:136`), unlike `structural_fingerprint`/`isorank`'s `TOP10`
   candidate sets, which would leave no fallback if the rank-matched guess is wrong; (2)
   `propagate()` (`propagation.py:90-155`) is a mutual-best-match bootstrap gated by an
   eccentricity threshold (`theta=0.5`) in both directions, so seed anchors would either
