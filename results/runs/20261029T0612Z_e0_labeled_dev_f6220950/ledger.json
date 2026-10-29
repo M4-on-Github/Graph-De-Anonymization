@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0612Z_e0_labeled_dev_f6220950",
+  "started_utc": "2026-10-29T06:12:34+00:00",
+  "kind": "baseline_centrality_pagerank",
+  "pair": "e0_labeled_dev",
+  "status": "exploratory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": null,
+  "n_restarts": null,
+  "anchor_precision": 0.7,
+  "chi": 0.9240017812082529,
+  "gamma": 0.9959601615935363,
+  "seconds": 205.3,
+  "git": "25b5bf2fb303",
+  "note": "E0 arm (b), run 10: centrality_rank_match.py pagerank, n_anch 50, phases 123, theta 0.5, eccen_support nonzero, PYTHONHASHSEED=0; diagnostic (sigma over the nonzero scores, Report 1's support), not covered by the approved predictions (Log 3, E0; SLURM job 55184_10)"
+}

@@ -1,0 +1,119 @@
+{
+  "kind": "baseline_centrality_pagerank",
+  "pair": "e0_labeled_dev",
+  "status": "exploratory",
+  "note": "E0 arm (b), run 10: centrality_rank_match.py pagerank, n_anch 50, phases 123, theta 0.5, eccen_support nonzero, PYTHONHASHSEED=0; diagnostic (sigma over the nonzero scores, Report 1's support), not covered by the approved predictions (Log 3, E0; SLURM job 55184_10)",
+  "supersedes": null,
+  "started_utc": "2026-10-29T06:12:34+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/baselines/centrality_rank_match.py",
+    "--pair",
+    "/home/mmyatmau/Graph-De-Anonymization/runs/e0_labeled_dev",
+    "--dataset",
+    "labeled_dev",
+    "--n-anch",
+    "50",
+    "--measures",
+    "pagerank",
+    "--phases",
+    "123",
+    "--theta",
+    "0.5",
+    "--eccen-support",
+    "nonzero",
+    "--status",
+    "exploratory",
+    "--note",
+    "E0 arm (b), run 10: centrality_rank_match.py pagerank, n_anch 50, phases 123, theta 0.5, eccen_support nonzero, PYTHONHASHSEED=0; diagnostic (sigma over the nonzero scores, Report 1's support), not covered by the approved predictions (Log 3, E0; SLURM job 55184_10)"
+  ],
+  "git": {
+    "head": "25b5bf2fb303",
+    "head_full": "25b5bf2fb3037f2b428a78628c698aec802af707",
+    "branch": "moe-dev",
+    "dirty": false,
+    "dirty_paths": [],
+    "untracked_inlined": [],
+    "untracked_hashed": [],
+    "diff_sha256": null,
+    "diff_bytes": 0
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-17",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/e0_labeled_dev/G1.edgelist",
+      "bytes": 6592014,
+      "sha256": "1cc2eb242b383fd0c4d6c99a9d7422277c1da08c72837809fae28b8890be0b7f"
+    },
+    {
+      "path": "runs/e0_labeled_dev/G2.edgelist",
+      "bytes": 7104941,
+      "sha256": "a76d5d9aac77c2aee2f5b60f451dcbc8f4e68a004c6d62728035eaf643a47f99"
+    },
+    {
+      "path": "runs/e0_labeled_dev/mapping.txt",
+      "bytes": 311020,
+      "sha256": "f4ed1e0bbb1d226a82804653c09a182984b0488485f05041f79fd47d6dd17f52"
+    },
+    {
+      "path": "runs/e0_labeled_dev/stats.json",
+      "bytes": 391,
+      "sha256": "ac3821e6c00970acbd6f3f0316e295c5a3e33fab54a554064a7ce572a173ca01"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/e0_labeled_dev/out_mapping_baseline_centrality_pagerank_20261029T0612Z_e0_labeled_dev_f6220950.txt",
+      "bytes": 279060,
+      "sha256": "96ada3f61c30156cad4a58b7ae08ff510b6a88b62def51fb724400b06fdf0d42"
+    }
+  ],
+  "metrics": {
+    "pure_chi": 0.003339765474246697,
+    "pure_gamma": 0.0033387742988573972,
+    "chi": 0.9240017812082529,
+    "gamma": 0.9959601615935363,
+    "anchors_found": 50,
+    "anchors_correct": 35,
+    "anchor_precision": 0.7
+  },
+  "seed": 0,
+  "beta": null,
+  "dataset": "labeled_dev",
+  "measure": "pagerank",
+  "phases": "123",
+  "theta": 0.5,
+  "eccen_support": "nonzero",
+  "n_anch": 50,
+  "matchable_nodes": 26948,
+  "pair_stats": {
+    "beta": null,
+    "dataset": "labeled_dev",
+    "mapping_pairs": 27770,
+    "matchable_definition": "mapping pairs (u, v) with u a node of G1 and v a node of G2",
+    "matchable_nodes": 26948,
+    "nodes_a": 26956,
+    "nodes_u": 27756,
+    "source": "written by scripts/moes-cluster-scripts/e0_stage_pair.py for E0 (Log 3); not generator output. This pair has no noise parameter, so beta is null."
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/e0_labeled_dev",
+  "run_id": "20261029T0612Z_e0_labeled_dev_f6220950",
+  "config_sha256": "f6220950",
+  "status_exit": "ok",
+  "seconds": 205.3,
+  "finished_utc": "2026-10-29T06:16:00+00:00"
+}

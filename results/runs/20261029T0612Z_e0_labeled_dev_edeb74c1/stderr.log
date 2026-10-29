@@ -1,0 +1,3 @@
+pair labeled_dev  G1 26,956 nodes  G2 27,756 nodes  truth 26,948  inherited list 26,942  hash seed 1
+  inherited main() finished in 19.6s
+  accuracy printed 0.3192042164649989  A_full 0.3191%  correct 86 (inherited list 86)  extracted 26,956

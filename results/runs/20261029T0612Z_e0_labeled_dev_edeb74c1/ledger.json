@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0612Z_e0_labeled_dev_edeb74c1",
+  "started_utc": "2026-10-29T06:12:28+00:00",
+  "kind": "report1_seed_free_rank",
+  "pair": "e0_labeled_dev",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 1,
+  "beta": null,
+  "n_restarts": 1,
+  "anchor_precision": null,
+  "chi": null,
+  "gamma": null,
+  "seconds": 26.7,
+  "git": "25b5bf2fb303",
+  "note": "E0 arm (a), pure, run 7: inherited seed_free.py main() unchanged, pagerank alpha=1, full ranking alone, PYTHONHASHSEED=1 (Log 3, E0)"
+}

@@ -1,0 +1,13 @@
+pair e0_labeled_dev  beta=None  measure=pagerank
+  sweep   1  stage 0  +0 -> 50 mapped  37s
+  sweep   2  stage 1  +148 -> 198 mapped  74s
+  sweep   3  stage 1  +384 -> 582 mapped  108s
+  sweep   4  stage 1  +12,674 -> 13,256 mapped  160s
+  sweep   5  stage 1  +9,431 -> 22,687 mapped  185s
+  sweep   6  stage 1  +1,968 -> 24,655 mapped  191s
+  sweep   7  stage 1  +297 -> 24,952 mapped  194s
+  sweep   8  stage 1  +35 -> 24,987 mapped  196s
+  sweep   9  stage 1  +7 -> 24,994 mapped  198s
+  sweep  10  stage 1  +6 -> 25,000 mapped  200s
+  sweep  11  stage 1  +1 -> 25,001 mapped  202s
+  sweep  12  stage 1  +0 -> 25,001 mapped  204s
