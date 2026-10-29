@@ -27,6 +27,10 @@ baselines use.
 
 CLI:
     python src/baselines/centrality_rank_match.py --pair runs/sweep_nominal/cit-HepTh_b10_s0 --dataset hepth
+
+`--n-anch N` replaces Table 1's anchor count and lets `--dataset` be any label,
+for a pair that is not one of the generated HepTh/FB/Gplus ones (E0 runs it on
+Report 1's own labeled_dev pair at N=50). Without it nothing changes.
 """
 from __future__ import annotations
 
@@ -40,7 +44,7 @@ import networkx as nx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (DATASETS, RunRecord, capture_stderr, load_pair,  # noqa: E402
-                    propagate, evaluate, REPO_ROOT)
+                    propagate, evaluate, evaluate_anchors, REPO_ROOT)
 from centrality import MEASURES  # noqa: E402
 
 KIND_PREFIX = "baseline_centrality_"
@@ -64,16 +68,27 @@ def rank_mapping(Ga: nx.Graph, Gu: nx.Graph, measure: str) -> dict:
 def run(pair: Path, dataset: str, measures: list[str] | None = None,
        phases: str = "123", theta: float = 0.5, eccen_support: str = "all",
        status: str = "exploratory", note: str = "", record: bool = True,
-       verbose: bool = True) -> dict:
+       verbose: bool = True, n_anch: int | None = None) -> dict:
     """Run every requested measure on one pair, returning one sub-result dict
     per measure (keyed by measure name) rather than a single flat dict --
     this is the one baseline here that sweeps a method-internal axis
     (which centrality measure) in addition to the beta x pair_seed grid
     `sweep_baselines.py` already covers, and multiplying the grid by measure
     would make every other method's run count inconsistent with this one's.
+
+    `n_anch` is the one addition for E0. Left as None, the anchor count is the
+    Table 1 row of `dataset`, exactly as before, and the records are exactly as
+    before. Given, it replaces that lookup, `dataset` becomes a free label that
+    only names the data in the record (so a pair outside DATASETS can be run),
+    and each record also carries `anchors_found`, `anchors_correct` and
+    `anchor_precision`, scored by the same `evaluate_anchors` as Adv-GD's.
     """
     measures = measures or sorted(MEASURES)
-    params = DATASETS[dataset]
+    pinned = n_anch is not None
+    if pinned and n_anch < 1:
+        raise ValueError(f"n_anch must be a positive integer, got {n_anch!r}")
+    if not pinned:
+        n_anch = DATASETS[dataset]["n_anch"]
     Ga, Gu, truth, stats = load_pair(pair)
 
     results = {}
@@ -83,7 +98,7 @@ def run(pair: Path, dataset: str, measures: list[str] | None = None,
         if rec:
             rec.set(seed=0, beta=stats["beta"], dataset=dataset,
                    measure=measure, phases=phases, theta=theta,
-                   eccen_support=eccen_support, n_anch=params["n_anch"],
+                   eccen_support=eccen_support, n_anch=n_anch,
                    matchable_nodes=stats.get("matchable_nodes"),
                    pair_stats=stats, pair_dir=str(pair))
             rec.add_inputs(pair / "G1.edgelist", pair / "G2.edgelist",
@@ -108,7 +123,6 @@ def run(pair: Path, dataset: str, measures: list[str] | None = None,
                     "seconds": round(time.time() - t0, 1),
                 }
                 if "3" in phases:
-                    n_anch = params["n_anch"]
                     # Top-ranked pairs, in RANK order -- mapping_full's keys
                     # are already in descending-rank order (rank_mapping zips
                     # the two rank-sorted lists together), and must be read
@@ -130,6 +144,11 @@ def run(pair: Path, dataset: str, measures: list[str] | None = None,
                                "correct": final["correct"], "chi": final["chi"],
                                "gamma": final["gamma"], "theta": theta,
                                "eccen_support": eccen_support})
+                    if pinned:
+                        scored = evaluate_anchors(anchors, truth)
+                        out.update({"anchors_found": scored["found"],
+                                   "anchors_correct": scored["correct"],
+                                   "anchor_precision": scored["precision"]})
                 exit_status, error = "ok", None
             except BaseException as exc:
                 import traceback
@@ -141,7 +160,9 @@ def run(pair: Path, dataset: str, measures: list[str] | None = None,
                     if "3" in phases and "mapping_path" in out:
                         rec.add_outputs(Path(out.pop("mapping_path")))
                     rec.metric(**{k: out.get(k) for k in
-                                  ("pure_chi", "pure_gamma", "chi", "gamma")})
+                                  ("pure_chi", "pure_gamma", "chi", "gamma",
+                                   "anchors_found", "anchors_correct",
+                                   "anchor_precision")})
                     rec.finish(exit_status, error, console.getvalue(), verbose)
                     out["run_id"] = rec.run_id
 
@@ -151,6 +172,9 @@ def run(pair: Path, dataset: str, measures: list[str] | None = None,
             if "chi" in out:
                 print(f"  [{measure}] integrated chi {out['chi']:.4f}  "
                       f"gamma {out['gamma']:.4f}", file=sys.stderr)
+            if "anchors_correct" in out:
+                print(f"  [{measure}] anchors {out['anchors_correct']}/"
+                      f"{out['anchors_found']} correct", file=sys.stderr)
             print(f"  [{measure}] {time.time() - t0:.0f}s total", file=sys.stderr)
         results[measure] = out
 
@@ -241,8 +265,14 @@ def main(argv=None) -> int:
     ap.add_argument("--pair", type=str,
                     help="Pair directory from the beta noise generator "
                          "(flat layout, not --compat-layout).")
-    ap.add_argument("--dataset", type=str, choices=sorted(DATASETS),
-                    help="Which Table 1 N_anch/M row to use.")
+    ap.add_argument("--dataset", type=str,
+                    help="Which Table 1 N_anch/M row to use (" +
+                         ", ".join(sorted(DATASETS)) + "). With --n-anch it "
+                         "may be any label and only names the data.")
+    ap.add_argument("--n-anch", type=int, default=None,
+                    help="Number of top-ranked pairs handed to propagation. "
+                         "Replaces the Table 1 value, and makes --dataset a "
+                         "free label (E0: labeled_dev, 50).")
     ap.add_argument("--measures", type=str, nargs="+",
                     choices=sorted(MEASURES), default=sorted(MEASURES),
                     help="Which centrality measures to run (default: all).")
@@ -261,10 +291,17 @@ def main(argv=None) -> int:
         return 0 if self_test() else 1
     if not args.pair or not args.dataset:
         ap.error("--pair and --dataset are required (or pass --self-test)")
+    if args.n_anch is not None and args.n_anch < 1:
+        ap.error("argument --n-anch: must be a positive integer")
+    if args.n_anch is None and args.dataset not in DATASETS:
+        ap.error(f"argument --dataset: invalid choice: {args.dataset!r} "
+                 f"(choose from {', '.join(repr(d) for d in sorted(DATASETS))};"
+                 f" any other label needs --n-anch)")
 
     run(Path(args.pair), args.dataset, measures=args.measures,
         phases=args.phases, theta=args.theta, eccen_support=args.eccen_support,
-        status=args.status, note=args.note, record=not args.no_record)
+        status=args.status, note=args.note, record=not args.no_record,
+        n_anch=args.n_anch)
     return 0
 
 
