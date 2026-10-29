@@ -1,0 +1,238 @@
+{
+  "kind": "adv_gd",
+  "pair": "cit-HepTh_b10_s1",
+  "status": "confirmatory",
+  "note": "Adv-GD suite: full method",
+  "supersedes": null,
+  "started_utc": "2026-10-29T00:37:53+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/sweep.py",
+    "--task-id",
+    "1",
+    "--betas",
+    "0.1",
+    "0.2",
+    "0.5",
+    "--pair-seeds",
+    "1",
+    "2",
+    "--beta-mode",
+    "nominal",
+    "--out",
+    "runs/sweep_nominal",
+    "--align-seeds",
+    "0",
+    "1",
+    "2",
+    "3",
+    "--status",
+    "confirmatory",
+    "--note",
+    "Adv-GD suite: full method"
+  ],
+  "git": {
+    "head": "bbec13c41c25",
+    "head_full": "bbec13c41c252cb819bd4ccbc1f91cb9207f7b0e",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261029T0027Z_cit-HepTh_b10_s1_3b49fbb3/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261029T0027Z_cit-HepTh_b10_s1_3b49fbb3",
+        "tree": true,
+        "files": 3,
+        "bytes": 12453,
+        "listing_sha256": "dbfe94f740944d093f1000e8325d7d022b14ff1e7ed77429331a77db3973ebe0"
+      }
+    ],
+    "diff_sha256": "5b97aeeabd58eff4efd00dfba96bd4fa77c54fd03b34135aa5671d62ac52d90b",
+    "diff_bytes": 1804
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-17",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": true,
+      "device": "NVIDIA RTX 6000 Ada Generation",
+      "capability": "8.9",
+      "version": "13.0"
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b10_s1/G1.edgelist",
+      "bytes": 3549621,
+      "sha256": "10697a43100ec738c3710407c11a4e1b8d3f7ea41bb7f4c86908b9f93bdaa5b1"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b10_s1/G2.edgelist",
+      "bytes": 3552716,
+      "sha256": "1d4345b66f0b464958c0394dc2b458db220eec284076eb1cce1dcab59609c6bb"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b10_s1/mapping.txt",
+      "bytes": 307443,
+      "sha256": "d27a46f2ed704ce06efe182952b8f685bc5fefa3077f7d6e286e0575aabcf084"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b10_s1/stats.json",
+      "bytes": 658,
+      "sha256": "ce894bf933c9485652a0d610f9d3b82474daaf4f05c6d26def40f72f54381c42"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b10_s1/out_mapping_20261029T0037Z_cit-HepTh_b10_s1_6c1ab7c1.txt",
+      "bytes": 288994,
+      "sha256": "9eab042ab90e93ccda5f840caa4c74efbc368abacc29b54ae1bcd0b829a50eb8"
+    }
+  ],
+  "metrics": {
+    "auc_g1": 0.995944595,
+    "auc_g2": 0.9957584975,
+    "z1_sha256": "9015543890bb8e5ef8b23146c395b5573114ebbf4c8be32cf8a1fb363eacfd84",
+    "z2_sha256": "2d7b7125d1cd53724d4688b655653a99ea914af67b923396e72e350269aa4385",
+    "anchors_found": 877,
+    "anchors_correct": 867,
+    "anchor_precision": 0.9885974914481186,
+    "paper_correct": 753,
+    "paper_found": 755,
+    "mapped": 25817,
+    "correct": 25206,
+    "chi": 0.9178501201660476,
+    "gamma": 0.9763334237130573
+  },
+  "seed": 1,
+  "gae_seed": 0,
+  "beta": 0.1,
+  "dataset": "hepth",
+  "phases": "123",
+  "params": {
+    "dim": 32,
+    "n_adv": 5000,
+    "n_anch": 1000,
+    "m": 10000
+  },
+  "config": {
+    "csls_k": 10,
+    "disc_hidden": 2048,
+    "disc_layers": 2,
+    "disc_dropout": 0.1,
+    "disc_input_dropout": 0.1,
+    "disc_leaky": 0.2,
+    "label_smooth": 0.2,
+    "adv_epochs": 5,
+    "adv_steps": 2000,
+    "refine_rounds": 5,
+    "ortho_beta": 0.01,
+    "normalize": "none",
+    "n_restarts": 4,
+    "skip_adversarial": false
+  },
+  "gae_epochs": 600,
+  "theta": 0.5,
+  "eccen_support": "all",
+  "n_restarts": 4,
+  "selection": "mean_match_cosine",
+  "matchable_nodes": 27462,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 317242,
+    "edges_u": 317265,
+    "shared_edges": 285641,
+    "retention_a": 0.9005265623004102,
+    "retention_u": 0.9005918503484395,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.8108236229189435,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.0006609555201672018,
+    "jaccard": 0.8187699575195061,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "beta_nominal": 0.1,
+    "beta_mode": "nominal",
+    "seed": 1,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27596,
+    "nodes_u": 27619,
+    "isolated_dropped_a": 173,
+    "isolated_dropped_u": 150,
+    "matchable_nodes": 27462
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/sweep_nominal/cit-HepTh_b10_s1",
+  "run_id": "20261029T0037Z_cit-HepTh_b10_s1_6c1ab7c1",
+  "config_sha256": "6c1ab7c1",
+  "selected_seed": 4,
+  "restarts": [
+    {
+      "seed": 1,
+      "anchors": 258,
+      "mean_cosine": 0.8254621624946594
+    },
+    {
+      "seed": 2,
+      "anchors": 874,
+      "mean_cosine": 0.9562441110610962
+    },
+    {
+      "seed": 3,
+      "anchors": 878,
+      "mean_cosine": 0.9566375613212585
+    },
+    {
+      "seed": 4,
+      "anchors": 877,
+      "mean_cosine": 0.956667423248291
+    }
+  ],
+  "refine_history": [
+    {
+      "round": 0,
+      "anchors": 688,
+      "mean_cosine": 0.9107192158699036
+    },
+    {
+      "round": 1,
+      "anchors": 873,
+      "mean_cosine": 0.9558721780776978
+    },
+    {
+      "round": 2,
+      "anchors": 878,
+      "mean_cosine": 0.9567842483520508
+    },
+    {
+      "round": 3,
+      "anchors": 877,
+      "mean_cosine": 0.9568168520927429
+    },
+    {
+      "round": 4,
+      "anchors": 878,
+      "mean_cosine": 0.9566797018051147
+    },
+    {
+      "round": 5,
+      "anchors": 877,
+      "mean_cosine": 0.956667423248291
+    }
+  ],
+  "status_exit": "ok",
+  "seconds": 349.3,
+  "finished_utc": "2026-10-29T00:43:43+00:00"
+}
