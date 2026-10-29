@@ -1,0 +1,150 @@
+{
+  "kind": "dataset_characterization",
+  "pair": "cit-HepTh",
+  "status": "exploratory",
+  "note": "E4a dataset characterisation (Log 3 E4a, midpoint deliverable); FB column after the upload",
+  "supersedes": null,
+  "started_utc": "2026-10-29T02:43:44+00:00",
+  "argv": [
+    "scripts/e4_characterize.py",
+    "cit-HepTh=data/cit-HepTH/cit-HepTh.txt",
+    "ca-GrQc=data/small_ca_grqc/ca-GrQc_Graph1_edgelist.txt",
+    "--status",
+    "exploratory",
+    "--note",
+    "E4a dataset characterisation (Log 3 E4a, midpoint deliverable); FB column after the upload"
+  ],
+  "git": {
+    "head": "47a5a1f9f25f",
+    "head_full": "47a5a1f9f25ff49caa31c568e30d761fde7631d1",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261029T0240Z_cit-HepTh_b10_s0_2ae9e36b/",
+      "results/runs/20261029T0240Z_cit-HepTh_b10_s0_bd0ca7bb/",
+      "results/runs/20261029T0240Z_cit-HepTh_b30_s0_77bf70a1/",
+      "results/runs/20261029T0240Z_cit-HepTh_b30_s0_7abe9bed/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b10_s0_2ae9e36b",
+        "tree": true,
+        "files": 2,
+        "bytes": 4531,
+        "listing_sha256": "ecb1cf76a3a3678fa7eadbd1dc37b3d9271cd696fb899228d735932599158cc3"
+      },
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b10_s0_bd0ca7bb",
+        "tree": true,
+        "files": 2,
+        "bytes": 4531,
+        "listing_sha256": "ecb1cf76a3a3678fa7eadbd1dc37b3d9271cd696fb899228d735932599158cc3"
+      },
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b30_s0_77bf70a1",
+        "tree": true,
+        "files": 3,
+        "bytes": 7501,
+        "listing_sha256": "05458a632cf3d1586a56bfa2ae711db959f4ba8d70af0c808402acc1e4e0d211"
+      },
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b30_s0_7abe9bed",
+        "tree": true,
+        "files": 3,
+        "bytes": 7501,
+        "listing_sha256": "05458a632cf3d1586a56bfa2ae711db959f4ba8d70af0c808402acc1e4e0d211"
+      }
+    ],
+    "diff_sha256": "df6f81a92586136290f526f910288912e8fcf322bd16cafdc31ee4223d7c0f74",
+    "diff_bytes": 3000
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "data/cit-HepTH/cit-HepTh.txt",
+      "bytes": 5576851,
+      "sha256": "556bd671a7a0e15bd6921d22d9599a17b53b41c6a46b766fbaf768f1d39643b2"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/char/cit-HepTh/characterization.json",
+      "bytes": 8522,
+      "sha256": "09302c9c65722202d8af6cb69e18576f42fad3f14b0fdea728498cc564b66a8c"
+    }
+  ],
+  "metrics": {
+    "nodes": 27769,
+    "edges": 352285,
+    "edges_per_node": 12.686268860960064,
+    "self_loops_dropped": 39,
+    "duplicate_or_reciprocal_lines_absorbed": 483,
+    "components": 142,
+    "giant_nodes": 27400,
+    "giant_share": 0.9867118009290936,
+    "second_largest_component": 10,
+    "degree_mean": 25.37253772192013,
+    "degree_median": 14.0,
+    "degree_p90": 56.0,
+    "degree_p99": 167.0,
+    "degree_max": 2468,
+    "degree1_share": 0.05333285318160539,
+    "transitivity": 0.11956907313642381,
+    "max_core": 37,
+    "twin_nodes": 936,
+    "twin_share": 0.03370665130181137,
+    "twin_chi_reference": 0.9744679318664698,
+    "pagerank_max": 0.0021722382706612386,
+    "pagerank_top50_share": 0.03026698864839863,
+    "pagerank_gini": 0.3614415895128334,
+    "eigenvector_max": 0.25423764706882707,
+    "eigenvector_top50_share": 0.0496285145210623,
+    "eigenvector_gini": 0.7709173228792106,
+    "spearman_degree_pagerank": 0.7722775301514441,
+    "spearman_degree_eigenvector": 0.8250911816408288,
+    "spearman_pagerank_eigenvector": 0.39089270465124243,
+    "seconds_components": 0.15,
+    "seconds_transitivity": 13.77,
+    "seconds_core_number": 1.89,
+    "seconds_twins": 0.71,
+    "seconds_pagerank": 0.99,
+    "seconds_eigenvector": 10.02
+  },
+  "seed": 0,
+  "dataset": "cit-HepTh",
+  "parent": "data/cit-HepTH/cit-HepTh.txt",
+  "randomness": "none: every quantity is a deterministic function of the edge list",
+  "config": {
+    "percentile_method": "inverted_cdf",
+    "top_k": 50,
+    "pagerank_alpha": 0.85,
+    "eigenvector_max_iter": 1000,
+    "eigenvector_fallback": "nx.eigenvector_centrality_numpy",
+    "centrality": true,
+    "graph": "load_parent: undirected simple graph, self-loops dropped",
+    "twin_class": "same open neighbourhood or same closed neighbourhood"
+  },
+  "upload": null,
+  "run_id": "20261029T0243Z_cit-HepTh_70a53953",
+  "config_sha256": "70a53953",
+  "status_exit": "ok",
+  "seconds": 36.4,
+  "finished_utc": "2026-10-29T02:44:20+00:00"
+}

@@ -1,0 +1,7 @@
+[ca-GrQc] data/small_ca_grqc/ca-GrQc_Graph1_edgelist.txt
+  components: 0.01s
+  transitivity: 0.18s
+  core_number: 0.03s
+  twins: 0.03s
+  pagerank: 0.04s
+  eigenvector: 0.63s

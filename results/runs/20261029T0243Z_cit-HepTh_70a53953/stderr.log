@@ -1,0 +1,7 @@
+[cit-HepTh] data/cit-HepTH/cit-HepTh.txt
+  components: 0.15s
+  transitivity: 13.77s
+  core_number: 1.89s
+  twins: 0.71s
+  pagerank: 0.99s
+  eigenvector: 10.02s

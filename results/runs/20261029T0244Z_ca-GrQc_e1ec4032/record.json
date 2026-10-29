@@ -1,0 +1,150 @@
+{
+  "kind": "dataset_characterization",
+  "pair": "ca-GrQc",
+  "status": "exploratory",
+  "note": "E4a dataset characterisation (Log 3 E4a, midpoint deliverable); FB column after the upload",
+  "supersedes": null,
+  "started_utc": "2026-10-29T02:44:20+00:00",
+  "argv": [
+    "scripts/e4_characterize.py",
+    "cit-HepTh=data/cit-HepTH/cit-HepTh.txt",
+    "ca-GrQc=data/small_ca_grqc/ca-GrQc_Graph1_edgelist.txt",
+    "--status",
+    "exploratory",
+    "--note",
+    "E4a dataset characterisation (Log 3 E4a, midpoint deliverable); FB column after the upload"
+  ],
+  "git": {
+    "head": "47a5a1f9f25f",
+    "head_full": "47a5a1f9f25ff49caa31c568e30d761fde7631d1",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261029T0240Z_cit-HepTh_b10_s0_2ae9e36b/",
+      "results/runs/20261029T0240Z_cit-HepTh_b10_s0_bd0ca7bb/",
+      "results/runs/20261029T0240Z_cit-HepTh_b30_s0_77bf70a1/",
+      "results/runs/20261029T0240Z_cit-HepTh_b30_s0_7abe9bed/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b10_s0_2ae9e36b",
+        "tree": true,
+        "files": 2,
+        "bytes": 4531,
+        "listing_sha256": "ecb1cf76a3a3678fa7eadbd1dc37b3d9271cd696fb899228d735932599158cc3"
+      },
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b10_s0_bd0ca7bb",
+        "tree": true,
+        "files": 2,
+        "bytes": 4531,
+        "listing_sha256": "ecb1cf76a3a3678fa7eadbd1dc37b3d9271cd696fb899228d735932599158cc3"
+      },
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b30_s0_77bf70a1",
+        "tree": true,
+        "files": 3,
+        "bytes": 7501,
+        "listing_sha256": "05458a632cf3d1586a56bfa2ae711db959f4ba8d70af0c808402acc1e4e0d211"
+      },
+      {
+        "path": "results/runs/20261029T0240Z_cit-HepTh_b30_s0_7abe9bed",
+        "tree": true,
+        "files": 3,
+        "bytes": 7501,
+        "listing_sha256": "05458a632cf3d1586a56bfa2ae711db959f4ba8d70af0c808402acc1e4e0d211"
+      }
+    ],
+    "diff_sha256": "df6f81a92586136290f526f910288912e8fcf322bd16cafdc31ee4223d7c0f74",
+    "diff_bytes": 3000
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "data/small_ca_grqc/ca-GrQc_Graph1_edgelist.txt",
+      "bytes": 161302,
+      "sha256": "5984bc35f6bf27fe3cb2f14c9132bac43a2e1ef3fba0ea2892cf374532c8d115"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/char/ca-GrQc/characterization.json",
+      "bytes": 4228,
+      "sha256": "18a91570776cc3993bae42d5204c71cf36e9fdf6984bbfcec33d04dbb4476a18"
+    }
+  ],
+  "metrics": {
+    "nodes": 5241,
+    "edges": 14484,
+    "edges_per_node": 2.763594733829422,
+    "self_loops_dropped": 12,
+    "duplicate_or_reciprocal_lines_absorbed": 0,
+    "components": 354,
+    "giant_nodes": 4158,
+    "giant_share": 0.7933600457927876,
+    "second_largest_component": 14,
+    "degree_mean": 5.527189467658844,
+    "degree_median": 3.0,
+    "degree_p90": 13.0,
+    "degree_p99": 42.0,
+    "degree_max": 81,
+    "degree1_share": 0.22839152833428736,
+    "transitivity": 0.6298424741263426,
+    "max_core": 43,
+    "twin_nodes": 2383,
+    "twin_share": 0.45468422056859376,
+    "twin_chi_reference": 0.6180118298034726,
+    "pagerank_max": 0.0014495021111067693,
+    "pagerank_top50_share": 0.045705655641993005,
+    "pagerank_gini": 0.32232277638461126,
+    "eigenvector_max": 0.15556159123701108,
+    "eigenvector_top50_share": 0.809191782446855,
+    "eigenvector_gini": 0.9816026809176565,
+    "spearman_degree_pagerank": 0.7276034702764413,
+    "spearman_degree_eigenvector": 0.5668969273556971,
+    "spearman_pagerank_eigenvector": 0.06734395945575421,
+    "seconds_components": 0.01,
+    "seconds_transitivity": 0.18,
+    "seconds_core_number": 0.03,
+    "seconds_twins": 0.03,
+    "seconds_pagerank": 0.04,
+    "seconds_eigenvector": 0.63
+  },
+  "seed": 0,
+  "dataset": "ca-GrQc",
+  "parent": "data/small_ca_grqc/ca-GrQc_Graph1_edgelist.txt",
+  "randomness": "none: every quantity is a deterministic function of the edge list",
+  "config": {
+    "percentile_method": "inverted_cdf",
+    "top_k": 50,
+    "pagerank_alpha": 0.85,
+    "eigenvector_max_iter": 1000,
+    "eigenvector_fallback": "nx.eigenvector_centrality_numpy",
+    "centrality": true,
+    "graph": "load_parent: undirected simple graph, self-loops dropped",
+    "twin_class": "same open neighbourhood or same closed neighbourhood"
+  },
+  "upload": null,
+  "run_id": "20261029T0244Z_ca-GrQc_e1ec4032",
+  "config_sha256": "e1ec4032",
+  "status_exit": "ok",
+  "seconds": 1.1,
+  "finished_utc": "2026-10-29T02:44:21+00:00"
+}

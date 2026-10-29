@@ -1,0 +1,143 @@
+{
+  "kind": "perturbation",
+  "pair": "cit-HepTh_b10_s0",
+  "status": "confirmatory",
+  "note": "sweep cell for nominal beta=0.1 in nominal mode",
+  "supersedes": null,
+  "started_utc": "2026-10-29T02:40:07+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/beta_noise_generator/perturbation.py",
+    "--parent",
+    "/home/mmyatmau/Graph-De-Anonymization/data/cit-HepTH/cit-HepTh.txt",
+    "--beta",
+    "0.1",
+    "--beta-nominal",
+    "0.1",
+    "--beta-mode",
+    "nominal",
+    "--seed",
+    "0",
+    "--out",
+    "runs/sweep_nominal_gae1",
+    "--status",
+    "confirmatory",
+    "--note",
+    "sweep cell for nominal beta=0.1 in nominal mode"
+  ],
+  "git": {
+    "head": "47a5a1f9f25f",
+    "head_full": "47a5a1f9f25ff49caa31c568e30d761fde7631d1",
+    "branch": "moe-dev",
+    "dirty": false,
+    "dirty_paths": [],
+    "untracked_inlined": [],
+    "untracked_hashed": [],
+    "diff_sha256": null,
+    "diff_bytes": 0
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "data/cit-HepTH/cit-HepTh.txt",
+      "bytes": 5576851,
+      "sha256": "556bd671a7a0e15bd6921d22d9599a17b53b41c6a46b766fbaf768f1d39643b2"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_nominal_gae1/cit-HepTh_b10_s0/G1.edgelist",
+      "bytes": 3548140,
+      "sha256": "e4c18d1dfeb970a7847c4fcef9d99575e0188f50cbb1cf870c9d6ed904685787"
+    },
+    {
+      "path": "runs/sweep_nominal_gae1/cit-HepTh_b10_s0/G2.edgelist",
+      "bytes": 3545388,
+      "sha256": "ac341ebe8090b2106e528b57315a70da82a904ca9ade3773aa5d8520de150342"
+    },
+    {
+      "path": "runs/sweep_nominal_gae1/cit-HepTh_b10_s0/mapping.txt",
+      "bytes": 307216,
+      "sha256": "cf2496a07c6152d2cf36ede84562a0bfbf2ac2c431b2cdef4e56211927ce59b3"
+    },
+    {
+      "path": "runs/sweep_nominal_gae1/cit-HepTh_b10_s0/stats.json",
+      "bytes": 658,
+      "sha256": "6f093f1942bc53368da1df2ed9d4c6fbe2998b36c0db520126c68b15e2a32fe0"
+    }
+  ],
+  "metrics": {
+    "overlap_ratio": 0.8085867976212442,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.0006609555201672018,
+    "jaccard": 0.8166821008449138,
+    "retention_a": 0.8996976879515165,
+    "retention_u": 0.8989766808124104,
+    "matchable_nodes": 27444,
+    "edges_a": 316950,
+    "edges_u": 316696,
+    "parent_edges": 352285
+  },
+  "seed": 0,
+  "beta": 0.1,
+  "beta_nominal": 0.1,
+  "beta_mode": "nominal",
+  "mode": "bernoulli",
+  "permute": true,
+  "node_sample": null,
+  "compat_layout": false,
+  "n_restarts": 1,
+  "selection": "none (single draw, accepted on (1-beta)^2 overlap check)",
+  "selected_seed": 0,
+  "parent": "/home/mmyatmau/Graph-De-Anonymization/data/cit-HepTH/cit-HepTh.txt",
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 316950,
+    "edges_u": 316696,
+    "shared_edges": 284853,
+    "retention_a": 0.8996976879515165,
+    "retention_u": 0.8989766808124104,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.8085867976212442,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.0006609555201672018,
+    "jaccard": 0.8166821008449138,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "beta_nominal": 0.1,
+    "beta_mode": "nominal",
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27602,
+    "nodes_u": 27584,
+    "isolated_dropped_a": 167,
+    "isolated_dropped_u": 185,
+    "matchable_nodes": 27444
+  },
+  "matchable_nodes": 27444,
+  "verify_passed": true,
+  "verify_message": "overlap 0.8086 vs predicted 0.8100 (delta 0.0014, tol 0.0100)",
+  "overwrote_existing": null,
+  "out_dir": "runs/sweep_nominal_gae1/cit-HepTh_b10_s0",
+  "run_id": "20261029T0240Z_cit-HepTh_b10_s0_2ae9e36b",
+  "config_sha256": "2ae9e36b",
+  "status_exit": "ok",
+  "seconds": 1.9,
+  "finished_utc": "2026-10-29T02:40:09+00:00"
+}
