@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0306Z_cit-HepTh_b10_s0_a1c0464e",
+  "started_utc": "2026-10-29T03:06:18+00:00",
+  "kind": "adv_gd_w_control",
+  "pair": "cit-HepTh_b10_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.1,
+  "n_restarts": null,
+  "anchor_precision": 0.9766899766899767,
+  "chi": 0.9161200991109167,
+  "gamma": 0.9755548657457705,
+  "seconds": 206.3,
+  "git": "cb44d6ea30c2+dirty",
+  "note": "E3 W-control group main_ge49 | E3 W-control task 7: arm C (ground_truth_pool_pairs), nominal beta=0.1, pair seed 0, gae seed 0"
+}

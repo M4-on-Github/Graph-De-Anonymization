@@ -1,0 +1,39 @@
+phase 1: cached embeddings (read only)
+  reusing Z1.npz (27,602 nodes, 600 epochs)
+  reusing Z2.npz (27,584 nodes, 600 epochs)
+  z1 288f190a  z2 b627f776
+  hash rule: pass  (4 align-seed records, seeds [0, 1, 2, 3], flags [])
+  pair content vs /home/mmyatmau/Graph-De-Anonymization/runs/sweep_nominal/cit-HepTh_b10_s0: identical
+  reconstruction AUC  G1 0.9957  G2 0.9954
+W_0 source: ground_truth_pool_pairs
+  seed pairs 947/947  precision 1.0000
+phase 2: refinement from W_0
+W_0: Procrustes fit to 947 seed pairs
+    refine 0/5  anchors 875  mean cosine 0.9607
+    refine 1/5  anchors 873  mean cosine 0.9610
+    refine 2/5  anchors 872  mean cosine 0.9611
+    refine 3/5  anchors 872  mean cosine 0.9611
+    refine 4/5  anchors 872  mean cosine 0.9611
+    refine 5/5  anchors 872  mean cosine 0.9611
+phase 3: propagation
+  sweep   1  stage 0  +6,580 -> 7,452 mapped  48s
+  sweep   2  stage 0  +959 -> 8,411 mapped  65s
+  sweep   3  stage 0  +100 -> 8,511 mapped  79s
+  sweep   4  stage 0  +34 -> 8,545 mapped  94s
+  sweep   5  stage 0  +12 -> 8,557 mapped  109s
+  sweep   6  stage 0  +1 -> 8,558 mapped  123s
+  sweep   7  stage 0  +1 -> 8,559 mapped  138s
+  sweep   8  stage 0  +0 -> 8,559 mapped  152s
+  sweep   9  stage 1  +9,278 -> 17,837 mapped  172s
+  sweep  10  stage 1  +4,895 -> 22,732 mapped  185s
+  sweep  11  stage 1  +2,273 -> 25,005 mapped  191s
+  sweep  12  stage 1  +553 -> 25,558 mapped  195s
+  sweep  13  stage 1  +167 -> 25,725 mapped  197s
+  sweep  14  stage 1  +52 -> 25,777 mapped  200s
+  sweep  15  stage 1  +11 -> 25,788 mapped  202s
+  sweep  16  stage 1  +0 -> 25,788 mapped  204s
+
+  seed pairs       947/947  precision 1.0000
+  anchors (final)  860/872  precision 0.9862
+  de-anonymized    25,222/25,788 mapped  chi 0.9190  gamma 0.9781  ignited True
+  206s total

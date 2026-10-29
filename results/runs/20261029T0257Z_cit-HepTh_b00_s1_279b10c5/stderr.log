@@ -1,0 +1,37 @@
+phase 1: cached embeddings (read only)
+  reusing Z1.npz (27,769 nodes, 600 epochs)
+  reusing Z2.npz (27,769 nodes, 600 epochs)
+  z1 5d13effc  z2 a090de9c
+  hash rule: pass  (4 align-seed records, seeds [0, 1, 2, 3], flags [])
+  reconstruction AUC  G1 0.9953  G2 0.9956
+W_0 source: ground_truth_pool_pairs
+  seed pairs 996/996  precision 1.0000
+phase 2: refinement from W_0
+W_0: Procrustes fit to 996 seed pairs
+    refine 0/5  anchors 923  mean cosine 0.9616
+    refine 1/5  anchors 920  mean cosine 0.9622
+    refine 2/5  anchors 918  mean cosine 0.9624
+    refine 3/5  anchors 918  mean cosine 0.9624
+    refine 4/5  anchors 918  mean cosine 0.9624
+    refine 5/5  anchors 918  mean cosine 0.9624
+phase 3: propagation
+  sweep   1  stage 0  +7,131 -> 8,049 mapped  60s
+  sweep   2  stage 0  +483 -> 8,532 mapped  78s
+  sweep   3  stage 0  +47 -> 8,579 mapped  95s
+  sweep   4  stage 0  +9 -> 8,588 mapped  112s
+  sweep   5  stage 0  +2 -> 8,590 mapped  129s
+  sweep   6  stage 0  +2 -> 8,592 mapped  146s
+  sweep   7  stage 0  +0 -> 8,592 mapped  163s
+  sweep   8  stage 1  +12,276 -> 20,868 mapped  187s
+  sweep   9  stage 1  +4,758 -> 25,626 mapped  198s
+  sweep  10  stage 1  +927 -> 26,553 mapped  202s
+  sweep  11  stage 1  +97 -> 26,650 mapped  203s
+  sweep  12  stage 1  +20 -> 26,670 mapped  204s
+  sweep  13  stage 1  +5 -> 26,675 mapped  205s
+  sweep  14  stage 1  +2 -> 26,677 mapped  206s
+  sweep  15  stage 1  +0 -> 26,677 mapped  208s
+
+  seed pairs       996/996  precision 1.0000
+  anchors (final)  912/918  precision 0.9935
+  de-anonymized    26,665/26,677 mapped  chi 0.9602  gamma 0.9996  ignited True
+  210s total

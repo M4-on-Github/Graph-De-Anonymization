@@ -1,0 +1,37 @@
+phase 1: cached embeddings (read only)
+  reusing Z1.npz (27,769 nodes, 600 epochs)
+  reusing Z2.npz (27,769 nodes, 600 epochs)
+  z1 b66e01f1  z2 75c8604f
+  hash rule: pass  (4 align-seed records, seeds [0, 1, 2, 3], flags [])
+  reconstruction AUC  G1 0.9954  G2 0.9959
+W_0 source: composite_centrality_anchors
+  anchors: 983 mutual CSLS nearest neighbours (k=10) among top 1,000 degree nodes
+  seed pairs 982/983  precision 0.9990
+phase 2: refinement from W_0
+W_0: Procrustes fit to 983 seed pairs
+    refine 0/5  anchors 903  mean cosine 0.9615
+    refine 1/5  anchors 902  mean cosine 0.9616
+    refine 2/5  anchors 900  mean cosine 0.9617
+    refine 3/5  anchors 900  mean cosine 0.9617
+    refine 4/5  anchors 900  mean cosine 0.9617
+    refine 5/5  anchors 900  mean cosine 0.9617
+phase 3: propagation
+  sweep   1  stage 0  +7,102 -> 8,002 mapped  66s
+  sweep   2  stage 0  +514 -> 8,516 mapped  85s
+  sweep   3  stage 0  +41 -> 8,557 mapped  102s
+  sweep   4  stage 0  +6 -> 8,563 mapped  120s
+  sweep   5  stage 0  +3 -> 8,566 mapped  138s
+  sweep   6  stage 0  +1 -> 8,567 mapped  156s
+  sweep   7  stage 0  +0 -> 8,567 mapped  173s
+  sweep   8  stage 1  +12,150 -> 20,717 mapped  197s
+  sweep   9  stage 1  +4,919 -> 25,636 mapped  209s
+  sweep  10  stage 1  +908 -> 26,544 mapped  212s
+  sweep  11  stage 1  +101 -> 26,645 mapped  214s
+  sweep  12  stage 1  +26 -> 26,671 mapped  215s
+  sweep  13  stage 1  +6 -> 26,677 mapped  216s
+  sweep  14  stage 1  +0 -> 26,677 mapped  217s
+
+  seed pairs       982/983  precision 0.9990
+  anchors (final)  884/900  precision 0.9822
+  de-anonymized    26,642/26,677 mapped  chi 0.9594  gamma 0.9987  ignited True
+  329s total

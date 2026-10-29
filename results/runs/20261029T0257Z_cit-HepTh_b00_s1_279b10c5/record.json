@@ -1,0 +1,354 @@
+{
+  "kind": "adv_gd_w_control",
+  "pair": "cit-HepTh_b00_s1",
+  "status": "confirmatory",
+  "note": "E3 W-control group main_ge49 | E3 W-control task 3: arm C (ground_truth_pool_pairs), nominal beta=0.0, pair seed 1, gae seed 0",
+  "supersedes": null,
+  "started_utc": "2026-10-29T02:57:02+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/adv_gd/w_control.py",
+    "--task-id",
+    "3",
+    "--arms",
+    "B",
+    "C",
+    "--betas",
+    "0.0",
+    "0.1",
+    "0.2",
+    "0.3",
+    "--pair-seeds",
+    "0",
+    "1",
+    "2",
+    "--beta-mode",
+    "nominal",
+    "--pair-root",
+    "runs/sweep_nominal",
+    "--gae-seed",
+    "0",
+    "--e1",
+    "include",
+    "--status",
+    "confirmatory",
+    "--note",
+    "E3 W-control group main_ge49"
+  ],
+  "git": {
+    "head": "cb44d6ea30c2",
+    "head_full": "cb44d6ea30c28811fc1d091848425485f122d88c",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261029T0235Z_e0_labeled_dev_4775ea8e/",
+      "results/runs/20261029T0247Z_cit-HepTh_b00_s0_1b8d359f/",
+      "results/runs/20261029T0252Z_cit-HepTh_b00_s0_19dbe3c4/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261029T0235Z_e0_labeled_dev_4775ea8e",
+        "tree": true,
+        "files": 3,
+        "bytes": 4231,
+        "listing_sha256": "6e5de4acc3e8b89d7ebcd775482b224e95ac069f40f41a694ab6ed4c5ac8e0db"
+      },
+      {
+        "path": "results/runs/20261029T0247Z_cit-HepTh_b00_s0_1b8d359f",
+        "tree": true,
+        "files": 3,
+        "bytes": 10640,
+        "listing_sha256": "2c92d380b7795f5a83944feb4d84e2a4116dc1d728b76feb1ce2b56464eea11d"
+      },
+      {
+        "path": "results/runs/20261029T0252Z_cit-HepTh_b00_s0_19dbe3c4",
+        "tree": true,
+        "files": 4,
+        "bytes": 13734,
+        "listing_sha256": "9837e58b7387c0468a6380d4d8653950548bd5f632c018fbc2b896116582133d"
+      }
+    ],
+    "diff_sha256": "8359103fc3e79e62a8bf33be89df9f319c1e61e66fd5ea44e0a60fd120123ae4",
+    "diff_bytes": 3017
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-17",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": true,
+      "device": "NVIDIA RTX 6000 Ada Generation",
+      "capability": "8.9",
+      "version": "13.0"
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/G1.edgelist",
+      "bytes": 3956075,
+      "sha256": "a8b8061f38855cb0229dc4a6da32241c9d7dcaa576a9ddee16c9eb2f27474efa"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/G2.edgelist",
+      "bytes": 3944499,
+      "sha256": "1122c2b90ec0a281b9ad6d2fb8f28c6367f26947fa92f30545fec4a8f063c6eb"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/mapping.txt",
+      "bytes": 311008,
+      "sha256": "c90ede2f261984f3f87f8a79bff068f8cfae4a44b5dd7d3488e2c9054c3cfde0"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/stats.json",
+      "bytes": 560,
+      "sha256": "cfe93d0766dfec8daf85cd786d456999159ad94a943e331eeea65b0671356a6a"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/Z1.npz",
+      "bytes": 3363125,
+      "sha256": "19ced8906a63618fec858c8e3cb5c86d93d67464bd0bc94e5613ca1235e0fb59"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/Z2.npz",
+      "bytes": 3362588,
+      "sha256": "8480efc99586bfd169fa3fdba0fd5cba6ed2a66851c5cf3b6d061e47e8d08c23"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/out_mapping_adv_gd_w_control_20261029T0257Z_cit-HepTh_b00_s1_279b10c5.txt",
+      "bytes": 298777,
+      "sha256": "60b60ef49c5d4376079ee83b5a2a257da3f07ea01beb5a6a508df389196a121b"
+    },
+    {
+      "path": "runs/sweep_nominal/cit-HepTh_b00_s1/seed_anchors_adv_gd_w_control_20261029T0257Z_cit-HepTh_b00_s1_279b10c5.txt",
+      "bytes": 11191,
+      "sha256": "b64916650b11683652fd51ad7648b13a35dc890ad668cee4c38816dad8e902cd"
+    }
+  ],
+  "metrics": {
+    "z1_sha256": "5d13effc4ab265a9717bc468dad5804c4ac3f17c75c36bc432b02bd7e2684353",
+    "z2_sha256": "a090de9caec2f6cbab5a145949512c0dc58526dad4e76d76aeadcd63e152f618",
+    "auc_g1": 0.9952577475,
+    "auc_g2": 0.9955567025,
+    "seed_anchors_found": 996,
+    "seed_anchors_correct": 996,
+    "seed_anchor_precision": 1.0,
+    "anchors_found": 918,
+    "anchors_correct": 912,
+    "anchor_precision": 0.9934640522875817,
+    "mapped": 26677,
+    "correct": 26665,
+    "chi": 0.9602434369260686,
+    "gamma": 0.9995501743074559,
+    "ignited": true
+  },
+  "seed": 0,
+  "arm": "C",
+  "w0_source": "ground_truth_pool_pairs",
+  "w0_uses_ground_truth": true,
+  "deterministic": true,
+  "gae_seed": 0,
+  "beta": 0.0,
+  "beta_nominal": 0.0,
+  "beta_mode": "nominal",
+  "pair_seed": 1,
+  "dataset": "hepth",
+  "phases": "123",
+  "params": {
+    "dim": 32,
+    "n_adv": 5000,
+    "n_anch": 1000,
+    "m": 10000
+  },
+  "config": {
+    "csls_k": 10,
+    "disc_hidden": 2048,
+    "disc_layers": 2,
+    "disc_dropout": 0.1,
+    "disc_input_dropout": 0.1,
+    "disc_leaky": 0.2,
+    "label_smooth": 0.2,
+    "adv_epochs": 5,
+    "adv_steps": 2000,
+    "refine_rounds": 5,
+    "ortho_beta": 0.01,
+    "normalize": "none",
+    "n_restarts": 1,
+    "skip_adversarial": true
+  },
+  "gae_epochs": 600,
+  "theta": 0.5,
+  "eccen_support": "all",
+  "matchable_nodes": 27769,
+  "pair_stats": {
+    "parent_edges": 352285,
+    "edges_a": 352285,
+    "edges_u": 352285,
+    "shared_edges": 352285,
+    "retention_a": 1.0,
+    "retention_u": 1.0,
+    "retention_predicted": 1.0,
+    "overlap_ratio": 1.0,
+    "overlap_predicted": 1.0,
+    "overlap_sigma": 0.0,
+    "jaccard": 1.0,
+    "jaccard_predicted": 1.0,
+    "beta": 0.0,
+    "beta_nominal": 0.0,
+    "beta_mode": "nominal",
+    "seed": 1,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 27769,
+    "nodes_a": 27769,
+    "nodes_u": 27769,
+    "isolated_dropped_a": 0,
+    "isolated_dropped_u": 0,
+    "matchable_nodes": 27769
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/sweep_nominal/cit-HepTh_b00_s1",
+  "run_id": "20261029T0257Z_cit-HepTh_b00_s1_279b10c5",
+  "config_sha256": "279b10c5",
+  "hash_check": {
+    "rule": "Log 3 E3 hash rule",
+    "disk": {
+      "z1": "5d13effc4ab265a9717bc468dad5804c4ac3f17c75c36bc432b02bd7e2684353",
+      "z2": "a090de9caec2f6cbab5a145949512c0dc58526dad4e76d76aeadcd63e152f618"
+    },
+    "recorded": {
+      "z1": "5d13effc4ab265a9717bc468dad5804c4ac3f17c75c36bc432b02bd7e2684353",
+      "z2": "a090de9caec2f6cbab5a145949512c0dc58526dad4e76d76aeadcd63e152f618"
+    },
+    "used": {
+      "z1": "5d13effc4ab265a9717bc468dad5804c4ac3f17c75c36bc432b02bd7e2684353",
+      "z2": "a090de9caec2f6cbab5a145949512c0dc58526dad4e76d76aeadcd63e152f618"
+    },
+    "n_align_records": 4,
+    "align_seeds_found": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "distinct_align_hash_pairs": [
+      {
+        "z1": "5d13effc4ab265a9717bc468dad5804c4ac3f17c75c36bc432b02bd7e2684353",
+        "z2": "a090de9caec2f6cbab5a145949512c0dc58526dad4e76d76aeadcd63e152f618",
+        "align_seeds": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "run_ids": [
+          "20261019T1626Z_cit-HepTh_b00_s1_1fda9b9f",
+          "20261019T1626Z_cit-HepTh_b00_s1_249d2be2",
+          "20261019T1626Z_cit-HepTh_b00_s1_cb686d85",
+          "20261019T1635Z_cit-HepTh_b00_s1_12c0601c"
+        ]
+      }
+    ],
+    "n_no_adversary_records": 1,
+    "arm_a_run_ids": [
+      "20261019T1626Z_cit-HepTh_b00_s1_1fda9b9f",
+      "20261019T1626Z_cit-HepTh_b00_s1_249d2be2",
+      "20261019T1626Z_cit-HepTh_b00_s1_cb686d85",
+      "20261019T1635Z_cit-HepTh_b00_s1_12c0601c"
+    ],
+    "arm_d_run_ids": [
+      "20261019T1724Z_cit-HepTh_b00_s1_24ea1b1e"
+    ],
+    "records_of_other_pair_content": 0,
+    "expect": {
+      "z1": null,
+      "z2": null
+    },
+    "flags": [],
+    "verdict": "pass",
+    "records_dir": "/home/mmyatmau/Graph-De-Anonymization/results/runs",
+    "record_files_scanned": 363
+  },
+  "refine_history": [
+    {
+      "round": 0,
+      "anchors": 923,
+      "mean_cosine": 0.9616116881370544
+    },
+    {
+      "round": 1,
+      "anchors": 920,
+      "mean_cosine": 0.9622386693954468
+    },
+    {
+      "round": 2,
+      "anchors": 918,
+      "mean_cosine": 0.9623727798461914
+    },
+    {
+      "round": 3,
+      "anchors": 918,
+      "mean_cosine": 0.9623850584030151
+    },
+    {
+      "round": 4,
+      "anchors": 918,
+      "mean_cosine": 0.9623850584030151
+    },
+    {
+      "round": 5,
+      "anchors": 918,
+      "mean_cosine": 0.9623850584030151
+    }
+  ],
+  "refine_scored": [
+    {
+      "round": 0,
+      "anchors": 923,
+      "correct": 916,
+      "precision": 0.9924160346695557
+    },
+    {
+      "round": 1,
+      "anchors": 920,
+      "correct": 914,
+      "precision": 0.9934782608695653
+    },
+    {
+      "round": 2,
+      "anchors": 918,
+      "correct": 912,
+      "precision": 0.9934640522875817
+    },
+    {
+      "round": 3,
+      "anchors": 918,
+      "correct": 912,
+      "precision": 0.9934640522875817
+    },
+    {
+      "round": 4,
+      "anchors": 918,
+      "correct": 912,
+      "precision": 0.9934640522875817
+    },
+    {
+      "round": 5,
+      "anchors": 918,
+      "correct": 912,
+      "precision": 0.9934640522875817
+    }
+  ],
+  "status_exit": "ok",
+  "seconds": 209.8,
+  "finished_utc": "2026-10-29T03:00:32+00:00"
+}

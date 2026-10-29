@@ -1,0 +1,47 @@
+phase 1: cached embeddings (read only)
+  reusing Z1.npz (27,156 nodes, 600 epochs)
+  reusing Z2.npz (27,133 nodes, 600 epochs)
+  z1 ea1bd122  z2 bef7c560
+  hash rule: pass  (4 align-seed records, seeds [0, 1, 2, 3], flags [])
+  reconstruction AUC  G1 0.9965  G2 0.9958
+W_0 source: ground_truth_pool_pairs
+  seed pairs 901/901  precision 1.0000
+phase 2: refinement from W_0
+W_0: Procrustes fit to 901 seed pairs
+    refine 0/5  anchors 802  mean cosine 0.9517
+    refine 1/5  anchors 799  mean cosine 0.9524
+    refine 2/5  anchors 798  mean cosine 0.9524
+    refine 3/5  anchors 798  mean cosine 0.9524
+    refine 4/5  anchors 798  mean cosine 0.9524
+    refine 5/5  anchors 798  mean cosine 0.9524
+phase 3: propagation
+  sweep   1  stage 0  +3,924 -> 4,722 mapped  30s
+  sweep   2  stage 0  +2,274 -> 6,996 mapped  49s
+  sweep   3  stage 0  +583 -> 7,579 mapped  63s
+  sweep   4  stage 0  +90 -> 7,669 mapped  76s
+  sweep   5  stage 0  +18 -> 7,687 mapped  89s
+  sweep   6  stage 0  +1 -> 7,688 mapped  102s
+  sweep   7  stage 0  +0 -> 7,688 mapped  114s
+  sweep   8  stage 1  +5,618 -> 13,306 mapped  129s
+  sweep   9  stage 1  +2,661 -> 15,967 mapped  141s
+  sweep  10  stage 1  +1,749 -> 17,716 mapped  153s
+  sweep  11  stage 1  +1,249 -> 18,965 mapped  163s
+  sweep  12  stage 1  +836 -> 19,801 mapped  172s
+  sweep  13  stage 1  +610 -> 20,411 mapped  181s
+  sweep  14  stage 1  +409 -> 20,820 mapped  189s
+  sweep  15  stage 1  +249 -> 21,069 mapped  196s
+  sweep  16  stage 1  +183 -> 21,252 mapped  203s
+  sweep  17  stage 1  +103 -> 21,355 mapped  209s
+  sweep  18  stage 1  +76 -> 21,431 mapped  216s
+  sweep  19  stage 1  +28 -> 21,459 mapped  223s
+  sweep  20  stage 1  +8 -> 21,467 mapped  229s
+  sweep  21  stage 1  +5 -> 21,472 mapped  236s
+  sweep  22  stage 1  +2 -> 21,474 mapped  242s
+  sweep  23  stage 1  +2 -> 21,476 mapped  249s
+  sweep  24  stage 1  +1 -> 21,477 mapped  255s
+  sweep  25  stage 1  +0 -> 21,477 mapped  262s
+
+  seed pairs       901/901  precision 1.0000
+  anchors (final)  763/798  precision 0.9561
+  de-anonymized    18,389/21,477 mapped  chi 0.6901  gamma 0.8562  ignited True
+  264s total

@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0525Z_cit-HepTh_b30_s0_cfa18f2f",
+  "started_utc": "2026-10-29T05:25:47+00:00",
+  "kind": "adv_gd_w_control",
+  "pair": "cit-HepTh_b30_s0",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": 0.3,
+  "n_restarts": null,
+  "anchor_precision": 0.9485199485199485,
+  "chi": 0.696477473083993,
+  "gamma": 0.8583448913546001,
+  "seconds": 317.5,
+  "git": "cb44d6ea30c2+dirty",
+  "note": "E3 W-control group d4_bc | E3 W-control task 2: arm B (composite_centrality_anchors), nominal beta=0.3, pair seed 0, gae seed 1"
+}

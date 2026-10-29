@@ -1,0 +1,59 @@
+phase 1: cached embeddings (read only)
+  reusing Z1.npz (26,798 nodes, 600 epochs)
+  reusing Z2.npz (26,831 nodes, 600 epochs)
+  z1 345bf53e  z2 3ea52d39
+  hash rule: pass  (4 align-seed records, seeds [0, 1, 2, 3], flags [])
+  reconstruction AUC  G1 0.9958  G2 0.9969
+W_0 source: composite_centrality_anchors
+  anchors: 557 mutual CSLS nearest neighbours (k=10) among top 1,000 degree nodes
+  seed pairs 153/557  precision 0.2747
+phase 2: refinement from W_0
+W_0: Procrustes fit to 557 seed pairs
+    refine 0/5  anchors 679  mean cosine 0.8965
+    refine 1/5  anchors 772  mean cosine 0.9445
+    refine 2/5  anchors 767  mean cosine 0.9450
+    refine 3/5  anchors 767  mean cosine 0.9450
+    refine 4/5  anchors 769  mean cosine 0.9450
+    refine 5/5  anchors 769  mean cosine 0.9450
+phase 3: propagation
+  sweep   1  stage 0  +2,188 -> 2,957 mapped  24s
+  sweep   2  stage 0  +2,183 -> 5,140 mapped  43s
+  sweep   3  stage 0  +989 -> 6,129 mapped  56s
+  sweep   4  stage 0  +371 -> 6,500 mapped  68s
+  sweep   5  stage 0  +147 -> 6,647 mapped  80s
+  sweep   6  stage 0  +52 -> 6,699 mapped  92s
+  sweep   7  stage 0  +10 -> 6,709 mapped  104s
+  sweep   8  stage 0  +1 -> 6,710 mapped  115s
+  sweep   9  stage 0  +0 -> 6,710 mapped  126s
+  sweep  10  stage 1  +3,939 -> 10,649 mapped  140s
+  sweep  11  stage 1  +2,223 -> 12,872 mapped  152s
+  sweep  12  stage 1  +1,344 -> 14,216 mapped  163s
+  sweep  13  stage 1  +836 -> 15,052 mapped  174s
+  sweep  14  stage 1  +552 -> 15,604 mapped  184s
+  sweep  15  stage 1  +326 -> 15,930 mapped  194s
+  sweep  16  stage 1  +195 -> 16,125 mapped  203s
+  sweep  17  stage 1  +139 -> 16,264 mapped  213s
+  sweep  18  stage 1  +83 -> 16,347 mapped  222s
+  sweep  19  stage 1  +56 -> 16,403 mapped  232s
+  sweep  20  stage 1  +54 -> 16,457 mapped  241s
+  sweep  21  stage 1  +30 -> 16,487 mapped  251s
+  sweep  22  stage 1  +14 -> 16,501 mapped  261s
+  sweep  23  stage 1  +12 -> 16,513 mapped  270s
+  sweep  24  stage 1  +4 -> 16,517 mapped  280s
+  sweep  25  stage 1  +3 -> 16,520 mapped  290s
+  sweep  26  stage 1  +2 -> 16,522 mapped  299s
+  sweep  27  stage 1  +4 -> 16,526 mapped  309s
+  sweep  28  stage 1  +6 -> 16,532 mapped  318s
+  sweep  29  stage 1  +8 -> 16,540 mapped  328s
+  sweep  30  stage 1  +2 -> 16,542 mapped  338s
+  sweep  31  stage 1  +2 -> 16,544 mapped  347s
+  sweep  32  stage 1  +6 -> 16,550 mapped  357s
+  sweep  33  stage 1  +9 -> 16,559 mapped  367s
+  sweep  34  stage 1  +4 -> 16,563 mapped  376s
+  sweep  35  stage 1  +3 -> 16,566 mapped  386s
+  sweep  36  stage 1  +0 -> 16,566 mapped  395s
+
+  seed pairs       153/557  precision 0.2747
+  anchors (final)  727/769  precision 0.9454
+  de-anonymized    13,276/16,566 mapped  chi 0.5079  gamma 0.8014  ignited True
+  437s total

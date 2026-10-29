@@ -1,0 +1,17 @@
+{
+  "run_id": "20261029T0438Z_cit-HepTh_b30_s0_56981102",
+  "started_utc": "2026-10-29T04:38:13+00:00",
+  "kind": "adv_gd",
+  "pair": "cit-HepTh_b30_s0",
+  "status": "exploratory",
+  "status_exit": "ok",
+  "seed": 1,
+  "beta": 0.3,
+  "n_restarts": 4,
+  "anchor_precision": 0.94921875,
+  "chi": 0.6938140075777469,
+  "gamma": 0.8633244643607338,
+  "seconds": 544.8,
+  "git": "cb44d6ea30c2+dirty",
+  "note": "E3 D4: Adv-GD comparator on GAE seed 1"
+}
