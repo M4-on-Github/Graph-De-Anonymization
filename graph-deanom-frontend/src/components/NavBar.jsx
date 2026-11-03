@@ -7,16 +7,13 @@ function NavBar() {
       <div className="navbar-brand">
         <Link to="/">Network Visualizer</Link>
       </div>
-
       <div className="navbar-links">
         <Link to="/" className="nav-link">
           Home
         </Link>
-
         <Link to="/graph" className="nav-link">
           Graph Datasets
         </Link>
-
         <Link to="/datasets" className="nav-link">
           Available Networks
         </Link>
