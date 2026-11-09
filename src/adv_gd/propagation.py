@@ -64,26 +64,45 @@ def eccentricity(scores: dict, universe: int, support: str = "all") -> float:
     return (top - second) / math.sqrt(var)
 
 
+def inverse_sqrt_degrees(G: nx.Graph) -> dict:
+    """node -> 1.0 / math.sqrt(degree), 0.0 for an isolated node.
+
+    The same expression `get_scores` evaluates inline, so each value is the
+    identical double; it is just computed once per node instead of once per
+    visit.
+    """
+    return {n: (1.0 / math.sqrt(d) if d else 0.0) for n, d in G.degree()}
+
+
 def get_scores(G1: nx.Graph, G2: nx.Graph, v1: str, phi: dict,
-               mapped_targets: set) -> dict:
+               mapped_targets: set, inv_sqrt_deg: dict | None = None) -> dict:
     """Algorithm 1: score every candidate in G2 against node v1 of G1.
 
     For each already-matched neighbour of v1, walk the neighbours of that
     neighbour's image in G2 and credit each unmatched one. The credit is
     1/sqrt(degree) so that high-degree nodes, which neighbour everything, do
     not win by default (paper section 3.2).
+
+    `inv_sqrt_deg` is an optional precomputed `inverse_sqrt_degrees(G2)`; when
+    omitted it is built here, so the result is the same either way. Neighbours
+    are visited in the graphs' own adjacency order and credits are summed in
+    that order, which fixes the floating-point result.
     """
+    if inv_sqrt_deg is None:
+        inv_sqrt_deg = inverse_sqrt_degrees(G2)
+    adj1, adj2 = G1._adj, G2._adj          # same iteration order as G[v]
     scores: dict[str, float] = {}
-    for nb in G1[v1]:
+    get = scores.get
+    for nb in adj1[v1]:
         img = phi.get(nb)
-        if img is None or img not in G2:
+        if img is None or img not in adj2:
             continue
-        for cand in G2[img]:
+        for cand in adj2[img]:
             if cand in mapped_targets:
                 continue
-            deg = G2.degree(cand)
-            if deg:
-                scores[cand] = scores.get(cand, 0.0) + 1.0 / math.sqrt(deg)
+            w = inv_sqrt_deg[cand]
+            if w:
+                scores[cand] = get(cand, 0.0) + w
     return scores
 
 
@@ -108,6 +127,13 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
     phi = {a: u for a, u in kept}                  # G^a -> G^u
     psi = {u: a for a, u in kept}                  # G^u -> G^a
 
+    # Mapped-target sets, kept in step with phi/psi below instead of copied
+    # from them on every get_scores call (the copy was O(mapped) per node).
+    mapped_u = set(psi)                            # G^u nodes already matched
+    mapped_a = set(phi)                            # G^a nodes already matched
+    inv_u = inverse_sqrt_degrees(Gu)
+    inv_a = inverse_sqrt_degrees(Ga)
+
     n_a, n_u = Gu.number_of_nodes(), Ga.number_of_nodes()
     flag = 0
     t0 = time.time()
@@ -118,14 +144,14 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
             if v_a in phi:
                 continue
 
-            s1 = get_scores(Ga, Gu, v_a, phi, set(psi))
+            s1 = get_scores(Ga, Gu, v_a, phi, mapped_u, inv_u)
             if eccentricity(s1, n_a, support) < theta:
                 continue
             v_u = max(s1.items(), key=lambda kv: kv[1])[0]
 
             # Reverse check: v_u must pick v_a back, which is what stops two
             # G^a nodes from both claiming the same G^u node.
-            s2 = get_scores(Gu, Ga, v_u, psi, set(phi))
+            s2 = get_scores(Gu, Ga, v_u, psi, mapped_a, inv_a)
             if eccentricity(s2, n_u, support) < theta:
                 continue
             v_back = max(s2.items(), key=lambda kv: kv[1])[0]
@@ -139,6 +165,8 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
 
             phi[v_a] = v_u
             psi[v_u] = v_a
+            mapped_u.add(v_u)
+            mapped_a.add(v_a)
             added += 1
 
         if verbose:

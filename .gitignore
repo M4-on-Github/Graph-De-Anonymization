@@ -4,7 +4,7 @@
 # in data/README.md with the URL to fetch them from.
 data/cit-HepTH/
 data/fb/
-gplus_combined.txt/
+gplus_combined.txt
 *.edgelist
 Graph Deanonymization2024/
 

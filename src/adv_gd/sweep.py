@@ -50,6 +50,10 @@ PARENTS = {
     # The paper's FB graph (Yale, 2005). Not in the repo: it is uploaded, and
     # scripts/e4_convert_fb.py turns the upload into this edge list.
     "fb": REPO_ROOT / "data" / "fb" / "fb.edgelist",
+    # The paper's Google+ graph (SNAP ego-Gplus, gplus_combined.txt): 107,614
+    # nodes, 13,673,453 unique directed lines, uploaded to the repo root and
+    # gitignored. load_parent collapses it to 12,238,285 undirected edges.
+    "gplus": REPO_ROOT / "gplus_combined.txt",
 }
 
 

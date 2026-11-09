@@ -67,8 +67,9 @@ exactly that name; pass `--compat-layout` to the generator to write that nesting
 
 ## Not in this repo
 
-`gplus_combined.txt/` (Google+, 1.3 GB, 107,614 nodes) goes at the repo root and is
-gitignored; it is not present in this checkout. It is a single directed edge list,
+`gplus_combined.txt` (Google+, SNAP ego-Gplus, 1.3 GB, 107,614 nodes, 13,673,453 unique
+directed lines among 30,494,866 with duplicates; sha256 c3b6e5fa...1ab451) goes at the
+repo root as a plain file and is gitignored; uploaded 2026-11-08. It is a single directed edge list,
 not a pair, so using it for matching means generating the pair yourself by
 perturbation.
 
