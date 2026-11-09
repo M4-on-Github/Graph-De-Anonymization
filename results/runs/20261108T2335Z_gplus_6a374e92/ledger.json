@@ -1,0 +1,17 @@
+{
+  "run_id": "20261108T2335Z_gplus_6a374e92",
+  "started_utc": "2026-11-08T23:35:18+00:00",
+  "kind": "dataset_characterization",
+  "pair": "gplus",
+  "status": "exploratory",
+  "status_exit": "ok",
+  "seed": 0,
+  "beta": null,
+  "n_restarts": null,
+  "anchor_precision": null,
+  "chi": null,
+  "gamma": null,
+  "seconds": 8689.1,
+  "git": "ae354b9ff3a0+dirty",
+  "note": "E4a dataset characterisation: gplus (SNAP ego-Gplus, uploaded 2026-11-08); exploratory, paper's third graph"
+}

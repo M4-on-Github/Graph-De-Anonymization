@@ -1,0 +1,17 @@
+{
+  "run_id": "20261109T0058Z_gplus_combined_b10_s3_9d5e5e78",
+  "started_utc": "2026-11-09T00:58:08+00:00",
+  "kind": "perturbation",
+  "pair": "gplus_combined_b10_s3",
+  "status": "confirmatory",
+  "status_exit": "ok",
+  "seed": 3,
+  "beta": 0.1,
+  "n_restarts": 1,
+  "anchor_precision": null,
+  "chi": null,
+  "gamma": null,
+  "seconds": 3.8,
+  "git": "804d71c4df00",
+  "note": "sweep cell for nominal beta=0.1 in nominal mode"
+}

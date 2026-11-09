@@ -1,0 +1,7 @@
+[gplus] /home/mmyatmau/Graph-De-Anonymization/gplus_combined.txt
+  components: 5.07s
+  transitivity: 7681.65s
+  core_number: 755.6s
+  twins: 16.17s
+  pagerank: 20.62s
+  eigenvector: 105.64s

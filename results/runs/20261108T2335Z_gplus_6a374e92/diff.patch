@@ -1,0 +1,44 @@
+diff --git a/.gitignore b/.gitignore
+index e9beef0..ef0a8c3 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -4,7 +4,7 @@
+ # in data/README.md with the URL to fetch them from.
+ data/cit-HepTH/
+ data/fb/
+-gplus_combined.txt/
++gplus_combined.txt
+ *.edgelist
+ Graph Deanonymization2024/
+ 
+diff --git a/data/README.md b/data/README.md
+index 8d3cf22..4fa773c 100644
+--- a/data/README.md
++++ b/data/README.md
+@@ -67,8 +67,9 @@ exactly that name; pass `--compat-layout` to the generator to write that nesting
+ 
+ ## Not in this repo
+ 
+-`gplus_combined.txt/` (Google+, 1.3 GB, 107,614 nodes) goes at the repo root and is
+-gitignored; it is not present in this checkout. It is a single directed edge list,
++`gplus_combined.txt` (Google+, SNAP ego-Gplus, 1.3 GB, 107,614 nodes, 13,673,453 unique
++directed lines among 30,494,866 with duplicates; sha256 c3b6e5fa...1ab451) goes at the
++repo root as a plain file and is gitignored; uploaded 2026-11-08. It is a single directed edge list,
+ not a pair, so using it for matching means generating the pair yourself by
+ perturbation.
+ 
+diff --git a/src/adv_gd/sweep.py b/src/adv_gd/sweep.py
+index b6e345d..21585e6 100644
+--- a/src/adv_gd/sweep.py
++++ b/src/adv_gd/sweep.py
+@@ -50,6 +50,10 @@ PARENTS = {
+     # The paper's FB graph (Yale, 2005). Not in the repo: it is uploaded, and
+     # scripts/e4_convert_fb.py turns the upload into this edge list.
+     "fb": REPO_ROOT / "data" / "fb" / "fb.edgelist",
++    # The paper's Google+ graph (SNAP ego-Gplus, gplus_combined.txt): 107,614
++    # nodes, 13,673,453 unique directed lines, uploaded to the repo root and
++    # gitignored. load_parent collapses it to 12,238,285 undirected edges.
++    "gplus": REPO_ROOT / "gplus_combined.txt",
+ }
+ 
+ 

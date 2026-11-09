@@ -1,0 +1,143 @@
+{
+  "kind": "perturbation",
+  "pair": "gplus_combined_b10_s3",
+  "status": "confirmatory",
+  "note": "sweep cell for nominal beta=0.1 in nominal mode",
+  "supersedes": null,
+  "started_utc": "2026-11-09T00:58:08+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/beta_noise_generator/perturbation.py",
+    "--parent",
+    "/home/mmyatmau/Graph-De-Anonymization/gplus_combined.txt",
+    "--beta",
+    "0.1",
+    "--beta-nominal",
+    "0.1",
+    "--beta-mode",
+    "nominal",
+    "--seed",
+    "3",
+    "--out",
+    "runs/pilot_gplus",
+    "--status",
+    "confirmatory",
+    "--note",
+    "sweep cell for nominal beta=0.1 in nominal mode"
+  ],
+  "git": {
+    "head": "804d71c4df00",
+    "head_full": "804d71c4df00b02c469c772929a83a5ec141eb6a",
+    "branch": "moe-dev",
+    "dirty": false,
+    "dirty_paths": [],
+    "untracked_inlined": [],
+    "untracked_hashed": [],
+    "diff_sha256": null,
+    "diff_bytes": 0
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-17",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "gplus_combined.txt",
+      "bytes": 1341774104,
+      "sha256": "c3b6e5fa980c688ef783cd6afabc0c17a635e5e7ad8f3edf8396907d3f1ab451"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/G1.edgelist",
+      "bytes": 131289772,
+      "sha256": "0e37e7b71815cf8506c6472d674f9f487649643ec7dc54b39ba921d248d7ba5c"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/G2.edgelist",
+      "bytes": 131419391,
+      "sha256": "29d66366fc6ce079c90a9428d2eaafa361c370a23cb95addfdc4d6a07dbf6920"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/mapping.txt",
+      "bytes": 1270016,
+      "sha256": "3ad4c309309f8422660e47f89da132139ecae6ef421deca5ee966aaae04ac4fd"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/stats.json",
+      "bytes": 670,
+      "sha256": "65c61cf91965f73e0200fae619c387fce7e03492e674708b14c9d97eb58809a7"
+    }
+  ],
+  "metrics": {
+    "overlap_ratio": 0.8100810693655197,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.00011213960670035253,
+    "jaccard": 0.8183016737458462,
+    "retention_a": 0.9000320714871406,
+    "retention_u": 0.9000030641548223,
+    "matchable_nodes": 106512,
+    "edges_a": 11014849,
+    "edges_u": 11014494,
+    "parent_edges": 12238285
+  },
+  "seed": 3,
+  "beta": 0.1,
+  "beta_nominal": 0.1,
+  "beta_mode": "nominal",
+  "mode": "bernoulli",
+  "permute": true,
+  "node_sample": null,
+  "compat_layout": false,
+  "n_restarts": 1,
+  "selection": "none (single draw, accepted on (1-beta)^2 overlap check)",
+  "selected_seed": 3,
+  "parent": "/home/mmyatmau/Graph-De-Anonymization/gplus_combined.txt",
+  "pair_stats": {
+    "parent_edges": 12238285,
+    "edges_a": 11014849,
+    "edges_u": 11014494,
+    "shared_edges": 9914003,
+    "retention_a": 0.9000320714871406,
+    "retention_u": 0.9000030641548223,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.8100810693655197,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.00011213960670035253,
+    "jaccard": 0.8183016737458462,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "beta_nominal": 0.1,
+    "beta_mode": "nominal",
+    "seed": 3,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 107614,
+    "nodes_a": 107069,
+    "nodes_u": 107002,
+    "isolated_dropped_a": 545,
+    "isolated_dropped_u": 612,
+    "matchable_nodes": 106512
+  },
+  "matchable_nodes": 106512,
+  "verify_passed": true,
+  "verify_message": "overlap 0.8101 vs predicted 0.8100 (delta 0.0001, tol 0.0100)",
+  "overwrote_existing": null,
+  "out_dir": "runs/pilot_gplus/gplus_combined_b10_s3",
+  "run_id": "20261109T0058Z_gplus_combined_b10_s3_9d5e5e78",
+  "config_sha256": "9d5e5e78",
+  "status_exit": "ok",
+  "seconds": 3.8,
+  "finished_utc": "2026-11-09T00:58:12+00:00"
+}
