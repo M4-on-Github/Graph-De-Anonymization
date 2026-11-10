@@ -1,0 +1,8 @@
+pair gplus_combined_b10_s3  beta=0.1  measure=degree
+  sweep   1  stage 0  +0 -> 5,000 mapped  6743s
+  sweep   2  stage 1  +425 -> 5,425 mapped  11936s
+  sweep   3  stage 1  +93 -> 5,518 mapped  16776s
+  sweep   4  stage 1  +19 -> 5,537 mapped  21633s
+  sweep   5  stage 1  +6 -> 5,543 mapped  26945s
+  sweep   6  stage 1  +1 -> 5,544 mapped  32084s
+  sweep   7  stage 1  +0 -> 5,544 mapped  36987s

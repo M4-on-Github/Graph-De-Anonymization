@@ -1,0 +1,7 @@
+pair gplus_combined_b10_s3  beta=0.1  measure=eigenvector
+  sweep   1  stage 0  +0 -> 5,000 mapped  2921s
+  sweep   2  stage 1  +263 -> 5,263 mapped  5832s
+  sweep   3  stage 1  +32 -> 5,295 mapped  8573s
+  sweep   4  stage 1  +1 -> 5,296 mapped  11293s
+  sweep   5  stage 1  +1 -> 5,297 mapped  14012s
+  sweep   6  stage 1  +0 -> 5,297 mapped  16731s

@@ -1,0 +1,6 @@
+pair gplus_combined_b10_s3  beta=0.1  measure=k_core
+  sweep   1  stage 0  +0 -> 5,000 mapped  1901s
+  sweep   2  stage 1  +355 -> 5,355 mapped  3780s
+  sweep   3  stage 1  +74 -> 5,429 mapped  5669s
+  sweep   4  stage 1  +4 -> 5,433 mapped  7561s
+  sweep   5  stage 1  +0 -> 5,433 mapped  9451s

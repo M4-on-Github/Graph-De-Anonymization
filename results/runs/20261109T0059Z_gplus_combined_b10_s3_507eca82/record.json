@@ -1,0 +1,143 @@
+{
+  "kind": "baseline_centrality_degree",
+  "pair": "gplus_combined_b10_s3",
+  "status": "exploratory",
+  "note": "Adv-GD suite: index-rank-matching baseline (docs/some-context.txt section 2)",
+  "supersedes": null,
+  "started_utc": "2026-11-09T00:59:49+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/baselines/sweep_baselines.py",
+    "--task-id",
+    "0",
+    "--betas",
+    "0.1",
+    "--pair-seeds",
+    "3",
+    "--beta-mode",
+    "nominal",
+    "--out",
+    "runs/pilot_gplus",
+    "--dataset",
+    "gplus",
+    "--method",
+    "centrality_rank",
+    "--status",
+    "exploratory",
+    "--note",
+    "Adv-GD suite: index-rank-matching baseline (docs/some-context.txt section 2)"
+  ],
+  "git": {
+    "head": "804d71c4df00",
+    "head_full": "804d71c4df00b02c469c772929a83a5ec141eb6a",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261109T0058Z_gplus_combined_b10_s3_9d5e5e78/",
+      "results/runs/index.jsonl"
+    ],
+    "untracked_inlined": [],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261109T0058Z_gplus_combined_b10_s3_9d5e5e78",
+        "tree": true,
+        "files": 2,
+        "bytes": 4534,
+        "listing_sha256": "5065ce4c5d77e33f14dd485ea51be2d2f6df1d1635f945eefcd1588eb0372f04"
+      }
+    ],
+    "diff_sha256": "32fb7d08e85b9cfedf003852c2eb6e1bbba1cc9dc389c772999a9d991ed03866",
+    "diff_bytes": 2318
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-0-17",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/G1.edgelist",
+      "bytes": 131289772,
+      "sha256": "0e37e7b71815cf8506c6472d674f9f487649643ec7dc54b39ba921d248d7ba5c"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/G2.edgelist",
+      "bytes": 131419391,
+      "sha256": "29d66366fc6ce079c90a9428d2eaafa361c370a23cb95addfdc4d6a07dbf6920"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/mapping.txt",
+      "bytes": 1270016,
+      "sha256": "3ad4c309309f8422660e47f89da132139ecae6ef421deca5ee966aaae04ac4fd"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/stats.json",
+      "bytes": 670,
+      "sha256": "65c61cf91965f73e0200fae619c387fce7e03492e674708b14c9d97eb58809a7"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s3/out_mapping_baseline_centrality_degree_20261109T0059Z_gplus_combined_b10_s3_507eca82.txt",
+      "bytes": 66112,
+      "sha256": "221aa53b36f371d4f6721527c91638dd493e64bcecaa1549745d7940aff57d84"
+    }
+  ],
+  "metrics": {
+    "pure_chi": 0.0016054529067147363,
+    "pure_gamma": 0.0015981009700753257,
+    "chi": 0.0042718191377497374,
+    "gamma": 0.08207070707070707
+  },
+  "seed": 0,
+  "beta": 0.1,
+  "dataset": "gplus",
+  "measure": "degree",
+  "phases": "123",
+  "theta": 0.5,
+  "eccen_support": "all",
+  "n_anch": 5000,
+  "matchable_nodes": 106512,
+  "pair_stats": {
+    "parent_edges": 12238285,
+    "edges_a": 11014849,
+    "edges_u": 11014494,
+    "shared_edges": 9914003,
+    "retention_a": 0.9000320714871406,
+    "retention_u": 0.9000030641548223,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.8100810693655197,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.00011213960670035253,
+    "jaccard": 0.8183016737458462,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "beta_nominal": 0.1,
+    "beta_mode": "nominal",
+    "seed": 3,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 107614,
+    "nodes_a": 107069,
+    "nodes_u": 107002,
+    "isolated_dropped_a": 545,
+    "isolated_dropped_u": 612,
+    "matchable_nodes": 106512
+  },
+  "pair_dir": "/home/mmyatmau/Graph-De-Anonymization/runs/pilot_gplus/gplus_combined_b10_s3",
+  "run_id": "20261109T0059Z_gplus_combined_b10_s3_507eca82",
+  "config_sha256": "507eca82",
+  "status_exit": "ok",
+  "seconds": 36987.8,
+  "finished_utc": "2026-11-09T11:16:17+00:00"
+}
