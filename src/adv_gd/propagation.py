@@ -106,6 +106,12 @@ def get_scores(G1: nx.Graph, G2: nx.Graph, v1: str, phi: dict,
     return scores
 
 
+# Per-sweep count of forward evaluations (get_scores calls on G^a nodes) made
+# by the most recent `propagate` call. Diagnostics only: nothing in the
+# records reads it, and it does not affect the mapping.
+LAST_EVALUATIONS: list = []
+
+
 def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
               theta: float = 0.5, support: str = "all",
               max_sweeps: int = 100, verbose: bool = True) -> dict:
@@ -117,6 +123,49 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
     on topology alone.
 
     Returns the mapping from G^a ids to G^u ids, anchors included.
+
+    Skipping unchanged nodes (exact; the mapping, its insertion order, the
+    number of sweeps and every sweep's "+N" are those of the full rescan).
+    The algorithm is a sequential scan: every sweep visits Ga.nodes() in order
+    and each evaluation sees the state left by the earlier ones. The state is
+    phi, psi, mapped_a = set(phi), mapped_u = set(psi) and flag; the graphs,
+    degrees, candidates, theta and support are fixed. The decision for an
+    unmapped w is a function of
+      (a) s1(w) = get_scores(Ga, Gu, w, phi, mapped_u): reads phi on N_a(w)
+          and mapped_u on Cand1(w) = union of N_u(phi[nb]) over nb in
+          N_a(w) with nb in phi; insertion order and float sums are fixed by
+          those reads, so s1 (and hence ecc and argmax z) changes only if one
+          of them changes;
+      (b) if ecc(s1) >= theta with argmax z: s2(z) = get_scores(Gu, Ga, z,
+          psi, mapped_a), which reads psi on N_u(z) and mapped_a on Cand2(z)
+          = union of N_a(psi[y]) over y in N_u(z) with y in psi;
+      (c) if v_back == w: the stage-one test, which reads flag only.
+    Accepting (v_a, v_u) changes exactly phi[v_a], psi[v_u], v_a in mapped_a
+    and v_u in mapped_u (v_u was not in mapped_u, which contains every value
+    of phi, and v_a not in mapped_a, which contains every value of psi). So
+    the outcome of w can change only if
+      D1  v_a in N_a(w)                          (phi on N_a(w));
+      D2  v_u in Cand1(w): w in N_a(a) for some a with phi[a] in N_u(v_u)
+                                                 (mapped_u on Cand1(w));
+      D3  w last reached (b) with argmax z and either v_u in N_u(z) (psi on
+          N_u(z)) or v_a in Cand2(z): z in N_u(y) for some y with psi[y] in
+          N_a(v_a)                               (mapped_a on Cand2(z)).
+    D2 and D3 go through the inverse maps `pre` (x -> every a with phi[a] =
+    x) and `qre` (b -> every y with psi[y] = b), not through psi / phi: with
+    duplicated anchors phi and psi are not inverses of each other (pairs
+    (a1,u1), (a2,u1) give phi[a1] = phi[a2] = u1 but psi[u1] = a2 only).
+    N_a / N_u above are successor sets; the marks walk predecessors, which
+    are the same sets for an undirected graph.
+    `best_of[z]` holds the w whose last evaluation reached (b) with argmax z;
+    w leaves it when re-evaluated, and the whole set is dropped once dirtied.
+    v_u itself is added to the D3 set, which costs nothing and also covers
+    every w whose argmax was v_u (D2 already does). The flag flip changes only
+    (c), so it dirties exactly the w whose last evaluation failed at the
+    stage-one test (`cand_fail`). Initially every node is dirty.
+    Invariant: an unmapped node not in `dirty` would be rejected if evaluated
+    on the current state, so skipping it is the same as the old rescan
+    evaluating and rejecting it (a rejection changes no state). The sets are
+    only tested for membership, so set iteration order never reaches phi.
     """
     # Drop any anchor naming a node that is not in both graphs, then build the
     # two directions from the surviving pairs. Deriving psi from the filtered
@@ -134,20 +183,52 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
     inv_u = inverse_sqrt_degrees(Gu)
     inv_a = inverse_sqrt_degrees(Ga)
 
+    # Dependency bookkeeping for skipping nodes (see the docstring). The
+    # marks need "who has v among its neighbours", i.e. predecessors; for an
+    # undirected graph that is the adjacency itself.
+    adj_a = Ga._pred if Ga.is_directed() else Ga._adj
+    adj_u = Gu._pred if Gu.is_directed() else Gu._adj
+    pre: dict = {}                                 # G^u x -> [a : phi[a] = x]
+    for a, u in phi.items():
+        pre.setdefault(u, []).append(a)
+    qre: dict = {}                                 # G^a b -> [y : psi[y] = b]
+    for u, a in psi.items():
+        qre.setdefault(a, []).append(u)
+    dirty = set(Ga.nodes())                        # G^a nodes to evaluate
+    best_of: dict = {}                             # G^u z -> {w reaching (b)}
+    best_cur: dict = {}                            # G^a w -> its registered z
+    cand_fail = set()                              # failed only the stage-1 test
+
     n_a, n_u = Gu.number_of_nodes(), Ga.number_of_nodes()
     flag = 0
     t0 = time.time()
+    LAST_EVALUATIONS.clear()
 
     for sweep in range(1, max_sweeps + 1):
         added = 0
+        n_eval = 0
         for v_a in list(Ga.nodes()):
             if v_a in phi:
                 continue
+            if v_a not in dirty:
+                continue            # last evaluation rejected; inputs unchanged
+            dirty.discard(v_a)
+            n_eval += 1
+            z_old = best_cur.pop(v_a, None)
+            if z_old is not None:
+                ws = best_of.get(z_old)
+                if ws is not None:
+                    ws.discard(v_a)
+                    if not ws:
+                        del best_of[z_old]
+            cand_fail.discard(v_a)
 
             s1 = get_scores(Ga, Gu, v_a, phi, mapped_u, inv_u)
             if eccentricity(s1, n_a, support) < theta:
                 continue
             v_u = max(s1.items(), key=lambda kv: kv[1])[0]
+            best_cur[v_a] = v_u
+            best_of.setdefault(v_u, set()).add(v_a)
 
             # Reverse check: v_u must pick v_a back, which is what stops two
             # G^a nodes from both claiming the same G^u node.
@@ -161,6 +242,7 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
             # Stage one additionally requires the match to be in the candidate
             # set built by Phase 2 (Algorithm 2, line 11).
             if flag == 0 and v_u not in candidates.get(v_a, ()):
+                cand_fail.add(v_a)
                 continue
 
             phi[v_a] = v_u
@@ -168,7 +250,23 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
             mapped_u.add(v_u)
             mapped_a.add(v_a)
             added += 1
+            pre.setdefault(v_u, []).append(v_a)
+            qre.setdefault(v_a, []).append(v_u)
 
+            # Mark every node whose outcome may have changed.
+            dirty.update(adj_a[v_a])                            # D1
+            for x in adj_u[v_u]:                                # D2
+                for a in pre.get(x, ()):
+                    dirty.update(adj_a[a])
+            zs = set(adj_u[v_u])                                # D3
+            zs.add(v_u)
+            for b in adj_a[v_a]:
+                for y in qre.get(b, ()):
+                    zs.update(adj_u[y])
+            for z in best_of.keys() & zs:
+                dirty.update(best_of.pop(z))
+
+        LAST_EVALUATIONS.append(n_eval)
         if verbose:
             print(f"  sweep {sweep:3d}  stage {flag}  +{added:,} "
                   f"-> {len(phi):,} mapped  {time.time() - t0:.0f}s",
@@ -177,6 +275,8 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
         if added == 0:
             if flag == 0:
                 flag = 1            # candidate restriction lifted
+                dirty.update(cand_fail)
+                cand_fail.clear()
                 continue
             break
 
