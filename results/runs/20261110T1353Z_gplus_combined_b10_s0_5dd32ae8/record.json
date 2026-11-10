@@ -1,0 +1,148 @@
+{
+  "kind": "perturbation",
+  "pair": "gplus_combined_b10_s0",
+  "status": "confirmatory",
+  "note": "sweep cell for nominal beta=0.1 in nominal mode",
+  "supersedes": null,
+  "started_utc": "2026-11-10T13:53:48+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/beta_noise_generator/perturbation.py",
+    "--parent",
+    "/home/mmyatmau/Graph-De-Anonymization/gplus_combined.txt",
+    "--beta",
+    "0.1",
+    "--beta-nominal",
+    "0.1",
+    "--beta-mode",
+    "nominal",
+    "--seed",
+    "0",
+    "--out",
+    "runs/pilot_gplus",
+    "--status",
+    "confirmatory",
+    "--note",
+    "sweep cell for nominal beta=0.1 in nominal mode"
+  ],
+  "git": {
+    "head": "3e8f37fe9082",
+    "head_full": "3e8f37fe90824f7ecaaf1d2cf14f3906904b2ba3",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "scripts/propagate_frontier_check.py",
+      "src/adv_gd/propagation.py"
+    ],
+    "untracked_inlined": [
+      "scripts/propagate_frontier_check.py"
+    ],
+    "untracked_hashed": [],
+    "diff_sha256": "c723433e6aa96e4474b751b7e2f119811b66a0636d88bf95a784890b8abbafcb",
+    "diff_bytes": 20233
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "gplus_combined.txt",
+      "bytes": 1341774104,
+      "sha256": "c3b6e5fa980c688ef783cd6afabc0c17a635e5e7ad8f3edf8396907d3f1ab451"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s0/G1.edgelist",
+      "bytes": 131328019,
+      "sha256": "c79e06fc7163b174a5c592c78f9d3d35e08e896a3bca4172994934b2dacd6255"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s0/G2.edgelist",
+      "bytes": 131292283,
+      "sha256": "23bdd2f111799aea04798f7e66c00b93d1237c4136c56f9095c7462c1f89a587"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s0/mapping.txt",
+      "bytes": 1269727,
+      "sha256": "7248a201af6444b41b5917269ab96f8c5e8e31b07d29982a8ab61111d337a188"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s0/stats.json",
+      "bytes": 669,
+      "sha256": "8b4cd6a3f939d98fb4df61bbbb717adf33216082507751f7c4b930d004df615d"
+    }
+  ],
+  "metrics": {
+    "overlap_ratio": 0.810116613561459,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.00011213960670035253,
+    "jaccard": 0.8182967831478918,
+    "retention_a": 0.9000851835040612,
+    "retention_u": 0.9000348496541795,
+    "matchable_nodes": 106490,
+    "edges_a": 11015499,
+    "edges_u": 11014883,
+    "parent_edges": 12238285
+  },
+  "seed": 0,
+  "beta": 0.1,
+  "beta_nominal": 0.1,
+  "beta_mode": "nominal",
+  "mode": "bernoulli",
+  "permute": true,
+  "node_sample": null,
+  "compat_layout": false,
+  "n_restarts": 1,
+  "selection": "none (single draw, accepted on (1-beta)^2 overlap check)",
+  "selected_seed": 0,
+  "parent": "/home/mmyatmau/Graph-De-Anonymization/gplus_combined.txt",
+  "pair_stats": {
+    "parent_edges": 12238285,
+    "edges_a": 11015499,
+    "edges_u": 11014883,
+    "shared_edges": 9914438,
+    "retention_a": 0.9000851835040612,
+    "retention_u": 0.9000348496541795,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.810116613561459,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.00011213960670035253,
+    "jaccard": 0.8182967831478918,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "beta_nominal": 0.1,
+    "beta_mode": "nominal",
+    "seed": 0,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 107614,
+    "nodes_a": 107039,
+    "nodes_u": 107005,
+    "isolated_dropped_a": 575,
+    "isolated_dropped_u": 609,
+    "matchable_nodes": 106490
+  },
+  "matchable_nodes": 106490,
+  "verify_passed": true,
+  "verify_message": "overlap 0.8101 vs predicted 0.8100 (delta 0.0001, tol 0.0100)",
+  "overwrote_existing": null,
+  "out_dir": "runs/pilot_gplus/gplus_combined_b10_s0",
+  "run_id": "20261110T1353Z_gplus_combined_b10_s0_5dd32ae8",
+  "config_sha256": "5dd32ae8",
+  "status_exit": "ok",
+  "seconds": 8.4,
+  "finished_utc": "2026-11-10T13:53:56+00:00"
+}

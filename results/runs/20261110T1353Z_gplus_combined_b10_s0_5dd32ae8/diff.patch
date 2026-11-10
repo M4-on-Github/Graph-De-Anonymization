@@ -1,0 +1,435 @@
+diff --git a/src/adv_gd/propagation.py b/src/adv_gd/propagation.py
+index 1d55737..b246a86 100644
+--- a/src/adv_gd/propagation.py
++++ b/src/adv_gd/propagation.py
+@@ -106,6 +106,12 @@ def get_scores(G1: nx.Graph, G2: nx.Graph, v1: str, phi: dict,
+     return scores
+ 
+ 
++# Per-sweep count of forward evaluations (get_scores calls on G^a nodes) made
++# by the most recent `propagate` call. Diagnostics only: nothing in the
++# records reads it, and it does not affect the mapping.
++LAST_EVALUATIONS: list = []
++
++
+ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
+               theta: float = 0.5, support: str = "all",
+               max_sweeps: int = 100, verbose: bool = True) -> dict:
+@@ -117,6 +123,49 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
+     on topology alone.
+ 
+     Returns the mapping from G^a ids to G^u ids, anchors included.
++
++    Skipping unchanged nodes (exact; the mapping, its insertion order, the
++    number of sweeps and every sweep's "+N" are those of the full rescan).
++    The algorithm is a sequential scan: every sweep visits Ga.nodes() in order
++    and each evaluation sees the state left by the earlier ones. The state is
++    phi, psi, mapped_a = set(phi), mapped_u = set(psi) and flag; the graphs,
++    degrees, candidates, theta and support are fixed. The decision for an
++    unmapped w is a function of
++      (a) s1(w) = get_scores(Ga, Gu, w, phi, mapped_u): reads phi on N_a(w)
++          and mapped_u on Cand1(w) = union of N_u(phi[nb]) over nb in
++          N_a(w) with nb in phi; insertion order and float sums are fixed by
++          those reads, so s1 (and hence ecc and argmax z) changes only if one
++          of them changes;
++      (b) if ecc(s1) >= theta with argmax z: s2(z) = get_scores(Gu, Ga, z,
++          psi, mapped_a), which reads psi on N_u(z) and mapped_a on Cand2(z)
++          = union of N_a(psi[y]) over y in N_u(z) with y in psi;
++      (c) if v_back == w: the stage-one test, which reads flag only.
++    Accepting (v_a, v_u) changes exactly phi[v_a], psi[v_u], v_a in mapped_a
++    and v_u in mapped_u (v_u was not in mapped_u, which contains every value
++    of phi, and v_a not in mapped_a, which contains every value of psi). So
++    the outcome of w can change only if
++      D1  v_a in N_a(w)                          (phi on N_a(w));
++      D2  v_u in Cand1(w): w in N_a(a) for some a with phi[a] in N_u(v_u)
++                                                 (mapped_u on Cand1(w));
++      D3  w last reached (b) with argmax z and either v_u in N_u(z) (psi on
++          N_u(z)) or v_a in Cand2(z): z in N_u(y) for some y with psi[y] in
++          N_a(v_a)                               (mapped_a on Cand2(z)).
++    D2 and D3 go through the inverse maps `pre` (x -> every a with phi[a] =
++    x) and `qre` (b -> every y with psi[y] = b), not through psi / phi: with
++    duplicated anchors phi and psi are not inverses of each other (pairs
++    (a1,u1), (a2,u1) give phi[a1] = phi[a2] = u1 but psi[u1] = a2 only).
++    N_a / N_u above are successor sets; the marks walk predecessors, which
++    are the same sets for an undirected graph.
++    `best_of[z]` holds the w whose last evaluation reached (b) with argmax z;
++    w leaves it when re-evaluated, and the whole set is dropped once dirtied.
++    v_u itself is added to the D3 set, which costs nothing and also covers
++    every w whose argmax was v_u (D2 already does). The flag flip changes only
++    (c), so it dirties exactly the w whose last evaluation failed at the
++    stage-one test (`cand_fail`). Initially every node is dirty.
++    Invariant: an unmapped node not in `dirty` would be rejected if evaluated
++    on the current state, so skipping it is the same as the old rescan
++    evaluating and rejecting it (a rejection changes no state). The sets are
++    only tested for membership, so set iteration order never reaches phi.
+     """
+     # Drop any anchor naming a node that is not in both graphs, then build the
+     # two directions from the surviving pairs. Deriving psi from the filtered
+@@ -134,20 +183,52 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
+     inv_u = inverse_sqrt_degrees(Gu)
+     inv_a = inverse_sqrt_degrees(Ga)
+ 
++    # Dependency bookkeeping for skipping nodes (see the docstring). The
++    # marks need "who has v among its neighbours", i.e. predecessors; for an
++    # undirected graph that is the adjacency itself.
++    adj_a = Ga._pred if Ga.is_directed() else Ga._adj
++    adj_u = Gu._pred if Gu.is_directed() else Gu._adj
++    pre: dict = {}                                 # G^u x -> [a : phi[a] = x]
++    for a, u in phi.items():
++        pre.setdefault(u, []).append(a)
++    qre: dict = {}                                 # G^a b -> [y : psi[y] = b]
++    for u, a in psi.items():
++        qre.setdefault(a, []).append(u)
++    dirty = set(Ga.nodes())                        # G^a nodes to evaluate
++    best_of: dict = {}                             # G^u z -> {w reaching (b)}
++    best_cur: dict = {}                            # G^a w -> its registered z
++    cand_fail = set()                              # failed only the stage-1 test
++
+     n_a, n_u = Gu.number_of_nodes(), Ga.number_of_nodes()
+     flag = 0
+     t0 = time.time()
++    LAST_EVALUATIONS.clear()
+ 
+     for sweep in range(1, max_sweeps + 1):
+         added = 0
++        n_eval = 0
+         for v_a in list(Ga.nodes()):
+             if v_a in phi:
+                 continue
++            if v_a not in dirty:
++                continue            # last evaluation rejected; inputs unchanged
++            dirty.discard(v_a)
++            n_eval += 1
++            z_old = best_cur.pop(v_a, None)
++            if z_old is not None:
++                ws = best_of.get(z_old)
++                if ws is not None:
++                    ws.discard(v_a)
++                    if not ws:
++                        del best_of[z_old]
++            cand_fail.discard(v_a)
+ 
+             s1 = get_scores(Ga, Gu, v_a, phi, mapped_u, inv_u)
+             if eccentricity(s1, n_a, support) < theta:
+                 continue
+             v_u = max(s1.items(), key=lambda kv: kv[1])[0]
++            best_cur[v_a] = v_u
++            best_of.setdefault(v_u, set()).add(v_a)
+ 
+             # Reverse check: v_u must pick v_a back, which is what stops two
+             # G^a nodes from both claiming the same G^u node.
+@@ -161,6 +242,7 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
+             # Stage one additionally requires the match to be in the candidate
+             # set built by Phase 2 (Algorithm 2, line 11).
+             if flag == 0 and v_u not in candidates.get(v_a, ()):
++                cand_fail.add(v_a)
+                 continue
+ 
+             phi[v_a] = v_u
+@@ -168,7 +250,23 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
+             mapped_u.add(v_u)
+             mapped_a.add(v_a)
+             added += 1
+-
++            pre.setdefault(v_u, []).append(v_a)
++            qre.setdefault(v_a, []).append(v_u)
++
++            # Mark every node whose outcome may have changed.
++            dirty.update(adj_a[v_a])                            # D1
++            for x in adj_u[v_u]:                                # D2
++                for a in pre.get(x, ()):
++                    dirty.update(adj_a[a])
++            zs = set(adj_u[v_u])                                # D3
++            zs.add(v_u)
++            for b in adj_a[v_a]:
++                for y in qre.get(b, ()):
++                    zs.update(adj_u[y])
++            for z in best_of.keys() & zs:
++                dirty.update(best_of.pop(z))
++
++        LAST_EVALUATIONS.append(n_eval)
+         if verbose:
+             print(f"  sweep {sweep:3d}  stage {flag}  +{added:,} "
+                   f"-> {len(phi):,} mapped  {time.time() - t0:.0f}s",
+@@ -177,6 +275,8 @@ def propagate(Ga: nx.Graph, Gu: nx.Graph, anchors: list, candidates: dict,
+         if added == 0:
+             if flag == 0:
+                 flag = 1            # candidate restriction lifted
++                dirty.update(cand_fail)
++                cand_fail.clear()
+                 continue
+             break
+ 
+diff --git a/scripts/propagate_frontier_check.py b/scripts/propagate_frontier_check.py
+new file mode 100644
+index 0000000..0355e58
+--- /dev/null
++++ b/scripts/propagate_frontier_check.py
+@@ -0,0 +1,267 @@
++#!/usr/bin/env python3
++"""Check that the skipping `propagate` (src/adv_gd/propagation.py) equals the full rescan.
++
++Runs the OLD implementation (--old, a propagation.py that rescans every unmapped node in
++every sweep) and the NEW one from src/adv_gd/propagation.py on many synthetic pairs and
++compares, per case:
++  * the sha256 of the sorted "<a> <u>" lines of the mapping, and the mapping's item order
++    (ignition_grid.py writes the mapping in insertion order, so that order is in the
++    stored hashes too);
++  * the sweep lines on stderr, as (sweep, stage, +N, mapped) tuples (the time is dropped);
++  * the exception, if one is raised.
++It prints old/new seconds per case and, from NEW's propagation.LAST_EVALUATIONS, how many
++forward evaluations the new code made against how many the full rescan makes.
++
++Cases vary: seed; n in 200..3000; gnm or powerlaw-cluster parent (a few directed gnm);
++5-25% of the parent's edges deleted independently per side; some nodes dropped from one
++side; shuffled node and edge insertion order; isolated nodes and self-loops; disjoint or
++shared id spaces; anchors by degree or at random, 0-30% wrong, a few naming missing
++nodes, some duplicated on the a or u side; candidates {} / {a: [u]} per anchor /
++partly-true lists for 40% of nodes (so stage one accepts nodes and the flag flip matters);
++support "all" and "nonzero"; theta 0.5 in most cases, a few other values; max_sweeps 100
++or 2-3.
++
++Usage (from the repo root, in the container; no install needed):
++    python3 scripts/propagate_frontier_check.py \\
++        --old /data/mmyatmau/Graph-De-Anonymization/scratch/propagation_old.py
++    ... [--cases 240] [--seed 0] [--max-n 3000] [--case K]
++Exit status 1 on any mismatch, 2 on setup error.
++"""
++import argparse
++import contextlib
++import hashlib
++import importlib.util
++import io
++import random
++import re
++import sys
++import time
++from pathlib import Path
++
++REPO_ROOT = Path(__file__).resolve().parents[1]
++NEW_PATH = REPO_ROOT / "src" / "adv_gd" / "propagation.py"
++SWEEP_RE = re.compile(r"^\s*sweep\s+(\d+)\s+stage\s+(\d+)\s+\+([\d,]+)\s+->\s+([\d,]+)"
++                      r" mapped\s+\d+s$")
++SIZES = [200, 300, 500, 800, 1200, 2000, 3000]
++
++
++def load_module_from(path, name):
++    spec = importlib.util.spec_from_file_location(name, path)
++    mod = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(mod)
++    return mod
++
++
++def sorted_hash(mapping):
++    lines = sorted(f"{a} {u}\n" for a, u in mapping.items())
++    return hashlib.sha256("".join(lines).encode()).hexdigest()
++
++
++def run(mod, Ga, Gu, anchors, candidates, theta, support, max_sweeps):
++    buf = io.StringIO()
++    t = time.time()
++    exc, m = None, None
++    with contextlib.redirect_stderr(buf):
++        try:
++            m = mod.propagate(Ga, Gu, anchors, candidates, theta=theta,
++                              support=support, max_sweeps=max_sweeps, verbose=True)
++        except Exception as e:                       # compared, not hidden
++            exc = f"{type(e).__name__}: {e}"
++    dt = time.time() - t
++    sweeps, other = [], []
++    for line in buf.getvalue().splitlines():
++        mt = SWEEP_RE.match(line)
++        if mt:
++            sweeps.append((int(mt.group(1)), int(mt.group(2)),
++                           int(mt.group(3).replace(",", "")),
++                           int(mt.group(4).replace(",", ""))))
++        else:
++            other.append(line)
++    return m, sweeps, other, exc, dt
++
++
++def build_side(nx, nodes, edges, rng, directed, label):
++    H = nx.DiGraph() if directed else nx.Graph()
++    ns = list(nodes)
++    rng.shuffle(ns)
++    H.add_nodes_from(label(n) for n in ns)
++    es = list(edges)
++    rng.shuffle(es)
++    for x, y in es:
++        if not directed and rng.random() < 0.5:
++            x, y = y, x
++        H.add_edge(label(x), label(y))
++    return H
++
++
++def make_case(nx, k, base_seed, max_n):
++    """Return (description, Ga, Gu, anchors, candidates, theta, support, max_sweeps)."""
++    rng = random.Random(base_seed * 1_000_003 + k)
++    gseed = rng.randrange(2**31)
++    n = rng.choice([s for s in SIZES if s <= max_n] or [max_n])
++    directed = rng.random() < 0.05
++    if directed or rng.random() < 0.5:
++        deg = rng.choice([4, 8, 16])
++        G = nx.gnm_random_graph(n, n * deg // 2, seed=gseed, directed=directed)
++        model = f"gnm{'-dir' if directed else ''}(n={n},deg={deg})"
++    else:
++        m_ = rng.choice([2, 4, 8])
++        p_ = rng.choice([0.1, 0.5])
++        G = nx.powerlaw_cluster_graph(n, m_, p_, seed=gseed)
++        model = f"plc(n={n},m={m_},p={p_})"
++
++    edges = list(G.edges())
++    da, du = rng.uniform(0.05, 0.25), rng.uniform(0.05, 0.25)
++    ea = [e for e in edges if rng.random() >= da]
++    eu = [e for e in edges if rng.random() >= du]
++    nodes = list(G.nodes())
++    drop = rng.choice([0.0, 0.0, 0.05, 0.1])
++    na = [v for v in nodes if rng.random() >= drop]
++    nu = [v for v in nodes if rng.random() >= drop]
++    sa, su = set(na), set(nu)
++    ea = [(x, y) for x, y in ea if x in sa and y in sa]
++    eu = [(x, y) for x, y in eu if x in su and y in su]
++    if rng.random() < 0.1:                       # self-loops
++        ea += [(v, v) for v in rng.sample(na, max(1, len(na) // 100))]
++        eu += [(v, v) for v in rng.sample(nu, max(1, len(nu) // 100))]
++    shared = rng.random() < 0.15
++    la = (lambda v: f"n{v}") if shared else (lambda v: f"a{v}")
++    lu = (lambda v: f"n{v}") if shared else (lambda v: f"u{v}")
++    Ga = build_side(nx, na, ea, rng, directed, la)
++    Gu = build_side(nx, nu, eu, rng, directed, lu)
++    for i in range(rng.choice([0, 3, 10])):     # isolated nodes
++        Ga.add_node(f"iso_a{i}")
++        Gu.add_node(f"iso_u{i}")
++
++    common = [v for v in nodes if v in sa and v in su]
++    frac = rng.choice([0.01, 0.03, 0.08])
++    n_anch = max(5, int(frac * len(common)))
++    if rng.random() < 0.6:
++        pick = sorted(common, key=lambda v: -G.degree(v))[:n_anch]
++    else:
++        pick = rng.sample(common, min(n_anch, len(common)))
++    wrong = rng.choice([0.0, 0.1, 0.3])
++    anchors = []
++    for v in pick:
++        if rng.random() < wrong:
++            anchors.append((la(v), lu(rng.choice(nu))))
++        else:
++            anchors.append((la(v), lu(v)))
++    anchors.append(("missing_a", lu(rng.choice(nu))))
++    anchors.append((la(rng.choice(na)), "missing_u"))
++    dup = rng.random() < 0.2
++    if dup and len(anchors) > 4:
++        for _ in range(3):                       # same a, other u; same u, other a
++            a, _u = rng.choice(anchors[:-2])
++            anchors.append((a, lu(rng.choice(nu))))
++            _a, u = rng.choice(anchors[:-2])
++            anchors.append((la(rng.choice(na)), u))
++    rng.shuffle(anchors)
++
++    cmode = rng.choice(["empty", "anchors", "partial_truth"])
++    if cmode == "empty":
++        candidates = {}
++    elif cmode == "anchors":
++        candidates = {a: [u] for a, u in anchors}
++    else:
++        candidates = {}
++        for v in na:
++            if rng.random() < 0.4:
++                lst = [lu(rng.choice(nu))]
++                if v in su and rng.random() < 0.8:
++                    lst.append(lu(v))
++                rng.shuffle(lst)
++                candidates[la(v)] = lst
++    support = rng.choice(["all", "nonzero"])
++    theta = 0.5 if rng.random() < 0.8 else rng.choice([0.2, 1.0, 2.0])
++    max_sweeps = 100 if rng.random() < 0.9 else rng.choice([2, 3])
++    desc = (f"{model} del={da:.2f}/{du:.2f} drop={drop} shared={int(shared)} "
++            f"anch={len(anchors)} wrong={wrong} dup={int(dup)} cand={cmode} "
++            f"sup={support} theta={theta} ms={max_sweeps}")
++    return desc, Ga, Gu, anchors, candidates, theta, support, max_sweeps
++
++
++def full_rescan_evals(Ga, sweeps):
++    """Forward evaluations the full rescan makes: the unmapped count at each sweep start."""
++    out = []
++    for _, _, plus, mapped in sweeps:
++        out.append(Ga.number_of_nodes() - (mapped - plus))
++    return out
++
++
++def main(argv=None) -> int:
++    ap = argparse.ArgumentParser(description=__doc__,
++                                 formatter_class=argparse.RawDescriptionHelpFormatter)
++    ap.add_argument("--old", required=True, metavar="PATH",
++                    help="full-rescan propagation.py to compare against")
++    ap.add_argument("--cases", type=int, default=240)
++    ap.add_argument("--seed", type=int, default=0)
++    ap.add_argument("--max-n", type=int, default=3000)
++    ap.add_argument("--case", type=int, default=None, help="run only case K")
++    args = ap.parse_args(argv)
++
++    try:
++        import networkx as nx
++        old = load_module_from(args.old, "propagation_old")
++        new = load_module_from(NEW_PATH, "propagation_new")
++    except Exception as e:
++        print(f"setup error: {type(e).__name__}: {e}", file=sys.stderr)
++        return 2
++    if not hasattr(new, "LAST_EVALUATIONS"):
++        print(f"{NEW_PATH} has no LAST_EVALUATIONS; is it the new code?", file=sys.stderr)
++        return 2
++    print(f"networkx {nx.__version__}  python {sys.version.split()[0]}")
++    print(f"old: {args.old}\nnew: {NEW_PATH}")
++
++    ks = [args.case] if args.case is not None else range(args.cases)
++    bad = 0
++    t_old_tot = t_new_tot = 0.0
++    ev_new_tot = ev_full_tot = 0
++    print("case\tresult\told_s\tnew_s\tspeedup\tsweeps\tmapped\tevals_new/full\tdesc")
++    for k in ks:
++        desc, Ga, Gu, anchors, cands, theta, support, ms = make_case(nx, k, args.seed,
++                                                                     args.max_n)
++        m_o, sw_o, oth_o, ex_o, t_o = run(old, Ga, Gu, anchors, cands, theta, support, ms)
++        m_n, sw_n, oth_n, ex_n, t_n = run(new, Ga, Gu, anchors, cands, theta, support, ms)
++        ev_n = list(new.LAST_EVALUATIONS)
++        problems = []
++        if ex_o != ex_n:
++            problems.append(f"exception old={ex_o!r} new={ex_n!r}")
++        if m_o is not None and m_n is not None:
++            if sorted_hash(m_o) != sorted_hash(m_n):
++                problems.append("mapping sha256 differs")
++            elif list(m_o.items()) != list(m_n.items()):
++                problems.append("mapping insertion order differs")
++        if sw_o != sw_n:
++            problems.append(f"sweeps old={sw_o} new={sw_n}")
++        if oth_o or oth_n:
++            problems.append(f"unparsed stderr old={oth_o[:3]} new={oth_n[:3]}")
++        if not sw_n and ex_n is None:
++            problems.append("no sweep lines")
++        full = full_rescan_evals(Ga, sw_o)
++        if ex_n is None and len(ev_n) != len(sw_n):
++            problems.append(f"LAST_EVALUATIONS has {len(ev_n)} entries for "
++                            f"{len(sw_n)} sweeps")
++        if ex_n is None and any(e > f for e, f in zip(ev_n, full)):
++            problems.append(f"new evaluated more than the rescan: {ev_n} vs {full}")
++        bad += bool(problems)
++        t_old_tot += t_o
++        t_new_tot += t_n
++        ev_new_tot += sum(ev_n)
++        ev_full_tot += sum(full)
++        mapped = sw_n[-1][3] if sw_n else "-"
++        print(f"{k}\t{'MISMATCH' if problems else 'ok'}\t{t_o:.2f}\t{t_n:.2f}\t"
++              f"{(t_o / t_n) if t_n else float('nan'):.1f}x\t{len(sw_n)}\t{mapped}\t"
++              f"{sum(ev_n)}/{sum(full)}\t{desc}", flush=True)
++        if problems:
++            for p in problems:
++                print(f"    {p}", flush=True)
++            print(f"    per-sweep evals new={ev_n} full={full}", flush=True)
++    n_cases = len(list(ks))
++    print(f"{n_cases} cases, {bad} mismatches; old {t_old_tot:.1f}s new {t_new_tot:.1f}s; "
++          f"forward evaluations new {ev_new_tot} vs full rescan {ev_full_tot}")
++    return 1 if bad else 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())

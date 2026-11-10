@@ -1,0 +1,170 @@
+{
+  "kind": "perturbation",
+  "pair": "gplus_combined_b10_s2",
+  "status": "confirmatory",
+  "note": "sweep cell for nominal beta=0.1 in nominal mode",
+  "supersedes": null,
+  "started_utc": "2026-11-10T14:08:41+00:00",
+  "argv": [
+    "/home/mmyatmau/Graph-De-Anonymization/src/beta_noise_generator/perturbation.py",
+    "--parent",
+    "/home/mmyatmau/Graph-De-Anonymization/gplus_combined.txt",
+    "--beta",
+    "0.1",
+    "--beta-nominal",
+    "0.1",
+    "--beta-mode",
+    "nominal",
+    "--seed",
+    "2",
+    "--out",
+    "runs/pilot_gplus",
+    "--status",
+    "confirmatory",
+    "--note",
+    "sweep cell for nominal beta=0.1 in nominal mode"
+  ],
+  "git": {
+    "head": "3e8f37fe9082",
+    "head_full": "3e8f37fe90824f7ecaaf1d2cf14f3906904b2ba3",
+    "branch": "moe-dev",
+    "dirty": true,
+    "dirty_paths": [
+      "results/runs/20261110T1353Z_gplus_combined_b10_s0_5dd32ae8/",
+      "results/runs/20261110T1401Z_gplus_combined_b10_s1_36bd3d1a/",
+      "results/runs/index.jsonl",
+      "scripts/composite_check.py",
+      "scripts/propagate_frontier_check.py",
+      "src/adv_gd/propagation.py",
+      "src/adv_gd/w_control.py",
+      "src/baselines/composite_centrality.py"
+    ],
+    "untracked_inlined": [
+      "scripts/composite_check.py",
+      "scripts/propagate_frontier_check.py"
+    ],
+    "untracked_hashed": [
+      {
+        "path": "results/runs/20261110T1353Z_gplus_combined_b10_s0_5dd32ae8",
+        "tree": true,
+        "files": 3,
+        "bytes": 24968,
+        "listing_sha256": "936c057b4126c4c607eecae6e4c231a0c6f66f99bc6bfaf2849ec0a7aee22f6e"
+      },
+      {
+        "path": "results/runs/20261110T1401Z_gplus_combined_b10_s1_36bd3d1a",
+        "tree": true,
+        "files": 3,
+        "bytes": 69760,
+        "listing_sha256": "5f0caba32b1ab6f257bfa0f71380c1be40cea6cc009024af26817aeae4483e31"
+      }
+    ],
+    "diff_sha256": "602a8e62330c5283b2aee411122d44dcb597b971ba293e8429c63ebf2f6d9d13",
+    "diff_bytes": 64918
+  },
+  "env": {
+    "python": "3.12.15",
+    "platform": "Linux-4.18.0-372.32.1.el8_6.x86_64-x86_64-with-glibc2.41",
+    "host": "pleiades-1-3",
+    "packages": {
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "networkx": "3.7",
+      "scipy": "1.18.1",
+      "sklearn": null
+    },
+    "cuda": {
+      "available": false
+    },
+    "hashseed": "0"
+  },
+  "inputs": [
+    {
+      "path": "gplus_combined.txt",
+      "bytes": 1341774104,
+      "sha256": "c3b6e5fa980c688ef783cd6afabc0c17a635e5e7ad8f3edf8396907d3f1ab451"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s2/G1.edgelist",
+      "bytes": 131307601,
+      "sha256": "98bc2099b176b0fb5d0605b16ef6277db998768834041e2eeeea072e4f5b3c60"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s2/G2.edgelist",
+      "bytes": 131473974,
+      "sha256": "936b8203e85dec6831cb2bfc3e0d67e2a2908df31c5afc241dcbaaac886dad8a"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s2/mapping.txt",
+      "bytes": 1269015,
+      "sha256": "4ab2709f10f03f2be11ed6191160493117bec77200f48642ff0c9365ec7265f5"
+    },
+    {
+      "path": "runs/pilot_gplus/gplus_combined_b10_s2/stats.json",
+      "bytes": 668,
+      "sha256": "3dcef73085988ec918f8a0bd44ce470780184821535aa194e3671e6fddc6a3c2"
+    }
+  ],
+  "metrics": {
+    "overlap_ratio": 0.809923367530663,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.00011213960670035253,
+    "jaccard": 0.8181124571148228,
+    "retention_a": 0.899904929489712,
+    "retention_u": 0.9000087021996954,
+    "matchable_nodes": 106433,
+    "edges_a": 11013293,
+    "edges_u": 11014563,
+    "parent_edges": 12238285
+  },
+  "seed": 2,
+  "beta": 0.1,
+  "beta_nominal": 0.1,
+  "beta_mode": "nominal",
+  "mode": "bernoulli",
+  "permute": true,
+  "node_sample": null,
+  "compat_layout": false,
+  "n_restarts": 1,
+  "selection": "none (single draw, accepted on (1-beta)^2 overlap check)",
+  "selected_seed": 2,
+  "parent": "/home/mmyatmau/Graph-De-Anonymization/gplus_combined.txt",
+  "pair_stats": {
+    "parent_edges": 12238285,
+    "edges_a": 11013293,
+    "edges_u": 11014563,
+    "shared_edges": 9912073,
+    "retention_a": 0.899904929489712,
+    "retention_u": 0.9000087021996954,
+    "retention_predicted": 0.9,
+    "overlap_ratio": 0.809923367530663,
+    "overlap_predicted": 0.81,
+    "overlap_sigma": 0.00011213960670035253,
+    "jaccard": 0.8181124571148228,
+    "jaccard_predicted": 0.8181818181818181,
+    "beta": 0.1,
+    "beta_nominal": 0.1,
+    "beta_mode": "nominal",
+    "seed": 2,
+    "mode": "bernoulli",
+    "permuted": true,
+    "parent_nodes": 107614,
+    "nodes_a": 107001,
+    "nodes_u": 106978,
+    "isolated_dropped_a": 613,
+    "isolated_dropped_u": 636,
+    "matchable_nodes": 106433
+  },
+  "matchable_nodes": 106433,
+  "verify_passed": true,
+  "verify_message": "overlap 0.8099 vs predicted 0.8100 (delta 0.0001, tol 0.0100)",
+  "overwrote_existing": null,
+  "out_dir": "runs/pilot_gplus/gplus_combined_b10_s2",
+  "run_id": "20261110T1408Z_gplus_combined_b10_s2_5e68f953",
+  "config_sha256": "5e68f953",
+  "status_exit": "ok",
+  "seconds": 9.0,
+  "finished_utc": "2026-11-10T14:08:50+00:00"
+}

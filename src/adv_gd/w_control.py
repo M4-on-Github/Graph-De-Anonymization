@@ -272,12 +272,17 @@ def hash_rule(z1: str, z2: str, found: dict, stale: int = 0,
 # Seed sets for W_0
 # --------------------------------------------------------------------------------------
 
-def composite_seed_pairs(Ga, Gu, n_anch: int, csls_k: int, verbose: bool = True):
-    """Arm B: the anchors composite_centrality returns. No ground truth."""
+def composite_seed_pairs(Ga, Gu, n_anch: int, csls_k: int, verbose: bool = True,
+                         pair: Path | None = None):
+    """Arm B: the anchors composite_centrality returns. No ground truth.
+
+    With `pair`, the fingerprints come from (or go to) the pair's on-disk
+    cache that composite_centrality.run also uses; the anchors are the same.
+    """
     sys.path.insert(0, str(REPO_ROOT / "src" / "baselines"))
     import composite_centrality
     return composite_centrality.find_anchors(Ga, Gu, n_anch, csls_k=csls_k,
-                                             verbose=verbose)
+                                             verbose=verbose, pair=pair)
 
 
 def oracle_seed_pairs(Ga, Gu, nodes_a: list, nodes_u: list, truth: dict,
@@ -425,7 +430,7 @@ def _execute(rec, pair, dataset, params, Ga, Gu, truth, stats, arm, gae_seed,
     print(f"W_0 source: {ARMS[arm]}", file=sys.stderr)
     if arm == "B":
         seeds = composite_seed_pairs(Ga, Gu, params["n_anch"], cfg["csls_k"],
-                                     verbose)
+                                     verbose, pair=pair)
     else:
         seeds = oracle_seed_pairs(Ga, Gu, nodes_a, nodes_u, truth,
                                   params["n_anch"])
