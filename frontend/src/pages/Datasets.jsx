@@ -4,7 +4,7 @@ function Datasets() {
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
-    fetch('/datasets')
+    fetch('http://127.0.0.1:5000/datasets')
       .then(res => res.json())
       .then(data => setFiles(data))
       .catch(console.error);
