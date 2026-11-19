@@ -1,0 +1,420 @@
+﻿=== 6767-directed-control ===
+Graph directed, noise mode individual, seed 6767
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.003870
+Held-out nodes 4000, predicted links 355, correct links 355
+Precision 1.000, recall 0.089, F1 0.163, coverage 0.089
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.082s
+Extract features 4.556s
+Scale features and compute cosine scores 0.074s
+Calibrate and score candidates 426.631s
+Resolve and evaluate links 0.046s
+Total 432.389s
+
+=== 6767-directed-density ===
+Graph directed, noise mode density, seed 6767
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 1932, graph density 0.003870
+Held-out nodes 4000, predicted links 158, correct links 140
+Precision 0.886, recall 0.035, F1 0.067, coverage 0.040
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.031s
+Extract features 5.566s
+Scale features and compute cosine scores 0.177s
+Calibrate and score candidates 495.609s
+Resolve and evaluate links 0.049s
+Total 502.432s
+
+=== 6767-directed-individual ===
+Graph directed, noise mode individual, seed 6767
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 199, correct links 185
+Precision 0.930, recall 0.046, F1 0.088, coverage 0.050
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.007s
+Extract features 6.236s
+Scale features and compute cosine scores 0.090s
+Calibrate and score candidates 625.116s
+Resolve and evaluate links 0.074s
+Total 632.524s
+
+=== 6767-directed-reciprocal ===
+Graph directed, noise mode reciprocal, seed 6767
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 140, correct links 121
+Precision 0.864, recall 0.030, F1 0.058, coverage 0.035
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.017s
+Extract features 6.421s
+Scale features and compute cosine scores 0.084s
+Calibrate and score candidates 602.926s
+Resolve and evaluate links 0.052s
+Total 610.500s
+
+=== 6767-undirected-control ===
+Graph undirected, noise mode individual, seed 6767
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.007728
+Held-out nodes 4000, predicted links 304, correct links 304
+Precision 1.000, recall 0.076, F1 0.141, coverage 0.076
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.224s
+Extract features 8.490s
+Scale features and compute cosine scores 0.076s
+Calibrate and score candidates 420.197s
+Resolve and evaluate links 0.047s
+Total 430.035s
+
+=== 6767-undirected-noisy ===
+Graph undirected, noise mode individual, seed 6767
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0.01, replaced edges 966, graph density 0.007728
+Held-out nodes 4000, predicted links 266, correct links 262
+Precision 0.985, recall 0.066, F1 0.123, coverage 0.067
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.281s
+Extract features 8.395s
+Scale features and compute cosine scores 0.077s
+Calibrate and score candidates 487.850s
+Resolve and evaluate links 0.080s
+Total 497.683s
+
+=== 6768-directed-control ===
+Graph directed, noise mode individual, seed 6768
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.003870
+Held-out nodes 4000, predicted links 354, correct links 354
+Precision 1.000, recall 0.088, F1 0.163, coverage 0.088
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 0.956s
+Extract features 4.606s
+Scale features and compute cosine scores 0.074s
+Calibrate and score candidates 467.241s
+Resolve and evaluate links 0.050s
+Total 472.928s
+
+=== 6768-directed-density ===
+Graph directed, noise mode density, seed 6768
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 1932, graph density 0.003870
+Held-out nodes 4000, predicted links 163, correct links 135
+Precision 0.828, recall 0.034, F1 0.065, coverage 0.041
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.121s
+Extract features 6.420s
+Scale features and compute cosine scores 0.090s
+Calibrate and score candidates 603.070s
+Resolve and evaluate links 0.072s
+Total 610.773s
+
+=== 6768-directed-individual ===
+Graph directed, noise mode individual, seed 6768
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 234, correct links 207
+Precision 0.885, recall 0.052, F1 0.098, coverage 0.059
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.020s
+Extract features 4.943s
+Scale features and compute cosine scores 0.076s
+Calibrate and score candidates 667.388s
+Resolve and evaluate links 0.071s
+Total 673.497s
+
+=== 6768-directed-reciprocal ===
+Graph directed, noise mode reciprocal, seed 6768
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 235, correct links 218
+Precision 0.928, recall 0.054, F1 0.103, coverage 0.059
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.138s
+Extract features 6.438s
+Scale features and compute cosine scores 0.095s
+Calibrate and score candidates 630.795s
+Resolve and evaluate links 0.078s
+Total 638.544s
+
+=== 6768-undirected-control ===
+Graph undirected, noise mode individual, seed 6768
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.007728
+Held-out nodes 4000, predicted links 281, correct links 281
+Precision 1.000, recall 0.070, F1 0.131, coverage 0.070
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.123s
+Extract features 9.367s
+Scale features and compute cosine scores 0.077s
+Calibrate and score candidates 467.980s
+Resolve and evaluate links 0.049s
+Total 478.597s
+
+=== 6768-undirected-noisy ===
+Graph undirected, noise mode individual, seed 6768
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0.01, replaced edges 966, graph density 0.007728
+Held-out nodes 4000, predicted links 150, correct links 144
+Precision 0.960, recall 0.036, F1 0.069, coverage 0.037
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.221s
+Extract features 9.551s
+Scale features and compute cosine scores 0.083s
+Calibrate and score candidates 480.601s
+Resolve and evaluate links 0.063s
+Total 491.520s
+
+=== 6769-directed-control ===
+Graph directed, noise mode individual, seed 6769
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.003870
+Held-out nodes 4000, predicted links 382, correct links 382
+Precision 1.000, recall 0.096, F1 0.174, coverage 0.096
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.082s
+Extract features 6.471s
+Scale features and compute cosine scores 0.091s
+Calibrate and score candidates 663.714s
+Resolve and evaluate links 0.051s
+Total 671.408s
+
+=== 6769-directed-density ===
+Graph directed, noise mode density, seed 6769
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 1932, graph density 0.003870
+Held-out nodes 4000, predicted links 198, correct links 159
+Precision 0.803, recall 0.040, F1 0.076, coverage 0.050
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.011s
+Extract features 4.041s
+Scale features and compute cosine scores 0.076s
+Calibrate and score candidates 399.362s
+Resolve and evaluate links 0.045s
+Total 404.534s
+
+=== 6769-directed-individual ===
+Graph directed, noise mode individual, seed 6769
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 162, correct links 138
+Precision 0.852, recall 0.035, F1 0.066, coverage 0.041
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.002s
+Extract features 4.089s
+Scale features and compute cosine scores 0.075s
+Calibrate and score candidates 402.150s
+Resolve and evaluate links 0.045s
+Total 407.360s
+
+=== 6769-directed-reciprocal ===
+Graph directed, noise mode reciprocal, seed 6769
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 176, correct links 159
+Precision 0.903, recall 0.040, F1 0.076, coverage 0.044
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 0.997s
+Extract features 4.074s
+Scale features and compute cosine scores 0.073s
+Calibrate and score candidates 396.509s
+Resolve and evaluate links 0.044s
+Total 401.697s
+
+=== 6769-undirected-control ===
+Graph undirected, noise mode individual, seed 6769
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.007728
+Held-out nodes 4000, predicted links 411, correct links 411
+Precision 1.000, recall 0.103, F1 0.186, coverage 0.103
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.274s
+Extract features 9.187s
+Scale features and compute cosine scores 0.080s
+Calibrate and score candidates 679.428s
+Resolve and evaluate links 0.070s
+Total 690.038s
+
+=== 6769-undirected-noisy ===
+Graph undirected, noise mode individual, seed 6769
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0.01, replaced edges 966, graph density 0.007728
+Held-out nodes 4000, predicted links 201, correct links 193
+Precision 0.960, recall 0.048, F1 0.092, coverage 0.050
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.376s
+Extract features 13.798s
+Scale features and compute cosine scores 0.092s
+Calibrate and score candidates 454.958s
+Resolve and evaluate links 0.045s
+Total 470.269s
+
+=== 6770-directed-control ===
+Graph directed, noise mode individual, seed 6770
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.003870
+Held-out nodes 4000, predicted links 453, correct links 453
+Precision 1.000, recall 0.113, F1 0.203, coverage 0.113
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 0.932s
+Extract features 4.091s
+Scale features and compute cosine scores 0.073s
+Calibrate and score candidates 491.217s
+Resolve and evaluate links 0.046s
+Total 496.358s
+
+=== 6770-directed-density ===
+Graph directed, noise mode density, seed 6770
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 1932, graph density 0.003870
+Held-out nodes 4000, predicted links 132, correct links 101
+Precision 0.765, recall 0.025, F1 0.049, coverage 0.033
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.042s
+Extract features 3.974s
+Scale features and compute cosine scores 0.072s
+Calibrate and score candidates 396.967s
+Resolve and evaluate links 0.045s
+Total 402.100s
+
+=== 6770-directed-individual ===
+Graph directed, noise mode individual, seed 6770
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 170, correct links 151
+Precision 0.888, recall 0.038, F1 0.072, coverage 0.043
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.028s
+Extract features 4.007s
+Scale features and compute cosine scores 0.072s
+Calibrate and score candidates 394.695s
+Resolve and evaluate links 0.046s
+Total 399.848s
+
+=== 6770-directed-reciprocal ===
+Graph directed, noise mode reciprocal, seed 6770
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 180, correct links 160
+Precision 0.889, recall 0.040, F1 0.077, coverage 0.045
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.006s
+Extract features 4.059s
+Scale features and compute cosine scores 0.071s
+Calibrate and score candidates 396.192s
+Resolve and evaluate links 0.045s
+Total 401.372s
+
+=== 6770-undirected-control ===
+Graph undirected, noise mode individual, seed 6770
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.007728
+Held-out nodes 4000, predicted links 378, correct links 378
+Precision 1.000, recall 0.095, F1 0.173, coverage 0.095
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.097s
+Extract features 8.040s
+Scale features and compute cosine scores 0.072s
+Calibrate and score candidates 390.071s
+Resolve and evaluate links 0.045s
+Total 399.324s
+
+=== 6770-undirected-noisy ===
+Graph undirected, noise mode individual, seed 6770
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0.01, replaced edges 966, graph density 0.007728
+Held-out nodes 4000, predicted links 174, correct links 169
+Precision 0.971, recall 0.042, F1 0.081, coverage 0.043
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.155s
+Extract features 7.899s
+Scale features and compute cosine scores 0.072s
+Calibrate and score candidates 394.065s
+Resolve and evaluate links 0.045s
+Total 403.237s
+
+=== 6771-directed-control ===
+Graph directed, noise mode individual, seed 6771
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.003870
+Held-out nodes 4000, predicted links 375, correct links 375
+Precision 1.000, recall 0.094, F1 0.171, coverage 0.094
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 0.891s
+Extract features 4.070s
+Scale features and compute cosine scores 0.073s
+Calibrate and score candidates 391.011s
+Resolve and evaluate links 0.044s
+Total 396.089s
+
+=== 6771-directed-density ===
+Graph directed, noise mode density, seed 6771
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 1932, graph density 0.003870
+Held-out nodes 4000, predicted links 180, correct links 142
+Precision 0.789, recall 0.035, F1 0.068, coverage 0.045
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.019s
+Extract features 3.983s
+Scale features and compute cosine scores 0.071s
+Calibrate and score candidates 410.025s
+Resolve and evaluate links 0.044s
+Total 415.141s
+
+=== 6771-directed-individual ===
+Graph directed, noise mode individual, seed 6771
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 166, correct links 131
+Precision 0.789, recall 0.033, F1 0.063, coverage 0.042
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.006s
+Extract features 4.045s
+Scale features and compute cosine scores 0.074s
+Calibrate and score candidates 399.863s
+Resolve and evaluate links 0.046s
+Total 405.035s
+
+=== 6771-directed-reciprocal ===
+Graph directed, noise mode reciprocal, seed 6771
+Nodes 5000, edges 96723, calibration pairs 1000
+Requested noise 0.01, replaced edges 967, graph density 0.003870
+Held-out nodes 4000, predicted links 125, correct links 107
+Precision 0.856, recall 0.027, F1 0.052, coverage 0.031
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.030s
+Extract features 4.029s
+Scale features and compute cosine scores 0.075s
+Calibrate and score candidates 409.169s
+Resolve and evaluate links 0.045s
+Total 414.348s
+
+=== 6771-undirected-control ===
+Graph undirected, noise mode individual, seed 6771
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0, replaced edges 0, graph density 0.007728
+Held-out nodes 4000, predicted links 156, correct links 156
+Precision 1.000, recall 0.039, F1 0.075, coverage 0.039
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.098s
+Extract features 8.032s
+Scale features and compute cosine scores 0.073s
+Calibrate and score candidates 388.900s
+Resolve and evaluate links 0.045s
+Total 398.147s
+
+=== 6771-undirected-noisy ===
+Graph undirected, noise mode individual, seed 6771
+Nodes 5000, edges 96582, calibration pairs 1000
+Requested noise 0.01, replaced edges 966, graph density 0.007728
+Held-out nodes 4000, predicted links 125, correct links 121
+Precision 0.968, recall 0.030, F1 0.059, coverage 0.031
+Cosine pairs 25,000,000, held-out candidate pairs 16,000,000
+Load and prepare graph pair 1.185s
+Extract features 7.958s
+Scale features and compute cosine scores 0.075s
+Calibrate and score candidates 393.226s
+Resolve and evaluate links 0.045s
+Total 402.489s
+

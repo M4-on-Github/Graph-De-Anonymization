@@ -1,0 +1,7 @@
+# Direct Python dependencies for native Windows.
+# PyTorch uses the default PyPI Windows build.
+networkx
+numpy
+scipy
+matplotlib
+torch

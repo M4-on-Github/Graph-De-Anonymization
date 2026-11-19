@@ -1,0 +1,3 @@
+# Required by the tensor-based baseline matchers and Adv-GD.
+-r requirements.txt
+torch==2.14.1
