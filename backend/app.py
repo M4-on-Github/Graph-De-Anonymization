@@ -1,28 +1,37 @@
-
 from flask import Flask, jsonify
 from flask_cors import CORS
 import os
+import json
 
 app = Flask(__name__)
 CORS(app)
 
-# Location of the datasets folder
-DATASET_FOLDER = os.path.join(
-    os.path.dirname(__file__), "datasets"
-)
+DATASET_FOLDER = "datasets"
 
-@app.route('/datasets', methods=['GET'])
+@app.route('/datasets')
 def get_datasets():
-
-    # Get all files in the datasets folder
     files = [
-        file for file in os.listdir(DATASET_FOLDER)
-        if os.path.isfile(os.path.join(DATASET_FOLDER, file))
+        f for f in os.listdir(DATASET_FOLDER)
+        if f.endswith('.json')
     ]
-
-    # Return filenames as JSON
     return jsonify(files)
 
 
+@app.route('/datasets/<filename>')
+def get_dataset(filename):
+    if not filename.endswith('.json') or os.path.basename(filename) != filename:
+        return jsonify({"error": "Invalid filename"}), 400
+
+    filepath = os.path.join(DATASET_FOLDER, filename)
+
+    if not os.path.isfile(filepath):
+        return jsonify({"error": "Dataset not found"}), 404
+
+    with open(filepath, 'r') as file:
+        data = json.load(file)
+
+    return jsonify(data)
+
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='127.0.0.1', port=5000)
