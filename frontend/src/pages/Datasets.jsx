@@ -5,7 +5,7 @@ function Datasets() {
   const [selectedDataset, setSelectedDataset] = useState(null);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/datasets')
+    fetch('http://127.0.0.1:5000/cyto-datasets')
       .then(res => res.json())
       .then(data => setDatasets(data))
       .catch(console.error);
@@ -14,7 +14,7 @@ function Datasets() {
   const loadDataset = async (filename) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/datasets/${encodeURIComponent(filename)}`
+        `http://127.0.0.1:5000/cyto-datasets/${encodeURIComponent(filename)}`
       );
 
       if (!response.ok) throw new Error('Failed to load dataset');

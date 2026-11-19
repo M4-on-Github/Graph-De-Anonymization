@@ -6,9 +6,9 @@ import json
 app = Flask(__name__)
 CORS(app)
 
-DATASET_FOLDER = "datasets"
+DATASET_FOLDER = "cyto-datasets"
 
-@app.route('/datasets')
+@app.route('/cyto-datasets')
 def get_datasets():
     files = [
         f for f in os.listdir(DATASET_FOLDER)
@@ -17,7 +17,7 @@ def get_datasets():
     return jsonify(files)
 
 
-@app.route('/datasets/<filename>')
+@app.route('/cyto-datasets/<filename>')
 def get_dataset(filename):
     if not filename.endswith('.json') or os.path.basename(filename) != filename:
         return jsonify({"error": "Invalid filename"}), 400
